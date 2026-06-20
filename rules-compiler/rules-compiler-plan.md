@@ -27,15 +27,64 @@ The output must be deterministic enough to be validated, stored, hashed, and lat
 
 ---
 
-## Core Principle
+## Source Contract
 
-The compiler may reason.
+The compiler should treat the source files as having distinct responsibilities.
 
-The backtester must not.
+```text
+manifest.json
+  = strategy metadata, compiler configuration, universe, and portfolio configuration
 
-The compiler turns strategy intent and optional agent feedback into portable strategy logic.
+strategy.md
+  = human-readable strategy intent
 
-The backtester only evaluates the compiled result.
+rules.json
+  = user-authored seed rules only
+
+compiled/strategy.ir.json
+  = normalized deterministic AIR consumed by the backtester
+```
+
+### `manifest.json`
+
+`manifest.json` is the source of truth for portfolio configuration during authoring.
+
+It should define:
+
+- strategy identity
+- spec version
+- compiler mode
+- compiler engines
+- training window
+- schedule
+- universe
+- starting capital
+- initial allocation
+- candidate baskets
+- portfolio targets
+- constraints
+- risk budgets
+- selection policy
+
+### `strategy.md`
+
+`strategy.md` explains the strategy in natural language.
+
+It may describe desired behavior, market logic, risk assumptions, and examples of how the strategy should behave.
+
+### `rules.json`
+
+`rules.json` contains user-authored seed rules only.
+
+It should define rules that the compiler may preserve, normalize, merge, refine, reject, or expand.
+
+The compiler should not require `rules.json` to define portfolio configuration.
+
+### `compiled/strategy.ir.json`
+
+`compiled/strategy.ir.json` contains the normalized deterministic strategy.
+
+The backtester should read portfolio configuration only from AIR.
 
 ---
 
@@ -89,8 +138,42 @@ Defines:
 - training window
 - schedule
 - universe
-- portfolio defaults
+- portfolio configuration
 - hosted/local compute preferences
+
+The portfolio section may include:
+
+```json
+{
+  "portfolio": {
+    "base_currency": "USD",
+    "starting_cash": 100000,
+    "initial_allocation": {
+      "mode": "weights",
+      "positions": [
+        { "symbol": "SPY", "weight": 0.40 },
+        { "symbol": "QQQ", "weight": 0.25 },
+        { "symbol": "TLT", "weight": 0.20 },
+        { "symbol": "cash", "weight": 0.15 }
+      ]
+    },
+    "candidate_baskets": [
+      {
+        "basket_id": "growth_technology",
+        "asset_class": "equities",
+        "sector": "technology",
+        "symbols": ["QQQ", "NVDA", "AMD", "MSFT", "AAPL", "AVGO", "SMH"]
+      }
+    ],
+    "targets": {
+      "cash": 0.20,
+      "equities": 0.55,
+      "bonds": 0.20,
+      "commodities": 0.05
+    }
+  }
+}
+```
 
 ### `strategy.md`
 
@@ -111,6 +194,8 @@ Rules may be:
 - rejected
 - expanded
 
+Rules may target symbols, baskets, asset classes, sectors, themes, cash, or the whole portfolio if supported by the schema.
+
 ---
 
 ## Outputs
@@ -120,6 +205,17 @@ Rules may be:
 The canonical compiled AIR artifact.
 
 This is the only required input to the backtester.
+
+The compiled AIR should include the final normalized portfolio object, including:
+
+- `starting_cash`
+- `initial_allocation`
+- `candidate_baskets`
+- `targets`
+- `constraints`
+- `selection_policy`
+- `risk_budgets`
+- `rebalance`
 
 ### `compiled/provenance.json`
 
@@ -149,6 +245,8 @@ Should summarize:
 - added signals
 - added regimes
 - added relations
+- added or normalized candidate baskets
+- added or normalized selection policies
 - agent feedback summary
 - major design decisions
 
@@ -210,6 +308,19 @@ The first implementation can stub these engines.
 
 The interface should allow real implementations later.
 
+When agents are used, they may suggest:
+
+- new signals
+- updated regimes
+- cross-asset relations
+- preferred candidate baskets
+- basket ranking signals
+- updated selection policy weights
+- rule refinements
+- portfolio risk posture adjustments
+
+The compiler is responsible for converting those suggestions into valid AIR.
+
 ---
 
 ## Proposed Go Package Structure
@@ -232,6 +343,10 @@ rules-compiler/
 │   ├── rules/
 │   │   ├── load.go
 │   │   └── normalize.go
+│   ├── portfolio/
+│   │   ├── normalize.go
+│   │   ├── baskets.go
+│   │   └── selection_policy.go
 │   ├── compiler/
 │   │   ├── compiler.go
 │   │   ├── manual.go
@@ -276,6 +391,69 @@ type Manifest struct {
     Version     string
     Tags        []string
     Compiler    CompilerConfig
+    Universe    UniverseConfig
+    Portfolio   PortfolioConfig
+}
+```
+
+### PortfolioConfig
+
+```go
+type PortfolioConfig struct {
+    BaseCurrency      string
+    StartingCash      float64
+    InitialAllocation InitialAllocation
+    CandidateBaskets  []CandidateBasket
+    Targets           map[string]float64
+    Constraints       PortfolioConstraints
+    SelectionPolicy   SelectionPolicy
+    RiskBudgets       RiskBudgets
+    Rebalance         RebalancePolicy
+}
+```
+
+### InitialAllocation
+
+```go
+type InitialAllocation struct {
+    Mode      string
+    Positions []InitialPosition
+}
+```
+
+Supported modes:
+
+- `cash`
+- `weights`
+- `dollars`
+- `shares`
+
+### CandidateBasket
+
+```go
+type CandidateBasket struct {
+    BasketID          string
+    Description       string
+    AssetClass        string
+    Sector            string
+    Sectors           []string
+    Theme             string
+    Symbols           []string
+    Role              string
+    MinWeight         *float64
+    MaxWeight         *float64
+    MinPositionWeight *float64
+    MaxPositionWeight *float64
+}
+```
+
+### SelectionPolicy
+
+```go
+type SelectionPolicy struct {
+    DefaultMethod      string
+    RebalanceThreshold float64
+    Baskets            map[string]BasketSelectionPolicy
 }
 ```
 
@@ -283,11 +461,11 @@ type Manifest struct {
 
 ```go
 type CompilerConfig struct {
-    Mode             string
-    Engines          []EngineConfig
-    EnsembleMethod   string
-    TrainingWindow   TrainingWindow
-    AllowNetwork     bool
+    Mode               string
+    Engines            []EngineConfig
+    EnsembleMethod     string
+    TrainingWindow     TrainingWindow
+    AllowNetwork       bool
     AllowHostedCompute bool
 }
 ```
@@ -306,11 +484,12 @@ type Engine interface {
 
 ```go
 type EngineInput struct {
-    Manifest   Manifest
-    StrategyMD string
-    RulesJSON  []byte
+    Manifest       Manifest
+    StrategyMD     string
+    RulesJSON      []byte
     TrainingWindow TrainingWindow
-    Universe []string
+    Universe       []string
+    Portfolio      PortfolioConfig
 }
 ```
 
@@ -318,12 +497,14 @@ type EngineInput struct {
 
 ```go
 type EngineOutput struct {
-    Signals   []SignalSuggestion
-    Relations []RelationSuggestion
-    Regimes   []RegimeSuggestion
-    Rules     []RuleSuggestion
-    Portfolio *PortfolioSuggestion
-    Notes     string
+    Signals         []SignalSuggestion
+    Relations       []RelationSuggestion
+    Regimes         []RegimeSuggestion
+    Rules           []RuleSuggestion
+    CandidateBaskets []CandidateBasketSuggestion
+    SelectionPolicy *SelectionPolicySuggestion
+    Portfolio       *PortfolioSuggestion
+    Notes           string
 }
 ```
 
@@ -350,6 +531,8 @@ Validate manifest
     ↓
 Validate seed rules
     ↓
+Normalize portfolio configuration from manifest
+    ↓
 Resolve compiler mode
     ↓
 Load engines
@@ -360,6 +543,8 @@ Normalize suggestions
     ↓
 Merge user rules and agent suggestions
     ↓
+Merge candidate basket and selection policy suggestions
+    ↓
 Build AIR
     ↓
 Semantic validation
@@ -368,6 +553,25 @@ Schema validation
     ↓
 Write outputs
 ```
+
+---
+
+## Portfolio Normalization
+
+The compiler should normalize the authored portfolio configuration before writing AIR.
+
+Tasks:
+
+1. Validate `starting_cash`.
+2. Validate `initial_allocation`.
+3. Default missing initial allocation to 100% cash.
+4. Validate candidate basket ids are unique.
+5. Validate candidate basket symbols exist in the universe or add them to the normalized AIR universe.
+6. Validate selection policies reference known baskets.
+7. Validate targets sum or intentionally allow residual cash.
+8. Validate constraints are internally consistent.
+9. Normalize cash as a first-class allocation target.
+10. Emit warnings for unused candidate baskets.
 
 ---
 
@@ -381,12 +585,17 @@ The compiler should also verify:
 - unique rule ids
 - unique regime ids
 - unique relation ids
+- unique candidate basket ids
 - every signal reference resolves
 - every regime reference resolves
 - every relation reference resolves
+- every selection policy basket reference resolves
 - every rule layer exists in decision hierarchy
 - every rule action target is known or allowed
+- every basket-targeting action references a known basket
 - portfolio constraints are internally valid
+- initial allocation is valid
+- initial allocation symbols resolve
 - compiler engines are version-pinned
 - training window is valid
 - no unsupported operators are used
@@ -404,8 +613,27 @@ Suggested behavior:
 3. Add regimes only when referenced or useful.
 4. Add relations when cross-asset logic is present.
 5. Add portfolio safety rules if missing.
-6. Prefer explicit user constraints over agent suggestions.
-7. Emit warnings when agent suggestions conflict with user rules.
+6. Preserve explicit manifest portfolio constraints unless an agent suggestion is accepted by the compiler.
+7. Emit warnings when agent suggestions conflict with user rules or portfolio configuration.
+
+---
+
+## Candidate Basket Strategy
+
+For v0.1, candidate baskets should be deterministic data structures.
+
+The compiler may:
+
+- preserve authored baskets
+- add metadata to baskets
+- add symbols suggested by engines
+- remove duplicate symbols
+- normalize sectors and asset classes
+- attach ranking signals through `selection_policy`
+
+The compiler should avoid silently replacing the user's candidate universe.
+
+If an agent suggests removing symbols from a basket, the compiler should record that decision in `reasoning.md`.
 
 ---
 
@@ -490,6 +718,10 @@ Example:
     {
       "name": "signal_references_resolved",
       "status": "pass"
+    },
+    {
+      "name": "candidate_baskets_valid",
+      "status": "pass"
     }
   ],
   "warnings": [],
@@ -509,11 +741,12 @@ Milestone 1 should:
 2. Load `strategy.md`.
 3. Load `rules.json`.
 4. Validate required fields.
-5. Create basic AIR.
-6. Write `compiled/strategy.ir.json`.
-7. Write `compiled/provenance.json`.
-8. Write `compiled/reasoning.md`.
-9. Write `compiled/validation-report.json`.
+5. Normalize portfolio configuration from manifest.
+6. Create basic AIR.
+7. Write `compiled/strategy.ir.json`.
+8. Write `compiled/provenance.json`.
+9. Write `compiled/reasoning.md`.
+10. Write `compiled/validation-report.json`.
 
 No real LLM required.
 
@@ -531,7 +764,8 @@ Tasks:
 2. Validate manifest.
 3. Validate AIR.
 4. Validate rules.
-5. Emit validation report.
+5. Validate portfolio schema.
+6. Emit validation report.
 
 ---
 
@@ -546,6 +780,7 @@ Tasks:
 3. Add `single` mode.
 4. Add `ensemble` mode with union merge.
 5. Record engine output in reasoning file.
+6. Support stub candidate basket and selection policy suggestions.
 
 ---
 
@@ -582,17 +817,24 @@ Test cases:
 ### Valid
 
 - minimal manifest
+- manifest with initial allocation
+- manifest with candidate baskets
+- manifest with selection policy
 - manual strategy
 - ensemble strategy
 - precompiled AIR mode
 - valid seed rules
+- basket-targeting rules
 
 ### Invalid
 
 - missing spec version
 - unsupported compiler mode
 - duplicate rule id
+- duplicate basket id
 - unresolved signal reference
+- unresolved basket reference
+- invalid initial allocation
 - invalid training window
 - invalid engine config
 - invalid rule priority
@@ -621,5 +863,6 @@ The compiler is successful when:
 1. A user can provide a strategy folder.
 2. The compiler emits valid AIR.
 3. The AIR validates against v0.1 schemas.
-4. The backtester can consume the AIR without reading source files.
-5. Provenance and reasoning outputs are produced.
+4. The AIR contains normalized portfolio initialization and candidate basket data.
+5. The backtester can consume the AIR without reading source files.
+6. Provenance and reasoning outputs are produced.

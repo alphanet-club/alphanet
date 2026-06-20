@@ -39,6 +39,40 @@ The only strategy input is AIR.
 
 ---
 
+## Source Contract
+
+The backtester reads only:
+
+```text
+compiled/strategy.ir.json
+```
+
+The backtester should not read:
+
+```text
+manifest.json
+strategy.md
+rules.json
+```
+
+`manifest.json` is an authoring-time source file.
+
+`rules.json` is an authoring-time seed rule file.
+
+The compiled AIR contains the normalized deterministic portfolio model the backtester needs, including:
+
+- starting capital
+- initial allocation
+- candidate baskets
+- selection policy
+- targets
+- constraints
+- risk budgets
+- rebalance settings
+- executable rules
+
+---
+
 ## Initial CLI
 
 Recommended command:
@@ -61,6 +95,10 @@ Optional flags:
 --decision-trace
 --fail-on-missing-data
 ```
+
+`--starting-cash` should be treated as an explicit runtime override.
+
+If not provided, the backtester should use `portfolio.starting_cash` from AIR.
 
 ---
 
@@ -115,6 +153,8 @@ Contains:
 - win rate
 - final value
 - exposure summaries
+- basket allocation summaries
+- candidate selection summaries
 
 ### Equity Curve
 
@@ -150,6 +190,8 @@ Contains:
 - slippage
 - reason code
 - decision trace id
+- source rule id
+- source basket id, if applicable
 
 ### Decision Trace
 
@@ -168,6 +210,7 @@ Records:
 - requested actions
 - rejected actions
 - approved actions
+- candidate basket rankings
 - portfolio constraints
 - portfolio state before/after
 
@@ -183,6 +226,8 @@ The backtester must not:
 - call TradingAgents
 - call AI Hedge Fund
 - read `strategy.md`
+- read `manifest.json` for portfolio state
+- read `rules.json`
 - reinterpret natural language intent
 - mutate `strategy.ir.json`
 - silently ignore invalid references
@@ -226,6 +271,9 @@ backtester/
 │   ├── portfolio/
 │   │   ├── state.go
 │   │   ├── engine.go
+│   │   ├── initialization.go
+│   │   ├── baskets.go
+│   │   ├── selection_policy.go
 │   │   ├── constraints.go
 │   │   ├── rebalance.go
 │   │   └── risk.go
@@ -277,6 +325,7 @@ type PortfolioState struct {
     Positions map[string]Position
     TotalValue float64
     Weights map[string]float64
+    BasketWeights map[string]float64
 }
 ```
 
@@ -289,6 +338,50 @@ type Position struct {
     MarketValue float64
     Weight float64
     CostBasis float64
+}
+```
+
+### InitialAllocation
+
+```go
+type InitialAllocation struct {
+    Mode string
+    Positions []InitialPosition
+}
+```
+
+Supported modes:
+
+- `cash`
+- `weights`
+- `dollars`
+- `shares`
+
+### CandidateBasket
+
+```go
+type CandidateBasket struct {
+    BasketID string
+    Symbols []string
+    AssetClass string
+    Sector string
+    Theme string
+    MinWeight *float64
+    MaxWeight *float64
+    MinPositionWeight *float64
+    MaxPositionWeight *float64
+}
+```
+
+### BasketScore
+
+```go
+type BasketScore struct {
+    BasketID string
+    Symbol string
+    Score float64
+    Rank int
+    Components map[string]float64
 }
 ```
 
@@ -313,6 +406,7 @@ type RequestedAction struct {
     Confidence float64
     Action string
     Target string
+    TargetType string
     Amount float64
     Unit string
     Reason string
@@ -327,6 +421,8 @@ type ApprovedOrder struct {
     Side string
     Quantity float64
     TargetWeightDelta float64
+    SourceRuleID string
+    SourceBasketID string
     Reason string
 }
 ```
@@ -344,15 +440,17 @@ Validate AIR
     ↓
 Load market data
     ↓
-Initialize portfolio
+Initialize portfolio from AIR initial_allocation
     ↓
 For each date:
     Evaluate signals
     Evaluate regimes
     Evaluate relations
+    Rank candidate baskets, if needed
     Evaluate rules
     Resolve conflicts
     Apply portfolio constraints
+    Apply basket selection policy
     Simulate execution
     Update portfolio
     Record trace
@@ -360,6 +458,43 @@ For each date:
     ↓
 Write outputs
 ```
+
+---
+
+## Portfolio Initialization
+
+At the start of a backtest, the portfolio engine should initialize from:
+
+```text
+portfolio.starting_cash
+portfolio.initial_allocation
+```
+
+Supported modes:
+
+### `cash`
+
+Start 100% in cash.
+
+### `weights`
+
+Convert target weights into dollar allocations using starting account value and first available execution prices.
+
+### `dollars`
+
+Convert dollar allocations into initial positions.
+
+### `shares`
+
+Use supplied share counts and calculate remaining cash.
+
+Validation rules:
+
+- weights should sum to 1.0 unless residual cash is explicitly allowed
+- cash may be represented as symbol `cash`
+- symbols must exist in the AIR universe or candidate universe
+- initial positions must not violate hard constraints unless explicitly allowed for historical reproduction
+- missing initial allocation should default to 100% cash
 
 ---
 
@@ -424,6 +559,8 @@ Initial transforms:
 - moving_average
 - z_score
 - realized_volatility
+- rank
+- percentile_rank
 
 ---
 
@@ -480,6 +617,56 @@ For v0.1, relation evaluation can be simple:
 
 ---
 
+## Candidate Basket Engine
+
+Candidate baskets define assets the strategy may buy later, even if they are not in the initial allocation.
+
+For each basket, the backtester should be able to:
+
+1. Resolve basket symbols.
+2. Validate required data exists.
+3. Evaluate ranking signals.
+4. Score each symbol.
+5. Select eligible symbols.
+6. Enforce basket min/max weights.
+7. Emit candidate ranking details into the decision trace.
+
+Example:
+
+```json
+{
+  "basket_id": "growth_technology",
+  "symbols": ["QQQ", "NVDA", "AMD", "MSFT", "AAPL", "AVGO", "SMH"]
+}
+```
+
+---
+
+## Selection Policy Engine
+
+The selection policy decides how to choose within candidate baskets.
+
+Example behavior:
+
+```text
+For growth_technology:
+    rank all symbols by weighted score
+    select top 5
+    enforce min and max position weights
+    avoid replacing holdings unless rank change exceeds threshold
+```
+
+The engine should support at least:
+
+- `static`
+- `ranked`
+- `equal_weight`
+- `manual`
+
+For v0.1, a simple ranked implementation is enough.
+
+---
+
 ## Rule Engine
 
 The rule engine evaluates rules using:
@@ -488,12 +675,35 @@ The rule engine evaluates rules using:
 - regime states
 - relation states
 - portfolio state
+- basket rankings
 - date state
 - event state
 
 It emits requested actions.
 
 The rule engine should not enforce portfolio constraints.
+
+Rules may target:
+
+- symbols
+- baskets
+- asset classes
+- sectors
+- themes
+- cash
+- portfolio
+
+Example basket-targeting action:
+
+```json
+{
+  "action": "decrease_weight",
+  "target": "growth_technology",
+  "target_type": "basket",
+  "amount": 0.10,
+  "unit": "weight"
+}
+```
 
 ---
 
@@ -513,7 +723,7 @@ Tie Breaker
 
 For v0.1:
 
-1. Group actions by target.
+1. Group actions by target and target type.
 2. Detect conflicting actions.
 3. Resolve by decision hierarchy.
 4. Pass non-conflicting requested actions to portfolio engine.
@@ -531,6 +741,8 @@ It should enforce:
 - max single position
 - max sector weight
 - max asset class weight
+- max basket weight
+- min/max position weights
 - max leverage
 - no shorting
 - no margin
@@ -544,6 +756,8 @@ It may:
 - reject actions
 - substitute safer actions
 - force rebalancing
+
+When actions target baskets, the portfolio engine should expand them into symbol-level order intents using the relevant candidate basket and selection policy.
 
 ---
 
@@ -590,6 +804,9 @@ Initial metrics:
 - final value
 - cash utilization
 - average exposure
+- basket exposure
+- sector exposure
+- candidate selection turnover
 
 ---
 
@@ -606,6 +823,7 @@ Each decision record should include:
   "signals": {},
   "regimes": {},
   "relations": {},
+  "basket_rankings": {},
   "rules_triggered": [],
   "actions_requested": [],
   "conflicts": [],
@@ -626,13 +844,14 @@ Build a one-day evaluator.
 Milestone 1:
 
 1. Load AIR.
-2. Load one day of mock data.
-3. Evaluate one or two signals.
-4. Evaluate one regime.
-5. Evaluate one rule.
-6. Emit requested actions.
-7. Pass through portfolio engine.
-8. Emit decision trace.
+2. Initialize portfolio from `initial_allocation`.
+3. Load one day of mock data.
+4. Evaluate one or two signals.
+5. Evaluate one regime.
+6. Evaluate one rule.
+7. Emit requested actions.
+8. Pass through portfolio engine.
+9. Emit decision trace.
 
 No real historical backtest yet.
 
@@ -648,8 +867,9 @@ Tasks:
 2. Iterate trading days.
 3. Evaluate signals daily.
 4. Track portfolio state.
-5. Generate equity curve.
-6. Generate decision trace.
+5. Track basket exposures.
+6. Generate equity curve.
+7. Generate decision trace.
 
 ---
 
@@ -670,6 +890,21 @@ Tasks:
 
 ## Fourth Implementation Milestone
 
+Add candidate basket selection.
+
+Tasks:
+
+1. Load candidate baskets from AIR.
+2. Evaluate ranking signals.
+3. Score and rank basket symbols.
+4. Select holdings based on policy.
+5. Expand basket actions into symbol-level orders.
+6. Record ranking details in decision trace.
+
+---
+
+## Fifth Implementation Milestone
+
 Add metrics.
 
 Tasks:
@@ -682,10 +917,11 @@ Tasks:
 6. Sortino.
 7. Max drawdown.
 8. Turnover.
+9. Basket and sector exposure summaries.
 
 ---
 
-## Fifth Implementation Milestone
+## Sixth Implementation Milestone
 
 Add schema and semantic validation.
 
@@ -694,9 +930,12 @@ Tasks:
 1. Validate AIR schema.
 2. Validate references.
 3. Validate universe symbols.
-4. Validate portfolio constraints.
-5. Validate rule targets.
-6. Validate signal definitions.
+4. Validate initial allocation.
+5. Validate candidate baskets.
+6. Validate selection policies.
+7. Validate portfolio constraints.
+8. Validate rule targets.
+9. Validate signal definitions.
 
 ---
 
@@ -708,8 +947,11 @@ Tasks:
 - condition evaluation
 - regime activation
 - relation activation
+- basket ranking
+- selection policy
 - rule matching
 - conflict resolution
+- portfolio initialization
 - portfolio constraints
 - execution fills
 - metrics
@@ -717,7 +959,9 @@ Tasks:
 ### Integration Tests
 
 - example AIR runs without error
+- initial allocation creates expected starting positions
 - expected rule fires on known date
+- basket-targeting rule expands into symbol-level orders
 - cash minimum blocks invalid buy
 - max position scales order
 - output files are generated
@@ -768,6 +1012,8 @@ Macro CSV fields:
 date,value
 ```
 
+Candidate basket symbols should use the same price file format as tradable symbols.
+
 ---
 
 ## Non-Goals for v0.1
@@ -792,9 +1038,11 @@ Do not implement yet:
 The backtester is successful when:
 
 1. It loads valid AIR.
-2. It runs over a date range.
-3. It evaluates signals deterministically.
-4. It evaluates rules deterministically.
-5. It enforces portfolio constraints.
-6. It emits trades, equity curve, summary, and decision trace.
-7. The same inputs produce the same outputs.
+2. It initializes the portfolio from AIR.
+3. It runs over a date range.
+4. It evaluates signals deterministically.
+5. It evaluates rules deterministically.
+6. It evaluates candidate basket selections deterministically.
+7. It enforces portfolio constraints.
+8. It emits trades, equity curve, summary, and decision trace.
+9. The same inputs produce the same outputs.
