@@ -484,3 +484,45 @@ compiled/strategy.ir.json
 ```
 
 The compiled AIR file contains the normalized portfolio model, including initial allocation, candidate baskets, selection policy, targets, and constraints. The backtester should not inspect source files to reconstruct portfolio configuration.
+
+---
+
+## Sampling Policies
+
+AlphaNet runtime supports two separate sampling concepts:
+
+```text
+decision_sampling = when rules and trades may happen
+valuation_frequency = how often portfolio value and risk are measured
+```
+
+A strategy may trade weekly while still being valued daily.
+
+Example:
+
+```json
+{
+  "decision_sampling": {
+    "frequency": "weekly",
+    "anchor": "friday",
+    "calendar": "trading",
+    "missing_date_policy": "nearest_previous"
+  },
+  "valuation_frequency": "daily"
+}
+```
+
+Supported frequencies:
+
+```text
+hourly
+daily
+weekly
+biweekly
+monthly
+quarterly
+semiannual
+annual
+```
+
+The compiler can also use sampling in its training window so that a large historical range can be analyzed more quickly.

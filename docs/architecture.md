@@ -411,3 +411,15 @@ The formal specification belongs at:
 ```text
 specs/v0.1/SPEC.md
 ```
+
+---
+
+## Sampling Architecture
+
+Sampling is part of both compilation and backtesting.
+
+Compiler sampling controls which timestamps inside a training window are analyzed by expensive reasoning engines.
+
+Backtest decision sampling controls which timestamps are eligible for strategy decisions and trades.
+
+Portfolio valuation frequency is separate. This allows a strategy to make decisions weekly or monthly while still measuring performance and drawdown daily.

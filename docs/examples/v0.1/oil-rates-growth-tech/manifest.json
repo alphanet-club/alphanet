@@ -75,7 +75,24 @@
     ],
     "ensemble_method": "weighted_vote",
     "training_window": {
-      "lookback_days": 365
+      "lookback_days": 365,
+      "sampling": {
+        "frequency": "monthly",
+        "anchor": "month_end",
+        "calendar": "trading",
+        "missing_date_policy": "nearest_previous",
+        "include_start": true,
+        "include_end": true,
+        "timezone": "America/New_York"
+      },
+      "include_ranges": [
+        {
+          "start": "2018-01-01",
+          "end": "2025-12-31",
+          "label": "primary_training_range"
+        }
+      ],
+      "exclude_ranges": []
     },
     "schedule": {
       "type": "manual"
@@ -216,6 +233,24 @@
     "end": "2025-12-31",
     "starting_cash": 100000,
     "base_currency": "USD",
-    "backtester_version": "v0.1.0"
+    "backtester_version": "v0.1.0",
+    "decision_sampling": {
+      "frequency": "weekly",
+      "anchor": "friday",
+      "calendar": "trading",
+      "missing_date_policy": "nearest_previous",
+      "include_start": true,
+      "include_end": true,
+      "timezone": "America/New_York"
+    },
+    "valuation_frequency": "daily",
+    "include_ranges": [
+      {
+        "start": "2018-01-01",
+        "end": "2025-12-31",
+        "label": "full_backtest_range"
+      }
+    ],
+    "exclude_ranges": []
   }
 }

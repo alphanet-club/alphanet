@@ -92,3 +92,36 @@ This version is intended as the first stable design target for repository bootst
 - Clarified that portfolio initialization, candidate baskets, selection policy, targets, constraints, and risk budgets are portfolio configuration carried from `manifest.json` into compiled AIR.
 - Clarified that `rules.json` contains user-authored seed rules.
 - Updated `rule.schema.json` to explicitly support basket-targeted and rotation actions.
+
+---
+
+## Sampling Policy Update
+
+Added sampling policy support for AlphaNet v0.1.
+
+### Added
+
+- `training_window.sampling`
+- `training_window.include_ranges`
+- `training_window.exclude_ranges`
+- `backtest.decision_sampling`
+- `backtest.valuation_frequency`
+- `backtest.include_ranges`
+- `backtest.exclude_ranges`
+- AIR `execution.decision_sampling`
+- AIR `execution.valuation_frequency`
+
+Supported sampling frequencies:
+
+```text
+hourly
+daily
+weekly
+biweekly
+monthly
+quarterly
+semiannual
+annual
+```
+
+This allows large training windows and backtest ranges to be evaluated at lower decision cadence while preserving deterministic behavior.

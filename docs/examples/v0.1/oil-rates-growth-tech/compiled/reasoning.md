@@ -110,3 +110,13 @@ A basket rotation rule was added so oil/rates pressure can reduce growth technol
 The source strategy keeps portfolio configuration in `manifest.json`, human strategy intent in `strategy.md`, and user-authored seed rules in `rules.json`.
 
 The compiler normalizes those inputs into `compiled/strategy.ir.json`, which is the only strategy artifact required by the backtester.
+
+---
+
+## Sampling Decisions
+
+This example uses different sampling policies for compilation and backtesting.
+
+The compiler training window uses monthly sampling anchored to month-end. This lets the compiler inspect a broad historical range without requiring daily agent analysis.
+
+The backtest uses weekly decision sampling anchored to Friday, while portfolio valuation remains daily. This means the strategy can trade weekly but still measure daily drawdown and risk.

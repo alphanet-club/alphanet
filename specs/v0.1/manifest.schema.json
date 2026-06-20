@@ -64,7 +64,8 @@
       "$ref": "#/$defs/universe"
     },
     "compiler": {
-      "$ref": "#/$defs/compiler"
+      "$ref": "#/$defs/compiler",
+      "properties": {}
     },
     "portfolio": {
       "$ref": "#/$defs/portfolio_defaults"
@@ -467,6 +468,127 @@
           "type": "string"
         }
       }
+    },
+    "sampling_frequency": {
+      "type": "string",
+      "enum": [
+        "hourly",
+        "daily",
+        "weekly",
+        "biweekly",
+        "monthly",
+        "quarterly",
+        "semiannual",
+        "annual"
+      ],
+      "description": "Frequency used to sample timestamps for compiler analysis or strategy decision evaluation."
+    },
+    "sampling_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frequency"
+      ],
+      "properties": {
+        "frequency": {
+          "$ref": "#/$defs/sampling_frequency"
+        },
+        "anchor": {
+          "type": "string",
+          "enum": [
+            "first_available",
+            "last_available",
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "month_start",
+            "month_end",
+            "quarter_start",
+            "quarter_end",
+            "half_year_start",
+            "half_year_end",
+            "year_start",
+            "year_end"
+          ],
+          "default": "last_available",
+          "description": "Anchor used to choose the sample point within each period."
+        },
+        "calendar": {
+          "type": "string",
+          "enum": [
+            "calendar",
+            "trading"
+          ],
+          "default": "trading",
+          "description": "Whether sampling follows calendar time or the trading calendar."
+        },
+        "missing_date_policy": {
+          "type": "string",
+          "enum": [
+            "skip",
+            "nearest_previous",
+            "nearest_next",
+            "nearest_available",
+            "error"
+          ],
+          "default": "nearest_previous",
+          "description": "How to handle sampled dates that are not available in the selected calendar or data source."
+        },
+        "include_start": {
+          "type": "boolean",
+          "default": true
+        },
+        "include_end": {
+          "type": "boolean",
+          "default": true
+        },
+        "timezone": {
+          "type": "string",
+          "default": "America/New_York",
+          "description": "Timezone used for hourly or calendar-aware sampling."
+        }
+      }
+    },
+    "date_range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date"
+        },
+        "end": {
+          "type": "string",
+          "format": "date"
+        },
+        "label": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "valuation_frequency": {
+      "type": "string",
+      "enum": [
+        "hourly",
+        "daily",
+        "weekly",
+        "biweekly",
+        "monthly",
+        "quarterly",
+        "semiannual",
+        "annual"
+      ],
+      "default": "daily",
+      "description": "How often portfolio value and risk metrics are measured. This is separate from decision sampling."
     }
   },
   "examples": [

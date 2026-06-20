@@ -1920,3 +1920,117 @@ Example:
   }
 }
 ```
+
+---
+
+## Sampling Policies
+
+AlphaNet supports sampling policies for both compiler analysis and backtest decision evaluation.
+
+Sampling determines which timestamps are eligible for compiler analysis or strategy decision evaluation. It does not necessarily determine portfolio valuation frequency.
+
+### Supported Frequencies
+
+The initial supported frequencies are:
+
+```text
+hourly
+daily
+weekly
+biweekly
+monthly
+quarterly
+semiannual
+annual
+```
+
+### Compiler Training Sampling
+
+The compiler may analyze a large training range while sampling only selected timestamps.
+
+Example:
+
+```json
+{
+  "training_window": {
+    "start": "2018-01-01",
+    "end": "2025-12-31",
+    "sampling": {
+      "frequency": "monthly",
+      "anchor": "month_end",
+      "calendar": "trading",
+      "missing_date_policy": "nearest_previous",
+      "include_start": true,
+      "include_end": true,
+      "timezone": "America/New_York"
+    }
+  }
+}
+```
+
+This means the compiler may inspect the full date range but should evaluate representative month-end samples instead of every trading day.
+
+### Backtest Decision Sampling
+
+Backtest decision sampling controls when rules may fire and trades may be generated.
+
+Example:
+
+```json
+{
+  "backtest": {
+    "start": "2018-01-01",
+    "end": "2025-12-31",
+    "decision_sampling": {
+      "frequency": "weekly",
+      "anchor": "friday",
+      "calendar": "trading",
+      "missing_date_policy": "nearest_previous"
+    },
+    "valuation_frequency": "daily"
+  }
+}
+```
+
+This means the strategy makes decisions weekly, but the portfolio can still be valued daily for drawdown and risk measurement.
+
+### Include and Exclude Ranges
+
+Training windows and backtests may also define explicit include and exclude ranges.
+
+```json
+{
+  "include_ranges": [
+    {
+      "start": "2018-01-01",
+      "end": "2025-12-31",
+      "label": "primary_range"
+    }
+  ],
+  "exclude_ranges": [
+    {
+      "start": "2020-03-01",
+      "end": "2020-03-31",
+      "reason": "example stress-period exclusion"
+    }
+  ]
+}
+```
+
+Excluding ranges should be used carefully because it may make backtest results less representative.
+
+### Missing Dates
+
+If a sampled timestamp is not available in the selected calendar, `missing_date_policy` determines behavior.
+
+Supported policies:
+
+```text
+skip
+nearest_previous
+nearest_next
+nearest_available
+error
+```
+
+For trading calendars, the default should usually be `nearest_previous`.

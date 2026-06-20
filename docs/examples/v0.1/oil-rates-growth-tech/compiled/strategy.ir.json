@@ -785,7 +785,17 @@
     "slippage_bps": 2,
     "allow_fractional_shares": true,
     "dividend_handling": "cash",
-    "corporate_actions": "adjusted_prices"
+    "corporate_actions": "adjusted_prices",
+    "decision_sampling": {
+      "frequency": "weekly",
+      "anchor": "friday",
+      "calendar": "trading",
+      "missing_date_policy": "nearest_previous",
+      "include_start": true,
+      "include_end": true,
+      "timezone": "America/New_York"
+    },
+    "valuation_frequency": "daily"
   },
   "provenance": {
     "compiler_version": "v0.1.0",
@@ -803,7 +813,16 @@
       }
     ],
     "training_window": {
-      "lookback_days": 365
+      "lookback_days": 365,
+      "sampling": {
+        "frequency": "monthly",
+        "anchor": "month_end",
+        "calendar": "trading",
+        "missing_date_policy": "nearest_previous",
+        "include_start": true,
+        "include_end": true,
+        "timezone": "America/New_York"
+      }
     },
     "source_hashes": {
       "manifest.json": "sha256:example",
