@@ -587,3 +587,40 @@ Example:
 This lets AlphaNet support deterministic basket rotation without calling an agent every day.
 
 The compiler can still update baskets, ranking weights, and selection policies when AIR is regenerated.
+
+---
+
+## Authoring Source of Truth
+
+During authoring, the portfolio model is defined in `manifest.json`.
+
+The compiler copies the validated and normalized portfolio model into `compiled/strategy.ir.json`. The backtester reads the compiled AIR portfolio model and does not need to inspect source files.
+
+The portfolio model includes:
+
+- `starting_cash`
+- `initial_allocation`
+- `candidate_baskets`
+- `selection_policy`
+- `targets`
+- `constraints`
+- `risk_budgets`
+- `rebalance`
+
+Rules may request changes to symbols, baskets, cash, or portfolio-level exposure, but the portfolio engine enforces the portfolio model.
+
+## Initial Allocation vs Candidate Baskets
+
+`initial_allocation` answers:
+
+```text
+What does the portfolio hold on the first backtest date?
+```
+
+`candidate_baskets` answer:
+
+```text
+What is the strategy allowed to buy, sell, rank, or rotate into later?
+```
+
+These concepts should remain separate. A symbol may be absent from the starting portfolio but still available as a future candidate through a basket.

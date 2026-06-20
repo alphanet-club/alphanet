@@ -664,3 +664,39 @@ If the user recompiles AIR more frequently, the compiler or agent engines may up
 - confidence scores
 
 The backtester still consumes only the newest compiled AIR artifact.
+
+---
+
+## Rule Source Files
+
+`rules.json` contains user-authored seed rules.
+
+Rules may reference portfolio state and may target symbols, baskets, asset classes, sectors, themes, cash, or the whole portfolio. The portfolio model itself is defined by the strategy portfolio configuration and then normalized into AIR.
+
+Example basket-targeted action:
+
+```json
+{
+  "action": "decrease_weight",
+  "target": "growth_technology",
+  "target_type": "basket",
+  "amount": 0.10,
+  "unit": "weight"
+}
+```
+
+Example rotation action:
+
+```json
+{
+  "action": "rotate",
+  "from": "growth_technology",
+  "from_type": "basket",
+  "to": "defensive_equities",
+  "to_type": "basket",
+  "amount": 0.10,
+  "unit": "weight"
+}
+```
+
+The portfolio engine resolves basket actions using the basket definitions, selection policy, constraints, and current portfolio state.

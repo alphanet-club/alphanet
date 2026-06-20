@@ -103,3 +103,10 @@ The compiler added candidate baskets for:
 - commodities and energy
 
 A basket rotation rule was added so oil/rates pressure can reduce growth technology exposure and rotate into defensive equities when appropriate.
+
+
+## Source File Contract
+
+The source strategy keeps portfolio configuration in `manifest.json`, human strategy intent in `strategy.md`, and user-authored seed rules in `rules.json`.
+
+The compiler normalizes those inputs into `compiled/strategy.ir.json`, which is the only strategy artifact required by the backtester.

@@ -66,6 +66,10 @@
     {
       "name": "basket_targets_resolved",
       "status": "pass"
+    },
+    {
+      "name": "source_file_contract_valid",
+      "status": "pass"
     }
   ],
   "warnings": [

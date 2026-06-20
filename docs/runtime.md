@@ -462,3 +462,25 @@ For live or rolling simulations, a future runtime may support dated AIR versions
 ```
 
 Each AIR version is deterministic over its own effective period.
+
+---
+
+## Runtime Source Boundaries
+
+At compile time, the compiler reads:
+
+```text
+manifest.json
+strategy.md
+rules.json
+```
+
+`manifest.json` provides strategy configuration, including the portfolio model and candidate universe. `strategy.md` provides narrative strategy intent. `rules.json` provides seed rules.
+
+At backtest time, the backtester reads:
+
+```text
+compiled/strategy.ir.json
+```
+
+The compiled AIR file contains the normalized portfolio model, including initial allocation, candidate baskets, selection policy, targets, and constraints. The backtester should not inspect source files to reconstruct portfolio configuration.

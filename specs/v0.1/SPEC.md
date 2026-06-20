@@ -1,8 +1,8 @@
 # AlphaNet Specification v0.1
 
-**Status:** Draft  
-**Spec Version:** v0.1  
-**Primary Artifact:** `strategy.ir.json`  
+**Status:** Draft
+**Spec Version:** v0.1
+**Primary Artifact:** `strategy.ir.json`
 **IR Name:** AlphaNet Intermediate Representation (AIR)
 
 ---
@@ -1852,3 +1852,71 @@ Rules may also request rotation between baskets:
 
 The rule engine emits requested actions.
 The portfolio engine determines the exact symbols to buy or sell.
+
+---
+
+## Source File Responsibilities
+
+AlphaNet v0.1 uses a clear source-file boundary.
+
+```text
+manifest.json
+  strategy metadata, compiler configuration, universe, portfolio configuration, and backtest defaults
+
+strategy.md
+  human-readable strategy intent and rationale
+
+rules.json
+  user-authored seed rules only
+
+compiled/strategy.ir.json
+  normalized deterministic AIR consumed by the backtester
+```
+
+Portfolio configuration belongs in `manifest.json` during authoring and in `compiled/strategy.ir.json` after compilation. This includes `starting_cash`, `initial_allocation`, `candidate_baskets`, `selection_policy`, `targets`, `constraints`, and `risk_budgets`.
+
+The compiler carries the authoring portfolio model into AIR, validates it, and normalizes it for deterministic backtesting.
+
+`rules.json` should remain focused on conditional decision rules. Rules may target symbols, baskets, asset classes, sectors, themes, cash, or the whole portfolio, but they do not define the portfolio model itself.
+
+## Portfolio Initialization and Candidate Baskets
+
+A portfolio should define both the starting state and the investable candidate set.
+
+`initial_allocation` defines what the portfolio holds at the beginning of a backtest.
+
+`candidate_baskets` define assets the strategy may buy or rotate into later, even when those assets are not part of the initial allocation.
+
+`selection_policy` defines how the portfolio engine chooses among basket members when a rule targets a basket.
+
+Example:
+
+```json
+{
+  "portfolio": {
+    "base_currency": "USD",
+    "starting_cash": 100000,
+    "initial_allocation": {
+      "mode": "weights",
+      "positions": [
+        { "symbol": "SPY", "weight": 0.40 },
+        { "symbol": "QQQ", "weight": 0.25 },
+        { "symbol": "TLT", "weight": 0.20 },
+        { "symbol": "cash", "weight": 0.15 }
+      ]
+    },
+    "candidate_baskets": [
+      {
+        "basket_id": "growth_technology",
+        "asset_class": "equities",
+        "sector": "technology",
+        "symbols": ["QQQ", "NVDA", "AMD", "MSFT", "AAPL", "AVGO", "SMH"]
+      }
+    ],
+    "selection_policy": {
+      "default_method": "ranked",
+      "rebalance_threshold": 0.05
+    }
+  }
+}
+```

@@ -85,3 +85,10 @@ This version is intended as the first stable design target for repository bootst
 - Updated rule schema so actions can target symbols, baskets, sectors, themes, cash, or the whole portfolio.
 - Updated documentation for runtime initialization, rule targeting, and portfolio basket selection.
 - Updated the oil/rates/growth-tech example strategy with explicit initial allocation and candidate baskets.
+
+### Clarified
+
+- Clarified source-file responsibilities for `manifest.json`, `strategy.md`, `rules.json`, and `compiled/strategy.ir.json`.
+- Clarified that portfolio initialization, candidate baskets, selection policy, targets, constraints, and risk budgets are portfolio configuration carried from `manifest.json` into compiled AIR.
+- Clarified that `rules.json` contains user-authored seed rules.
+- Updated `rule.schema.json` to explicitly support basket-targeted and rotation actions.

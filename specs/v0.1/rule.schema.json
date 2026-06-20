@@ -300,8 +300,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "action",
-        "target"
+        "action"
       ],
       "properties": {
         "action": {
@@ -309,7 +308,7 @@
         },
         "target": {
           "type": "string",
-          "description": "Symbol, basket id, asset class, sector, theme, exposure bucket, cash, or portfolio."
+          "description": "Symbol, basket id, asset class, sector, theme, exposure bucket, cash, or portfolio. Required for target-based actions."
         },
         "amount": {
           "type": "number",
@@ -361,15 +360,45 @@
             "cash",
             "custom"
           ],
-          "description": "Disambiguates the target namespace for basket and portfolio-level actions."
+          "description": "Disambiguates the target namespace. Use basket for candidate_baskets, portfolio for whole-portfolio actions, cash for cash actions, and symbol for individual securities."
         },
         "from": {
           "type": "string",
-          "description": "Source target for rotate actions."
+          "description": "Source basket, symbol, asset class, sector, theme, or portfolio bucket for rotate actions."
         },
         "to": {
           "type": "string",
-          "description": "Destination target for rotate actions."
+          "description": "Destination basket, symbol, asset class, sector, theme, or portfolio bucket for rotate actions."
+        },
+        "from_type": {
+          "type": "string",
+          "enum": [
+            "symbol",
+            "basket",
+            "asset_class",
+            "sector",
+            "theme",
+            "factor",
+            "portfolio",
+            "cash",
+            "custom"
+          ],
+          "description": "Namespace for the rotate source target."
+        },
+        "to_type": {
+          "type": "string",
+          "enum": [
+            "symbol",
+            "basket",
+            "asset_class",
+            "sector",
+            "theme",
+            "factor",
+            "portfolio",
+            "cash",
+            "custom"
+          ],
+          "description": "Namespace for the rotate destination target."
         }
       },
       "allOf": [
@@ -383,18 +412,96 @@
                   "set_weight",
                   "buy",
                   "sell",
+                  "hold",
+                  "rebalance",
                   "raise_cash",
-                  "reduce_risk"
+                  "reduce_risk",
+                  "block_trade",
+                  "allow_trade",
+                  "set_regime_bias",
+                  "emit_signal",
+                  "custom"
                 ]
-              },
-              "required": [
-                "action"
-              ]
-            }
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "required": [
+              "target"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "enum": [
+                  "increase_weight",
+                  "decrease_weight",
+                  "set_weight",
+                  "buy",
+                  "sell",
+                  "raise_cash",
+                  "reduce_risk",
+                  "allocate_to_basket",
+                  "reduce_basket",
+                  "replace_low_ranked",
+                  "rotate"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ]
           },
           "then": {
             "required": [
               "amount"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "rotate"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "required": [
+              "from",
+              "to",
+              "amount"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "enum": [
+                  "allocate_to_basket",
+                  "reduce_basket",
+                  "rank_and_select",
+                  "replace_low_ranked"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "required": [
+              "target",
+              "target_type"
             ]
           }
         }
@@ -414,14 +521,14 @@
         "reduce_risk",
         "block_trade",
         "allow_trade",
-        "set_regime_bias",
-        "emit_signal",
-        "custom",
         "rotate",
         "allocate_to_basket",
         "reduce_basket",
         "rank_and_select",
-        "replace_low_ranked"
+        "replace_low_ranked",
+        "set_regime_bias",
+        "emit_signal",
+        "custom"
       ]
     },
     "action_unit": {
@@ -548,6 +655,7 @@
         {
           "action": "decrease_weight",
           "target": "QQQ",
+          "target_type": "symbol",
           "amount": 0.05,
           "unit": "weight",
           "reason": "Growth tech pressured by oil and rates rising together."
@@ -555,6 +663,7 @@
         {
           "action": "increase_weight",
           "target": "cash",
+          "target_type": "cash",
           "amount": 0.05,
           "unit": "weight",
           "reason": "Raise cash during tight liquidity."
@@ -593,12 +702,35 @@
         {
           "action": "rotate",
           "from": "growth_technology",
+          "from_type": "basket",
           "to": "defensive_equities",
-          "target": "portfolio",
-          "target_type": "portfolio",
+          "to_type": "basket",
           "amount": 0.1,
           "unit": "weight",
           "reason": "Rotate from rate-sensitive growth technology into defensive equities."
+        }
+      ]
+    },
+    {
+      "rule_id": "allocate_to_top_ranked_defensives",
+      "name": "Allocate to top-ranked defensive basket members",
+      "enabled": true,
+      "layer": "tactical",
+      "priority": 55,
+      "confidence": 0.68,
+      "when": {
+        "regime": "high_volatility",
+        "operator": "active",
+        "confidence_min": 0.65
+      },
+      "then": [
+        {
+          "action": "allocate_to_basket",
+          "target": "defensive_equities",
+          "target_type": "basket",
+          "amount": 0.05,
+          "unit": "weight",
+          "reason": "Use basket selection policy to choose defensive equity candidates."
         }
       ]
     }
