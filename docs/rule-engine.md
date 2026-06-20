@@ -700,3 +700,11 @@ Example rotation action:
 ```
 
 The portfolio engine resolves basket actions using the basket definitions, selection policy, constraints, and current portfolio state.
+
+---
+
+## Scoring Note
+
+Rules do not calculate AlphaNet Score.
+
+Rules generate requested actions. The backtester calculates performance metrics, benchmark returns, and AlphaNet Score after the portfolio simulation is complete.

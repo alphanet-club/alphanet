@@ -526,3 +526,32 @@ annual
 ```
 
 The compiler can also use sampling in its training window so that a large historical range can be analyzed more quickly.
+
+---
+
+## Benchmark Results and Scoring
+
+The backtester should calculate configured benchmark returns over the same backtest period as the strategy.
+
+For fund and index benchmarks:
+
+```text
+total_return = ending_adjusted_close / starting_adjusted_close - 1
+```
+
+For spot commodities such as `XAUUSD`:
+
+```text
+total_return = ending_spot_price / starting_spot_price - 1
+```
+
+For `CASH`, v0.1 may use:
+
+```text
+total_return = 0
+annualized_return = 0
+```
+
+AlphaNet Score should be emitted in the backtest summary as a 0-100 composite score. It should include both a local `raw_score` and, when eligible, an `official_score`.
+
+The score is based on return, Sharpe/Sortino, max drawdown, consistency across windows, duration tested, and turnover realism.

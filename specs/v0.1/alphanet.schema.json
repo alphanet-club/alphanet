@@ -59,7 +59,12 @@
       }
     },
     "execution": {
-      "$ref": "#/$defs/execution"
+      "$ref": "#/$defs/execution",
+      "properties": {
+        "benchmarks": {
+          "$ref": "#/$defs/benchmarks_config"
+        }
+      }
     },
     "provenance": {
       "$ref": "#/$defs/provenance"
@@ -68,6 +73,9 @@
       "type": "object",
       "additionalProperties": true,
       "description": "Reserved extension object for future AlphaNet versions or private tooling."
+    },
+    "benchmarks": {
+      "$ref": "#/$defs/benchmarks_config"
     }
   },
   "$defs": {
@@ -1614,6 +1622,204 @@
       ],
       "default": "daily",
       "description": "How often portfolio value and risk metrics are measured. This is separate from decision sampling."
+    },
+    "benchmark_type": {
+      "type": "string",
+      "enum": [
+        "fund",
+        "index",
+        "commodity_spot",
+        "cash",
+        "custom"
+      ],
+      "description": "Benchmark instrument type."
+    },
+    "benchmark_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "symbol",
+        "name",
+        "type"
+      ],
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "Benchmark identifier, e.g. SPY, QQQ, XAUUSD, CASH."
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/benchmark_type"
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "data_field": {
+          "type": "string",
+          "default": "adjusted_close",
+          "description": "Field used to calculate return. Funds usually use adjusted_close; spot commodities may use close."
+        },
+        "source": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "benchmark_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "benchmark",
+        "name",
+        "type",
+        "total_return",
+        "annualized_return"
+      ],
+      "properties": {
+        "benchmark": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/benchmark_type"
+        },
+        "total_return": {
+          "type": "number"
+        },
+        "annualized_return": {
+          "type": "number"
+        },
+        "start_value": {
+          "type": "number"
+        },
+        "end_value": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "data_field": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "benchmarks_config": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/benchmark_config"
+      },
+      "description": "Benchmarks calculated over the same backtest period."
+    },
+    "benchmarks_result": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/benchmark_result"
+      },
+      "description": "Benchmark returns calculated over the same backtest period."
+    },
+    "score_component": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Normalized score component from 0 to 1."
+    },
+    "score_result": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "raw_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Composite score for the user-selected backtest range."
+        },
+        "official_score": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Composite score from AlphaNet-defined official evaluation windows, when applicable."
+        },
+        "official_status": {
+          "type": "string",
+          "enum": [
+            "official",
+            "not_official_window",
+            "insufficient_history",
+            "uses_excluded_ranges",
+            "missing_required_valuation",
+            "invalid",
+            "not_applicable"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "components": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "return_score": {
+              "$ref": "#/$defs/score_component"
+            },
+            "risk_adjusted_score": {
+              "$ref": "#/$defs/score_component"
+            },
+            "drawdown_score": {
+              "$ref": "#/$defs/score_component"
+            },
+            "consistency_score": {
+              "$ref": "#/$defs/score_component"
+            },
+            "duration_score": {
+              "$ref": "#/$defs/score_component"
+            },
+            "turnover_score": {
+              "$ref": "#/$defs/score_component"
+            }
+          }
+        },
+        "weights": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "return_score": {
+              "type": "number"
+            },
+            "risk_adjusted_score": {
+              "type": "number"
+            },
+            "drawdown_score": {
+              "type": "number"
+            },
+            "consistency_score": {
+              "type": "number"
+            },
+            "duration_score": {
+              "type": "number"
+            },
+            "turnover_score": {
+              "type": "number"
+            }
+          }
+        }
+      }
     }
   },
   "examples": [

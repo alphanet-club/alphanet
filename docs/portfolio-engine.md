@@ -624,3 +624,13 @@ What is the strategy allowed to buy, sell, rank, or rotate into later?
 ```
 
 These concepts should remain separate. A symbol may be absent from the starting portfolio but still available as a future candidate through a basket.
+
+---
+
+## Benchmarks and Portfolio Context
+
+Benchmarks are not portfolio holdings unless explicitly included in the strategy universe or initial allocation.
+
+A strategy may compare against `SPY`, `QQQ`, `IWM`, `TLT`, `AGG`, `XAUUSD`, `DBC`, and `CASH` without holding those assets.
+
+`XAUUSD` should be treated as a spot commodity benchmark, not as an ETF or tradable fund.

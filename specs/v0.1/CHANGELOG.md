@@ -125,3 +125,32 @@ annual
 ```
 
 This allows large training windows and backtest ranges to be evaluated at lower decision cadence while preserving deterministic behavior.
+
+---
+
+## Benchmark and Scoring Update
+
+Added simple benchmark result support and AlphaNet Score documentation.
+
+### Added
+
+- Backtest benchmark configuration.
+- Benchmark output fields:
+  - `benchmark`
+  - `name`
+  - `type`
+  - `total_return`
+  - `annualized_return`
+- Default benchmark set:
+  - `SPY`
+  - `QQQ`
+  - `IWM`
+  - `TLT`
+  - `AGG`
+  - `XAUUSD`
+  - `DBC`
+  - `CASH`
+- AlphaNet Score documentation.
+- Raw score vs official score distinction.
+
+Spot gold should use `XAUUSD` rather than `GLD` for the default gold benchmark.

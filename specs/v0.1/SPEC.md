@@ -2034,3 +2034,65 @@ error
 ```
 
 For trading calendars, the default should usually be `nearest_previous`.
+
+---
+
+## Backtest Benchmarks and Scoring
+
+Backtest summaries may include benchmark returns calculated over the same date range as the strategy run.
+
+Recommended default benchmarks:
+
+```text
+SPY     broad U.S. equities
+QQQ     growth / technology-heavy equities
+IWM     U.S. small caps
+TLT     long-duration U.S. Treasuries
+AGG     broad U.S. bonds
+XAUUSD  spot gold priced in U.S. dollars
+DBC     broad commodities
+CASH    cash / risk-free baseline
+```
+
+Benchmark results should include only simple return fields in v0.1:
+
+```json
+{
+  "benchmark": "XAUUSD",
+  "name": "Gold Spot Price USD",
+  "type": "commodity_spot",
+  "total_return": 0.62,
+  "annualized_return": 0.064
+}
+```
+
+AlphaNet Score is a 0-100 composite score intended to summarize strategy quality without relying on a single cherry-picked metric.
+
+The v0.1 score is composed of:
+
+```text
+25% Return / value creation
+25% Risk-adjusted return
+20% Drawdown control
+15% Consistency / durability
+10% Duration tested
+ 5% Turnover realism
+```
+
+Formula:
+
+```text
+AlphaNet Score =
+100 * (
+  0.25 * return_score
++ 0.25 * risk_adjusted_score
++ 0.20 * drawdown_score
++ 0.15 * consistency_score
++ 0.10 * duration_score
++ 0.05 * turnover_score
+)
+```
+
+`raw_score` may be computed for any user-selected backtest range.
+
+`official_score` should only be computed against AlphaNet-defined official evaluation windows. Official scoring should require daily valuation when available and should not allow user-defined excluded ranges.

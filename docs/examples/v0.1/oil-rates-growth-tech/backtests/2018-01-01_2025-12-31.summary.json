@@ -17,5 +17,88 @@
   "sortino": 0.84,
   "max_drawdown": -0.168,
   "turnover": 1.94,
-  "notes": "Example-only summary values. Not produced by a real backtest."
+  "notes": "Example-only summary values. Not produced by a real backtest.",
+  "benchmarks": [
+    {
+      "benchmark": "SPY",
+      "name": "SPDR S&P 500 ETF Trust",
+      "type": "fund",
+      "total_return": 0.95,
+      "annualized_return": 0.085
+    },
+    {
+      "benchmark": "QQQ",
+      "name": "Invesco QQQ Trust",
+      "type": "fund",
+      "total_return": 1.35,
+      "annualized_return": 0.112
+    },
+    {
+      "benchmark": "IWM",
+      "name": "iShares Russell 2000 ETF",
+      "type": "fund",
+      "total_return": 0.42,
+      "annualized_return": 0.046
+    },
+    {
+      "benchmark": "TLT",
+      "name": "iShares 20+ Year Treasury Bond ETF",
+      "type": "fund",
+      "total_return": -0.18,
+      "annualized_return": -0.024
+    },
+    {
+      "benchmark": "AGG",
+      "name": "iShares Core U.S. Aggregate Bond ETF",
+      "type": "fund",
+      "total_return": 0.08,
+      "annualized_return": 0.01
+    },
+    {
+      "benchmark": "XAUUSD",
+      "name": "Gold Spot Price USD",
+      "type": "commodity_spot",
+      "total_return": 0.62,
+      "annualized_return": 0.064,
+      "currency": "USD",
+      "data_field": "close"
+    },
+    {
+      "benchmark": "DBC",
+      "name": "Invesco DB Commodity Index Tracking Fund",
+      "type": "fund",
+      "total_return": 0.21,
+      "annualized_return": 0.026
+    },
+    {
+      "benchmark": "CASH",
+      "name": "Cash / risk-free baseline",
+      "type": "cash",
+      "total_return": 0,
+      "annualized_return": 0
+    }
+  ],
+  "score": {
+    "raw_score": 52.7,
+    "official_score": null,
+    "official_status": "not_official_window",
+    "reason": "This example backtest uses placeholder values and was not run through the official evaluation suite.",
+    "description": "AlphaNet Score is a 0-100 composite score based on return, risk-adjusted return, drawdown control, consistency, duration, and turnover realism.",
+    "components": {
+      "return_score": 0.31,
+      "risk_adjusted_score": 0.28,
+      "drawdown_score": 0.66,
+      "consistency_score": 0.72,
+      "duration_score": 0.8,
+      "turnover_score": 0.81
+    },
+    "weights": {
+      "return_score": 0.25,
+      "risk_adjusted_score": 0.25,
+      "drawdown_score": 0.2,
+      "consistency_score": 0.15,
+      "duration_score": 0.1,
+      "turnover_score": 0.05
+    }
+  }
 }

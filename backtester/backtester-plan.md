@@ -1046,3 +1046,929 @@ The backtester is successful when:
 7. It enforces portfolio constraints.
 8. It emits trades, equity curve, summary, and decision trace.
 9. The same inputs produce the same outputs.
+
+# Backtester Plan Update: Benchmarks and AlphaNet Scoring
+
+This update is intended to be added to:
+
+```text
+backtester/backtester-plan.md
+```
+
+It gives the backtester implementer detailed guidance for calculating benchmark results and AlphaNet Score.
+
+---
+
+## Benchmark and Scoring Requirements
+
+The backtester must produce two related but separate outputs:
+
+1. **Benchmark returns**
+2. **AlphaNet Score**
+
+Benchmarks are for comparison.
+
+AlphaNet Score is a composite score for ranking and evaluating strategies.
+
+Benchmarks should not directly change the v0.1 score yet. They should be included in the summary output so users can interpret strategy performance against common alternatives.
+
+---
+
+## Required Summary Output Fields
+
+The backtest summary should continue to include the core performance fields:
+
+```json
+{
+  "strategy_name": "Oil Rates Growth Tech",
+  "strategy_ir_sha256": "sha256:example",
+  "spec_version": "v0.1",
+  "backtester_version": "v0.1.0",
+  "data_version": "example-data-v0.1",
+  "date_range": {
+    "start": "2018-01-01",
+    "end": "2025-12-31"
+  },
+  "starting_cash": 100000,
+  "ending_value": 137250.42,
+  "total_return": 0.3725042,
+  "annualized_return": 0.0412,
+  "volatility": 0.142,
+  "sharpe": 0.61,
+  "sortino": 0.84,
+  "max_drawdown": -0.168,
+  "turnover": 1.94
+}
+```
+
+The backtester should add:
+
+```json
+{
+  "benchmarks": [],
+  "score": {}
+}
+```
+
+---
+
+## Benchmark Configuration
+
+Benchmarks should be configured from the strategy manifest or compiled AIR.
+
+Recommended default benchmark set:
+
+```json
+[
+  {
+    "symbol": "SPY",
+    "name": "SPDR S&P 500 ETF Trust",
+    "type": "fund"
+  },
+  {
+    "symbol": "QQQ",
+    "name": "Invesco QQQ Trust",
+    "type": "fund"
+  },
+  {
+    "symbol": "IWM",
+    "name": "iShares Russell 2000 ETF",
+    "type": "fund"
+  },
+  {
+    "symbol": "TLT",
+    "name": "iShares 20+ Year Treasury Bond ETF",
+    "type": "fund"
+  },
+  {
+    "symbol": "AGG",
+    "name": "iShares Core U.S. Aggregate Bond ETF",
+    "type": "fund"
+  },
+  {
+    "symbol": "XAUUSD",
+    "name": "Gold Spot Price USD",
+    "type": "commodity_spot",
+    "currency": "USD",
+    "data_field": "close"
+  },
+  {
+    "symbol": "DBC",
+    "name": "Invesco DB Commodity Index Tracking Fund",
+    "type": "fund"
+  },
+  {
+    "symbol": "CASH",
+    "name": "Cash / risk-free baseline",
+    "type": "cash"
+  }
+]
+```
+
+### Benchmark Type Semantics
+
+| Type | Meaning | Return calculation |
+|---|---|---|
+| `fund` | ETF or mutual fund style instrument | adjusted close return |
+| `index` | index level | close or level return |
+| `commodity_spot` | spot commodity series such as `XAUUSD` | spot close return |
+| `cash` | simple cash baseline | v0.1 defaults to 0% |
+| `custom` | user-defined provider logic | adapter-defined |
+
+---
+
+## Benchmark Result Shape
+
+Each benchmark result should use this shape:
+
+```json
+{
+  "benchmark": "XAUUSD",
+  "name": "Gold Spot Price USD",
+  "type": "commodity_spot",
+  "total_return": 0.62,
+  "annualized_return": 0.064,
+  "start_value": 1825.50,
+  "end_value": 2957.31,
+  "currency": "USD",
+  "data_field": "close"
+}
+```
+
+Required fields:
+
+```text
+benchmark
+name
+type
+total_return
+annualized_return
+```
+
+Optional fields:
+
+```text
+start_value
+end_value
+currency
+data_field
+notes
+```
+
+---
+
+## Benchmark Calculation Rules
+
+Benchmarks must be calculated over the exact same date range as the strategy backtest.
+
+Use:
+
+```text
+strategy_start = summary.date_range.start
+strategy_end = summary.date_range.end
+```
+
+### Fund Benchmarks
+
+For `fund` benchmarks:
+
+```text
+benchmark_total_return =
+  ending_adjusted_close / starting_adjusted_close - 1
+```
+
+Use `adjusted_close` by default.
+
+If adjusted close is unavailable, the backtester may use `close`, but the benchmark result should include a note:
+
+```json
+{
+  "notes": "adjusted_close unavailable; close used"
+}
+```
+
+### Index Benchmarks
+
+For `index` benchmarks:
+
+```text
+benchmark_total_return =
+  ending_level / starting_level - 1
+```
+
+### Commodity Spot Benchmarks
+
+For `commodity_spot`, such as `XAUUSD`:
+
+```text
+benchmark_total_return =
+  ending_spot_price / starting_spot_price - 1
+```
+
+Use `close` by default unless the benchmark config specifies another field.
+
+### Cash Benchmark
+
+For v0.1, cash may be treated as zero return:
+
+```text
+total_return = 0
+annualized_return = 0
+```
+
+Later, this can be replaced by a Treasury bill, money market, or risk-free rate series.
+
+---
+
+## Annualized Return Calculation
+
+For the strategy and all benchmarks, annualized return should use the same function.
+
+```text
+annualized_return =
+  (1 + total_return) ^ (1 / years) - 1
+```
+
+Where:
+
+```text
+years = number_of_days_between_start_and_end / 365.25
+```
+
+If `years <= 0`, return an error.
+
+If `1 + total_return <= 0`, annualized return should be set to `-1.0` or the run should fail validation, depending on implementation preference. The safer v0.1 behavior is to set it to `-1.0` and add a warning.
+
+---
+
+## AlphaNet Score Overview
+
+AlphaNet Score is a 0-100 composite score.
+
+It is designed to reward strategies that:
+
+- create value
+- produce positive expected value
+- have good risk-adjusted returns
+- avoid large drawdowns
+- work across longer periods
+- work across multiple windows
+- avoid unrealistic turnover
+
+The v0.1 formula is:
+
+```text
+AlphaNet Score =
+100 * (
+  0.25 * return_score
++ 0.25 * risk_adjusted_score
++ 0.20 * drawdown_score
++ 0.15 * consistency_score
++ 0.10 * duration_score
++ 0.05 * turnover_score
+)
+```
+
+---
+
+## Raw Score vs Official Score
+
+The backtester should support two score concepts.
+
+### Raw Score
+
+`raw_score` is calculated for any backtest range.
+
+This is useful for local experimentation.
+
+```json
+{
+  "raw_score": 52.7
+}
+```
+
+### Official Score
+
+`official_score` is only calculated for official AlphaNet evaluation windows.
+
+Official score should require:
+
+- AlphaNet-defined date windows
+- sufficient historical duration
+- no user-defined excluded ranges
+- daily valuation when required
+- declared recompilation schedule if the strategy is recompiled during the backtest
+- no future data leakage
+
+If a run is not eligible for official scoring, set:
+
+```json
+{
+  "official_score": null,
+  "official_status": "not_official_window"
+}
+```
+
+---
+
+## Score Output Shape
+
+The summary should include:
+
+```json
+{
+  "score": {
+    "raw_score": 52.7,
+    "official_score": null,
+    "official_status": "not_official_window",
+    "reason": "This backtest was run on a user-selected date range.",
+    "description": "AlphaNet Score is a 0-100 composite score based on return, risk-adjusted return, drawdown control, consistency, duration, and turnover realism.",
+    "components": {
+      "return_score": 0.31,
+      "risk_adjusted_score": 0.28,
+      "drawdown_score": 0.66,
+      "consistency_score": 0.72,
+      "duration_score": 0.80,
+      "turnover_score": 0.81
+    },
+    "weights": {
+      "return_score": 0.25,
+      "risk_adjusted_score": 0.25,
+      "drawdown_score": 0.20,
+      "consistency_score": 0.15,
+      "duration_score": 0.10,
+      "turnover_score": 0.05
+    }
+  }
+}
+```
+
+---
+
+## Component Normalization
+
+All component scores should be normalized to the range:
+
+```text
+0.0 to 1.0
+```
+
+Use a helper:
+
+```go
+func Clamp01(v float64) float64 {
+    if v < 0 {
+        return 0
+    }
+    if v > 1 {
+        return 1
+    }
+    return v
+}
+```
+
+---
+
+## Return Score
+
+Return score blends annualized return and total return.
+
+Annualized return makes different date ranges comparable.
+
+Total return rewards longer compounding periods.
+
+Recommended v0.1 formula:
+
+```text
+annualized_return_score = clamp(annualized_return / 0.20, 0, 1)
+
+total_return_score =
+  clamp(log(ending_value / starting_cash) / log(4), 0, 1)
+
+return_score =
+  0.70 * annualized_return_score
++ 0.30 * total_return_score
+```
+
+Interpretation:
+
+- 20% annualized return is excellent.
+- 4x total account growth is excellent.
+- negative or zero account growth scores poorly.
+
+Implementation notes:
+
+- if `starting_cash <= 0`, fail validation.
+- if `ending_value <= 0`, set `total_return_score = 0`.
+- use natural log.
+
+---
+
+## Risk-Adjusted Score
+
+Risk-adjusted score blends Sharpe and Sortino.
+
+Recommended v0.1 formula:
+
+```text
+sharpe_score = clamp(sharpe / 2.0, 0, 1)
+
+sortino_score = clamp(sortino / 3.0, 0, 1)
+
+risk_adjusted_score =
+  0.45 * sharpe_score
++ 0.55 * sortino_score
+```
+
+Interpretation:
+
+- Sharpe of 2.0 is excellent.
+- Sortino of 3.0 is excellent.
+- Sortino is weighted slightly more because downside volatility matters more than upside volatility.
+
+If Sharpe or Sortino is NaN or infinite, treat that component as zero and emit a warning.
+
+---
+
+## Drawdown Score
+
+Drawdown score penalizes large losses.
+
+Use absolute max drawdown:
+
+```text
+drawdown = abs(max_drawdown)
+```
+
+Recommended formula:
+
+```text
+drawdown_score = clamp(1 - drawdown / 0.50, 0, 1)
+```
+
+Interpretation:
+
+| Max Drawdown | Drawdown Score |
+|---:|---:|
+| 0% | 1.00 |
+| 10% | 0.80 |
+| 20% | 0.60 |
+| 30% | 0.40 |
+| 50%+ | 0.00 |
+
+---
+
+## Consistency Score
+
+Consistency score should reward strategies that work across multiple periods.
+
+For a single local backtest, if rolling-window details are not available yet, v0.1 may use:
+
+```text
+consistency_score = 0.5
+```
+
+and emit:
+
+```json
+{
+  "reason": "Rolling-window consistency not available; neutral consistency score used."
+}
+```
+
+However, the intended implementation should calculate rolling-window consistency.
+
+Recommended approach:
+
+1. Split the full backtest into rolling windows.
+2. Suggested default: 3-year windows stepped annually.
+3. Calculate each window's total return and max drawdown.
+4. Compute positive return rate.
+5. Compute acceptable drawdown rate.
+6. Blend both.
+
+Formula:
+
+```text
+positive_window_rate =
+  number_of_windows_with_total_return_above_0 / total_windows
+
+acceptable_drawdown_window_rate =
+  number_of_windows_with_max_drawdown_better_than_-25_percent / total_windows
+
+consistency_score =
+  0.60 * positive_window_rate
++ 0.40 * acceptable_drawdown_window_rate
+```
+
+If fewer than two rolling windows are available:
+
+```text
+consistency_score = 0.5
+```
+
+and mark the score as less reliable.
+
+---
+
+## Duration Score
+
+Duration score rewards longer evaluated periods.
+
+Recommended formula:
+
+```text
+duration_score = clamp(years_tested / 10, 0, 1)
+```
+
+Interpretation:
+
+| Years Tested | Duration Score |
+|---:|---:|
+| 1 | 0.10 |
+| 3 | 0.30 |
+| 5 | 0.50 |
+| 10+ | 1.00 |
+
+For official scoring, the recommended minimum history is:
+
+```text
+3 years
+```
+
+If the run has less than 3 years:
+
+```json
+{
+  "official_score": null,
+  "official_status": "insufficient_history"
+}
+```
+
+The raw score may still be calculated.
+
+---
+
+## Turnover Score
+
+Turnover score penalizes unrealistic trading intensity.
+
+The scoring formula should use annualized turnover.
+
+If the summary field `turnover` is already annualized, use it directly.
+
+If `turnover` is total turnover over the whole test, convert it:
+
+```text
+annual_turnover = total_turnover / years_tested
+```
+
+Recommended formula:
+
+```text
+turnover_score = clamp(1 - annual_turnover / 10, 0, 1)
+```
+
+Interpretation:
+
+| Annual Turnover | Turnover Score |
+|---:|---:|
+| 0x | 1.00 |
+| 1x | 0.90 |
+| 3x | 0.70 |
+| 5x | 0.50 |
+| 10x+ | 0.00 |
+
+Do not over-penalize active strategies, but very high turnover should reduce the score.
+
+---
+
+## Score Calculation Pseudocode
+
+```go
+func CalculateAlphaNetScore(summary Summary, windows []WindowResult) Score {
+    years := YearsBetween(summary.StartDate, summary.EndDate)
+
+    annualizedReturnScore := Clamp01(summary.AnnualizedReturn / 0.20)
+
+    totalGrowth := summary.EndingValue / summary.StartingCash
+    totalReturnScore := 0.0
+    if totalGrowth > 0 {
+        totalReturnScore = Clamp01(math.Log(totalGrowth) / math.Log(4))
+    }
+
+    returnScore := 0.70*annualizedReturnScore + 0.30*totalReturnScore
+
+    sharpeScore := Clamp01(summary.Sharpe / 2.0)
+    sortinoScore := Clamp01(summary.Sortino / 3.0)
+    riskAdjustedScore := 0.45*sharpeScore + 0.55*sortinoScore
+
+    drawdownScore := Clamp01(1 - math.Abs(summary.MaxDrawdown)/0.50)
+
+    consistencyScore := CalculateConsistencyScore(windows)
+
+    durationScore := Clamp01(years / 10.0)
+
+    annualTurnover := summary.Turnover
+    if !summary.TurnoverIsAnnualized {
+        annualTurnover = summary.Turnover / years
+    }
+    turnoverScore := Clamp01(1 - annualTurnover/10.0)
+
+    raw := 100 * (
+        0.25*returnScore +
+        0.25*riskAdjustedScore +
+        0.20*drawdownScore +
+        0.15*consistencyScore +
+        0.10*durationScore +
+        0.05*turnoverScore
+    )
+
+    return Score{
+        RawScore: raw,
+        Components: ScoreComponents{
+            ReturnScore: returnScore,
+            RiskAdjustedScore: riskAdjustedScore,
+            DrawdownScore: drawdownScore,
+            ConsistencyScore: consistencyScore,
+            DurationScore: durationScore,
+            TurnoverScore: turnoverScore,
+        },
+    }
+}
+```
+
+---
+
+## Official Scoring Eligibility
+
+The backtester should determine whether the run is eligible for official scoring.
+
+Recommended statuses:
+
+```text
+official
+not_official_window
+insufficient_history
+uses_excluded_ranges
+missing_required_valuation
+invalid
+not_applicable
+```
+
+### Official Score Requirements
+
+A run can receive `official_score` only if:
+
+1. The date range matches an AlphaNet official evaluation window or suite.
+2. The strategy was evaluated for the minimum required duration.
+3. The run did not use user-defined excluded ranges.
+4. Daily valuation was available when required.
+5. The data version is accepted for official scoring.
+6. The backtester version is accepted for official scoring.
+7. If the strategy was recompiled during the test, the recomputation schedule was declared ahead of time.
+8. Each compiled AIR version only used training data available up to its effective date.
+
+If any requirement fails, set `official_score = null` and set the proper `official_status`.
+
+---
+
+## Recompiled Strategy Handling
+
+If a strategy is recompiled on a schedule, the backtester may receive multiple AIR versions.
+
+Example:
+
+```json
+{
+  "strategy_versions": [
+    {
+      "effective_from": "2020-01-01",
+      "strategy_ir_sha256": "sha256:a"
+    },
+    {
+      "effective_from": "2020-02-01",
+      "strategy_ir_sha256": "sha256:b"
+    },
+    {
+      "effective_from": "2020-03-01",
+      "strategy_ir_sha256": "sha256:c"
+    }
+  ]
+}
+```
+
+For scoring, this should be treated as one stitched backtest.
+
+The score is calculated on the full stitched equity curve.
+
+Important rule:
+
+```text
+No AIR version may be compiled using data after its effective_from date.
+```
+
+This prevents lookahead bias.
+
+---
+
+## Benchmark Calculation Pseudocode
+
+```go
+func CalculateBenchmarkResult(
+    benchmark BenchmarkConfig,
+    provider DataProvider,
+    start time.Time,
+    end time.Time,
+) (BenchmarkResult, error) {
+    if benchmark.Type == "cash" {
+        return BenchmarkResult{
+            Benchmark: benchmark.Symbol,
+            Name: benchmark.Name,
+            Type: benchmark.Type,
+            TotalReturn: 0,
+            AnnualizedReturn: 0,
+        }, nil
+    }
+
+    field := benchmark.DataField
+    if field == "" {
+        if benchmark.Type == "commodity_spot" {
+            field = "close"
+        } else {
+            field = "adjusted_close"
+        }
+    }
+
+    startValue, err := provider.ValueOnOrNear(benchmark.Symbol, field, start, "nearest_next")
+    if err != nil {
+        return BenchmarkResult{}, err
+    }
+
+    endValue, err := provider.ValueOnOrNear(benchmark.Symbol, field, end, "nearest_previous")
+    if err != nil {
+        return BenchmarkResult{}, err
+    }
+
+    if startValue <= 0 {
+        return BenchmarkResult{}, fmt.Errorf("invalid benchmark start value")
+    }
+
+    totalReturn := endValue/startValue - 1
+    years := YearsBetween(start, end)
+    annualizedReturn := AnnualizeReturn(totalReturn, years)
+
+    return BenchmarkResult{
+        Benchmark: benchmark.Symbol,
+        Name: benchmark.Name,
+        Type: benchmark.Type,
+        TotalReturn: totalReturn,
+        AnnualizedReturn: annualizedReturn,
+        StartValue: startValue,
+        EndValue: endValue,
+        Currency: benchmark.Currency,
+        DataField: field,
+    }, nil
+}
+```
+
+---
+
+## Data Requirements
+
+The backtester data layer must support benchmark series.
+
+Minimum v0.1 benchmark data requirements:
+
+| Benchmark | Required field |
+|---|---|
+| SPY | adjusted_close |
+| QQQ | adjusted_close |
+| IWM | adjusted_close |
+| TLT | adjusted_close |
+| AGG | adjusted_close |
+| XAUUSD | close |
+| DBC | adjusted_close |
+| CASH | none |
+
+If benchmark data is missing:
+
+- local raw score may still be calculated
+- benchmark result should include an error or warning
+- official scoring should fail if benchmarks are required for the official run
+
+---
+
+## Summary Output Example
+
+```json
+{
+  "strategy_name": "Oil Rates Growth Tech",
+  "starting_cash": 100000,
+  "ending_value": 137250.42,
+  "total_return": 0.3725042,
+  "annualized_return": 0.0412,
+  "volatility": 0.142,
+  "sharpe": 0.61,
+  "sortino": 0.84,
+  "max_drawdown": -0.168,
+  "turnover": 1.94,
+  "benchmarks": [
+    {
+      "benchmark": "SPY",
+      "name": "SPDR S&P 500 ETF Trust",
+      "type": "fund",
+      "total_return": 0.95,
+      "annualized_return": 0.085
+    },
+    {
+      "benchmark": "XAUUSD",
+      "name": "Gold Spot Price USD",
+      "type": "commodity_spot",
+      "total_return": 0.62,
+      "annualized_return": 0.064
+    },
+    {
+      "benchmark": "CASH",
+      "name": "Cash / risk-free baseline",
+      "type": "cash",
+      "total_return": 0,
+      "annualized_return": 0
+    }
+  ],
+  "score": {
+    "raw_score": 52.7,
+    "official_score": null,
+    "official_status": "not_official_window",
+    "reason": "This backtest was run on a user-selected date range.",
+    "components": {
+      "return_score": 0.31,
+      "risk_adjusted_score": 0.28,
+      "drawdown_score": 0.66,
+      "consistency_score": 0.72,
+      "duration_score": 0.80,
+      "turnover_score": 0.81
+    },
+    "weights": {
+      "return_score": 0.25,
+      "risk_adjusted_score": 0.25,
+      "drawdown_score": 0.20,
+      "consistency_score": 0.15,
+      "duration_score": 0.10,
+      "turnover_score": 0.05
+    }
+  }
+}
+```
+
+---
+
+## Acceptance Criteria
+
+The implementation is complete when:
+
+1. Backtest summary includes `benchmarks`.
+2. Backtest summary includes `score`.
+3. `XAUUSD` is supported as a `commodity_spot` benchmark.
+4. Fund benchmarks use adjusted close by default.
+5. Spot commodity benchmarks use close by default.
+6. Cash benchmark returns 0% in v0.1.
+7. Raw AlphaNet Score is calculated for any valid backtest.
+8. Official score is null unless official eligibility checks pass.
+9. Score components are individually emitted.
+10. Benchmark and score logic is deterministic.
+11. Missing benchmark data produces a clear warning or error.
+12. Unit tests cover benchmark return calculation.
+13. Unit tests cover score component normalization.
+14. Unit tests cover official scoring eligibility statuses.
+
+---
+
+## Suggested Unit Tests
+
+### Benchmark Tests
+
+- `SPY` fund benchmark calculates adjusted-close total return.
+- `XAUUSD` commodity benchmark calculates close-to-close total return.
+- `CASH` benchmark returns zero total and annualized return.
+- missing benchmark data returns a clear error.
+- invalid starting value returns a clear error.
+
+### Score Tests
+
+- negative return produces low return score.
+- high annualized return caps return score at 1.
+- Sharpe and Sortino scores clamp to 1.
+- max drawdown of 50% produces drawdown score 0.
+- 10+ year run produces duration score 1.
+- high annual turnover reduces turnover score.
+- NaN Sharpe or Sortino is handled safely.
+- raw score is always between 0 and 100.
+
+### Official Eligibility Tests
+
+- user-selected date range returns `not_official_window`.
+- less than 3 years returns `insufficient_history`.
+- excluded ranges return `uses_excluded_ranges`.
+- non-daily valuation returns `missing_required_valuation` when daily valuation is required.
+- accepted official suite returns `official`.

@@ -795,7 +795,51 @@
       "include_end": true,
       "timezone": "America/New_York"
     },
-    "valuation_frequency": "daily"
+    "valuation_frequency": "daily",
+    "benchmarks": [
+      {
+        "symbol": "SPY",
+        "name": "SPDR S&P 500 ETF Trust",
+        "type": "fund"
+      },
+      {
+        "symbol": "QQQ",
+        "name": "Invesco QQQ Trust",
+        "type": "fund"
+      },
+      {
+        "symbol": "IWM",
+        "name": "iShares Russell 2000 ETF",
+        "type": "fund"
+      },
+      {
+        "symbol": "TLT",
+        "name": "iShares 20+ Year Treasury Bond ETF",
+        "type": "fund"
+      },
+      {
+        "symbol": "AGG",
+        "name": "iShares Core U.S. Aggregate Bond ETF",
+        "type": "fund"
+      },
+      {
+        "symbol": "XAUUSD",
+        "name": "Gold Spot Price USD",
+        "type": "commodity_spot",
+        "currency": "USD",
+        "data_field": "close"
+      },
+      {
+        "symbol": "DBC",
+        "name": "Invesco DB Commodity Index Tracking Fund",
+        "type": "fund"
+      },
+      {
+        "symbol": "CASH",
+        "name": "Cash / risk-free baseline",
+        "type": "cash"
+      }
+    ]
   },
   "provenance": {
     "compiler_version": "v0.1.0",

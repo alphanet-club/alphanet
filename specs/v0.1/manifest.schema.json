@@ -74,7 +74,12 @@
       "$ref": "#/$defs/execution_defaults"
     },
     "backtest": {
-      "$ref": "#/$defs/backtest_defaults"
+      "$ref": "#/$defs/backtest_defaults",
+      "properties": {
+        "benchmarks": {
+          "$ref": "#/$defs/benchmarks_config"
+        }
+      }
     },
     "metadata": {
       "type": "object",
@@ -589,6 +594,111 @@
       ],
       "default": "daily",
       "description": "How often portfolio value and risk metrics are measured. This is separate from decision sampling."
+    },
+    "benchmark_type": {
+      "type": "string",
+      "enum": [
+        "fund",
+        "index",
+        "commodity_spot",
+        "cash",
+        "custom"
+      ],
+      "description": "Benchmark instrument type."
+    },
+    "benchmark_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "symbol",
+        "name",
+        "type"
+      ],
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "Benchmark identifier, e.g. SPY, QQQ, XAUUSD, CASH."
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/benchmark_type"
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "data_field": {
+          "type": "string",
+          "default": "adjusted_close",
+          "description": "Field used to calculate return. Funds usually use adjusted_close; spot commodities may use close."
+        },
+        "source": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "benchmark_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "benchmark",
+        "name",
+        "type",
+        "total_return",
+        "annualized_return"
+      ],
+      "properties": {
+        "benchmark": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/benchmark_type"
+        },
+        "total_return": {
+          "type": "number"
+        },
+        "annualized_return": {
+          "type": "number"
+        },
+        "start_value": {
+          "type": "number"
+        },
+        "end_value": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "data_field": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "benchmarks_config": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/benchmark_config"
+      },
+      "description": "Benchmarks calculated over the same backtest period."
+    },
+    "benchmarks_result": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/benchmark_result"
+      },
+      "description": "Benchmark returns calculated over the same backtest period."
     }
   },
   "examples": [
