@@ -474,3 +474,116 @@ This document belongs at:
 ```text
 docs/portfolio-engine.md
 ```
+
+
+---
+
+## Initial Allocation
+
+`initial_allocation` defines what the portfolio holds at the start of a backtest or runtime simulation.
+
+This is separate from portfolio targets.
+
+Example:
+
+```json
+{
+  "initial_allocation": {
+    "mode": "weights",
+    "positions": [
+      { "symbol": "SPY", "weight": 0.40 },
+      { "symbol": "QQQ", "weight": 0.25 },
+      { "symbol": "TLT", "weight": 0.20 },
+      { "symbol": "cash", "weight": 0.15 }
+    ]
+  }
+}
+```
+
+The backtester should convert the initial allocation into starting positions before evaluating rules.
+
+Supported modes:
+
+- `cash`
+- `weights`
+- `dollars`
+- `shares`
+
+If `initial_allocation` is omitted, the safest default is:
+
+```json
+{
+  "mode": "cash",
+  "positions": [
+    { "symbol": "cash", "weight": 1.0 }
+  ]
+}
+```
+
+---
+
+## Candidate Baskets
+
+`candidate_baskets` define securities the portfolio may buy or rotate into later, even if they are not held at the start of the backtest.
+
+Example:
+
+```json
+{
+  "candidate_baskets": [
+    {
+      "basket_id": "growth_technology",
+      "asset_class": "equities",
+      "sector": "technology",
+      "symbols": ["QQQ", "NVDA", "AMD", "MSFT", "AAPL", "AVGO", "SMH"],
+      "max_weight": 0.35,
+      "max_position_weight": 0.10
+    },
+    {
+      "basket_id": "defensive_equities",
+      "asset_class": "equities",
+      "sectors": ["utilities", "consumer_staples", "healthcare"],
+      "symbols": ["XLU", "XLP", "XLV", "JNJ", "PG", "KO"],
+      "max_weight": 0.30
+    }
+  ]
+}
+```
+
+Candidate baskets answer the question:
+
+```text
+What is the strategy allowed or interested in buying later?
+```
+
+---
+
+## Selection Policy
+
+`selection_policy` defines how the portfolio engine chooses securities inside each candidate basket.
+
+Example:
+
+```json
+{
+  "selection_policy": {
+    "default_method": "ranked",
+    "rebalance_threshold": 0.05,
+    "baskets": {
+      "growth_technology": {
+        "method": "ranked",
+        "max_positions": 5,
+        "ranking": [
+          { "signal": "relative_strength_60d", "weight": 0.40, "direction": "higher_is_better" },
+          { "signal": "news_sentiment_7d", "weight": 0.30, "direction": "higher_is_better" },
+          { "signal": "realized_volatility_20d", "weight": 0.30, "direction": "lower_is_better" }
+        ]
+      }
+    }
+  }
+}
+```
+
+This lets AlphaNet support deterministic basket rotation without calling an agent every day.
+
+The compiler can still update baskets, ranking weights, and selection policies when AIR is regenerated.

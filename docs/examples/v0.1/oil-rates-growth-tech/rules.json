@@ -40,6 +40,41 @@
           "reason": "Raise cash during macro pressure."
         }
       ]
+    },
+    {
+      "rule_id": "rotate_growth_to_defensive_when_oil_rates_pressure_active",
+      "name": "Rotate growth technology to defensive equities when oil/rates pressure is active",
+      "layer": "cross_asset_relations",
+      "priority": 72,
+      "confidence": 0.7,
+      "when": {
+        "all": [
+          {
+            "signal": "wti_change_20d",
+            "operator": ">",
+            "value": 0.1,
+            "unit": "percent"
+          },
+          {
+            "signal": "ust10y_change_20d",
+            "operator": ">",
+            "value": 25,
+            "unit": "basis_points"
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "rotate",
+          "from": "growth_technology",
+          "to": "defensive_equities",
+          "target": "portfolio",
+          "target_type": "portfolio",
+          "amount": 0.1,
+          "unit": "weight",
+          "reason": "Rotate from rate-sensitive growth technology into defensive equities."
+        }
+      ]
     }
   ],
   "portfolio": {
@@ -63,6 +98,129 @@
       "max_leverage": 1.0,
       "allow_shorting": false,
       "allow_margin": false
+    },
+    "initial_allocation": {
+      "mode": "weights",
+      "positions": [
+        {
+          "symbol": "SPY",
+          "weight": 0.4
+        },
+        {
+          "symbol": "QQQ",
+          "weight": 0.25
+        },
+        {
+          "symbol": "TLT",
+          "weight": 0.2
+        },
+        {
+          "symbol": "cash",
+          "weight": 0.15
+        }
+      ]
+    },
+    "candidate_baskets": [
+      {
+        "basket_id": "growth_technology",
+        "description": "Growth technology and AI-related equities the strategy may buy or sell.",
+        "asset_class": "equities",
+        "sector": "technology",
+        "role": "risk_asset",
+        "symbols": [
+          "QQQ",
+          "NVDA",
+          "AMD",
+          "MSFT",
+          "AAPL",
+          "AVGO",
+          "SMH"
+        ],
+        "max_weight": 0.35,
+        "min_position_weight": 0.02,
+        "max_position_weight": 0.1
+      },
+      {
+        "basket_id": "defensive_equities",
+        "description": "Defensive equity alternatives.",
+        "asset_class": "equities",
+        "sectors": [
+          "utilities",
+          "consumer_staples",
+          "healthcare"
+        ],
+        "role": "defensive_asset",
+        "symbols": [
+          "XLU",
+          "XLP",
+          "XLV",
+          "JNJ",
+          "PG",
+          "KO"
+        ],
+        "max_weight": 0.3
+      },
+      {
+        "basket_id": "duration",
+        "description": "Treasury duration instruments.",
+        "asset_class": "bonds",
+        "role": "duration",
+        "symbols": [
+          "SHY",
+          "IEF",
+          "TLT"
+        ],
+        "max_weight": 0.5
+      },
+      {
+        "basket_id": "commodities_energy",
+        "description": "Energy and oil-related instruments.",
+        "asset_class": "commodities",
+        "sector": "energy",
+        "role": "commodity",
+        "symbols": [
+          "USO",
+          "XLE",
+          "XOM",
+          "CVX"
+        ],
+        "max_weight": 0.25
+      }
+    ],
+    "selection_policy": {
+      "default_method": "ranked",
+      "rebalance_threshold": 0.05,
+      "min_holding_days": 10,
+      "baskets": {
+        "growth_technology": {
+          "method": "ranked",
+          "max_positions": 5,
+          "min_position_weight": 0.02,
+          "max_position_weight": 0.1,
+          "ranking": [
+            {
+              "signal": "relative_strength_60d",
+              "weight": 0.4,
+              "direction": "higher_is_better"
+            },
+            {
+              "signal": "news_sentiment_7d",
+              "weight": 0.3,
+              "direction": "higher_is_better"
+            },
+            {
+              "signal": "realized_volatility_20d",
+              "weight": 0.3,
+              "direction": "lower_is_better"
+            }
+          ],
+          "replacement_policy": {
+            "enabled": true,
+            "rebalance_threshold": 0.15,
+            "min_holding_days": 10
+          }
+        }
+      }
     }
   }
 }

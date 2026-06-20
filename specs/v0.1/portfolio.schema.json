@@ -21,6 +21,19 @@
       "default": 100000,
       "description": "Initial portfolio capital."
     },
+    "initial_allocation": {
+      "$ref": "#/$defs/initial_allocation"
+    },
+    "candidate_baskets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/candidate_basket"
+      },
+      "description": "Baskets of candidate securities the portfolio may buy or rotate into later."
+    },
+    "selection_policy": {
+      "$ref": "#/$defs/selection_policy"
+    },
     "targets": {
       "type": "object",
       "description": "Hard or preferred allocation targets by asset class, symbol, sector, theme, or exposure bucket. Values are weights from 0 to 1.",
@@ -430,6 +443,340 @@
           "default": "none"
         }
       }
+    },
+    "initial_allocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Defines the portfolio holdings at the start of the backtest or runtime simulation.",
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "cash",
+            "weights",
+            "dollars",
+            "shares"
+          ],
+          "description": "How initial positions are specified."
+        },
+        "positions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/initial_position"
+          },
+          "description": "Initial cash and/or security positions."
+        },
+        "on_missing_prices": {
+          "type": "string",
+          "enum": [
+            "fail",
+            "skip",
+            "cash_substitute"
+          ],
+          "default": "fail"
+        },
+        "rebalance_on_start": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, immediately rebalance from the initial allocation toward portfolio targets on the first tradable date."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "cash"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "positions": {
+                "default": [
+                  {
+                    "symbol": "cash",
+                    "weight": 1.0
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "weights",
+                  "dollars",
+                  "shares"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "positions"
+            ]
+          }
+        }
+      ]
+    },
+    "initial_position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "symbol"
+      ],
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "Tradable symbol or cash."
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Dollar amount when mode is dollars, or cash amount when symbol is cash."
+        },
+        "shares": {
+          "type": "number",
+          "minimum": 0
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "weight"
+          ]
+        },
+        {
+          "required": [
+            "amount"
+          ]
+        },
+        {
+          "required": [
+            "shares"
+          ]
+        }
+      ]
+    },
+    "candidate_basket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basket_id",
+        "symbols"
+      ],
+      "properties": {
+        "basket_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._:-]+$",
+          "description": "Unique basket identifier that rules may target."
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "asset_class": {
+          "type": "string"
+        },
+        "sector": {
+          "type": "string"
+        },
+        "sectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "theme": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "risk_asset",
+            "defensive_asset",
+            "hedge",
+            "cash_proxy",
+            "duration",
+            "commodity",
+            "custom"
+          ]
+        },
+        "symbols": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "min_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_position_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_position_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "selection_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Defines how the portfolio engine selects securities inside candidate baskets.",
+      "properties": {
+        "default_method": {
+          "type": "string",
+          "enum": [
+            "equal_weight",
+            "ranked",
+            "score_weighted",
+            "market_cap_weighted",
+            "manual",
+            "custom"
+          ],
+          "default": "ranked"
+        },
+        "rebalance_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_holding_days": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "baskets": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/basket_selection_policy"
+          }
+        }
+      }
+    },
+    "basket_selection_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "equal_weight",
+            "ranked",
+            "score_weighted",
+            "market_cap_weighted",
+            "manual",
+            "custom"
+          ]
+        },
+        "max_positions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "min_position_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_position_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ranking": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ranking_signal"
+          }
+        },
+        "replacement_policy": {
+          "$ref": "#/$defs/replacement_policy"
+        }
+      }
+    },
+    "ranking_signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal",
+        "weight"
+      ],
+      "properties": {
+        "signal": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "higher_is_better",
+            "lower_is_better"
+          ]
+        }
+      }
+    },
+    "replacement_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "rebalance_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_holding_days": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
     }
   },
   "examples": [
@@ -484,6 +831,129 @@
         "threshold": 0.05,
         "allow_partial_rebalance": true,
         "min_trade_weight": 0.005
+      },
+      "initial_allocation": {
+        "mode": "weights",
+        "positions": [
+          {
+            "symbol": "SPY",
+            "weight": 0.4
+          },
+          {
+            "symbol": "QQQ",
+            "weight": 0.25
+          },
+          {
+            "symbol": "TLT",
+            "weight": 0.2
+          },
+          {
+            "symbol": "cash",
+            "weight": 0.15
+          }
+        ]
+      },
+      "candidate_baskets": [
+        {
+          "basket_id": "growth_technology",
+          "description": "Growth technology and AI-related equities the strategy may buy or sell.",
+          "asset_class": "equities",
+          "sector": "technology",
+          "role": "risk_asset",
+          "symbols": [
+            "QQQ",
+            "NVDA",
+            "AMD",
+            "MSFT",
+            "AAPL",
+            "AVGO",
+            "SMH"
+          ],
+          "max_weight": 0.35,
+          "min_position_weight": 0.02,
+          "max_position_weight": 0.1
+        },
+        {
+          "basket_id": "defensive_equities",
+          "description": "Defensive equity alternatives.",
+          "asset_class": "equities",
+          "sectors": [
+            "utilities",
+            "consumer_staples",
+            "healthcare"
+          ],
+          "role": "defensive_asset",
+          "symbols": [
+            "XLU",
+            "XLP",
+            "XLV",
+            "JNJ",
+            "PG",
+            "KO"
+          ],
+          "max_weight": 0.3
+        },
+        {
+          "basket_id": "duration",
+          "description": "Treasury duration instruments.",
+          "asset_class": "bonds",
+          "role": "duration",
+          "symbols": [
+            "SHY",
+            "IEF",
+            "TLT"
+          ],
+          "max_weight": 0.5
+        },
+        {
+          "basket_id": "commodities_energy",
+          "description": "Energy and oil-related instruments.",
+          "asset_class": "commodities",
+          "sector": "energy",
+          "role": "commodity",
+          "symbols": [
+            "USO",
+            "XLE",
+            "XOM",
+            "CVX"
+          ],
+          "max_weight": 0.25
+        }
+      ],
+      "selection_policy": {
+        "default_method": "ranked",
+        "rebalance_threshold": 0.05,
+        "min_holding_days": 10,
+        "baskets": {
+          "growth_technology": {
+            "method": "ranked",
+            "max_positions": 5,
+            "min_position_weight": 0.02,
+            "max_position_weight": 0.1,
+            "ranking": [
+              {
+                "signal": "relative_strength_60d",
+                "weight": 0.4,
+                "direction": "higher_is_better"
+              },
+              {
+                "signal": "news_sentiment_7d",
+                "weight": 0.3,
+                "direction": "higher_is_better"
+              },
+              {
+                "signal": "realized_volatility_20d",
+                "weight": 0.3,
+                "direction": "lower_is_better"
+              }
+            ],
+            "replacement_policy": {
+              "enabled": true,
+              "rebalance_threshold": 0.15,
+              "min_holding_days": 10
+            }
+          }
+        }
       }
     }
   ]

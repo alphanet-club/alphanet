@@ -68,3 +68,24 @@ Then:
 - increase cash by 8%
 
 The portfolio engine may scale or reject these actions if they violate constraints.
+
+
+## Initial Portfolio and Candidate Baskets
+
+The example strategy starts with a simple portfolio:
+
+- 40% `SPY`
+- 25% `QQQ`
+- 20% `TLT`
+- 15% cash
+
+This starting allocation is intentionally different from the full candidate universe.
+
+The strategy may later rotate into candidate baskets such as:
+
+- `growth_technology`
+- `defensive_equities`
+- `duration`
+- `commodities_energy`
+
+This allows the portfolio to start simple while still giving the strategy a broader set of securities it may buy, trim, or rotate into during backtests.

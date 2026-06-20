@@ -407,3 +407,58 @@ This document belongs at:
 ```text
 docs/runtime.md
 ```
+
+
+---
+
+## Runtime Portfolio Initialization
+
+At backtest startup, the runtime must initialize the portfolio from `portfolio.initial_allocation`.
+
+Startup sequence:
+
+```text
+1. Read starting_cash.
+2. Read initial_allocation.
+3. Convert weights, dollars, or shares into starting positions.
+4. Validate starting positions against universe and constraints.
+5. Begin evaluating signals, regimes, relations, and rules.
+```
+
+If no `initial_allocation` is provided, the runtime should default to 100% cash.
+
+---
+
+## Runtime Candidate Selection
+
+Candidate baskets define assets the strategy may buy later.
+
+The runtime should not assume that the initial allocation is the complete tradable universe.
+
+Instead:
+
+```text
+initial_allocation = current starting holdings
+candidate_baskets = securities available for future selection
+selection_policy = deterministic logic for choosing among candidates
+```
+
+A compiled AIR file may therefore start with `SPY`, `QQQ`, `TLT`, and cash, while still allowing later purchases of `NVDA`, `AMD`, `XLU`, `XLP`, or other basket members.
+
+---
+
+## Runtime Recompilation Model
+
+If AIR is regenerated on a higher frequency, the compiler can update candidate baskets and selection policies using agent intelligence.
+
+The backtester remains deterministic because each run consumes a fixed `strategy.ir.json`.
+
+For live or rolling simulations, a future runtime may support dated AIR versions:
+
+```text
+2026-01-01 strategy.ir.json
+2026-02-01 strategy.ir.json
+2026-03-01 strategy.ir.json
+```
+
+Each AIR version is deterministic over its own effective period.

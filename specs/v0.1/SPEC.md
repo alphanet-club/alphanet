@@ -1723,3 +1723,132 @@ AlphaNet’s long-term goal is to make strategies:
 - portfolio-aware
 - agent-compatible
 - comparable across a future leaderboard
+
+
+---
+
+## Portfolio Initialization and Candidate Baskets
+
+AlphaNet distinguishes between three portfolio concepts:
+
+```text
+1. Initial allocation
+   What the portfolio holds at the start of a backtest or runtime simulation.
+
+2. Candidate baskets
+   What the strategy is allowed or interested in buying later.
+
+3. Portfolio targets and constraints
+   What the portfolio should look like over time and what it must never violate.
+```
+
+### Initial Allocation
+
+`portfolio.initial_allocation` defines the starting holdings.
+
+Example:
+
+```json
+{
+  "initial_allocation": {
+    "mode": "weights",
+    "positions": [
+      { "symbol": "SPY", "weight": 0.40 },
+      { "symbol": "QQQ", "weight": 0.25 },
+      { "symbol": "TLT", "weight": 0.20 },
+      { "symbol": "cash", "weight": 0.15 }
+    ]
+  }
+}
+```
+
+Supported modes:
+
+- `cash`
+- `weights`
+- `dollars`
+- `shares`
+
+If omitted, the runtime should default to 100% cash.
+
+### Candidate Baskets
+
+`portfolio.candidate_baskets` define groups of securities the strategy may buy, sell, rank, or rotate into over time.
+
+Example:
+
+```json
+{
+  "candidate_baskets": [
+    {
+      "basket_id": "growth_technology",
+      "asset_class": "equities",
+      "sector": "technology",
+      "symbols": ["QQQ", "NVDA", "AMD", "MSFT", "AAPL", "AVGO", "SMH"],
+      "max_weight": 0.35,
+      "max_position_weight": 0.10
+    }
+  ]
+}
+```
+
+Candidate baskets are part of the compiled AIR contract and are available to the backtester without agent calls.
+
+### Selection Policy
+
+`portfolio.selection_policy` defines deterministic rules for selecting securities inside candidate baskets.
+
+Example:
+
+```json
+{
+  "selection_policy": {
+    "default_method": "ranked",
+    "rebalance_threshold": 0.05,
+    "baskets": {
+      "growth_technology": {
+        "method": "ranked",
+        "max_positions": 5,
+        "ranking": [
+          { "signal": "relative_strength_60d", "weight": 0.40, "direction": "higher_is_better" },
+          { "signal": "news_sentiment_7d", "weight": 0.30, "direction": "higher_is_better" },
+          { "signal": "realized_volatility_20d", "weight": 0.30, "direction": "lower_is_better" }
+        ]
+      }
+    }
+  }
+}
+```
+
+### Basket-Targeting Actions
+
+Rules may target baskets using `target_type`.
+
+Example:
+
+```json
+{
+  "action": "decrease_weight",
+  "target": "growth_technology",
+  "target_type": "basket",
+  "amount": 0.10,
+  "unit": "weight"
+}
+```
+
+Rules may also request rotation between baskets:
+
+```json
+{
+  "action": "rotate",
+  "from": "growth_technology",
+  "to": "defensive_equities",
+  "target": "portfolio",
+  "target_type": "portfolio",
+  "amount": 0.10,
+  "unit": "weight"
+}
+```
+
+The rule engine emits requested actions.
+The portfolio engine determines the exact symbols to buy or sell.

@@ -582,3 +582,85 @@ This document belongs at:
 ```text
 docs/rule-engine.md
 ```
+
+
+---
+
+## Basket Targets
+
+Rules may target candidate baskets, not just individual symbols.
+
+Example:
+
+```json
+{
+  "action": "decrease_weight",
+  "target": "growth_technology",
+  "target_type": "basket",
+  "amount": 0.10,
+  "unit": "weight"
+}
+```
+
+This means:
+
+```text
+Reduce the total allocation assigned to the growth_technology basket by 10%.
+```
+
+The portfolio engine decides which holdings inside the basket are sold, using the basket selection policy, ranking signals, holding constraints, and portfolio constraints.
+
+---
+
+## Rotation Actions
+
+Rules may request rotation between baskets.
+
+Example:
+
+```json
+{
+  "action": "rotate",
+  "from": "growth_technology",
+  "to": "defensive_equities",
+  "target": "portfolio",
+  "target_type": "portfolio",
+  "amount": 0.10,
+  "unit": "weight"
+}
+```
+
+This means:
+
+```text
+Move 10% of portfolio weight from growth technology candidates into defensive equity candidates.
+```
+
+The rule engine emits the requested action.
+The portfolio engine performs candidate selection and constraint enforcement.
+
+---
+
+## Agent Recompilation vs Deterministic Basket Selection
+
+There are two ways AlphaNet can adjust holdings over time.
+
+### Deterministic Adjustment
+
+AIR may include candidate baskets and ranking policies.
+The backtester can evaluate those rankings every day without calling agents.
+
+### Recompiled Adjustment
+
+If the user recompiles AIR more frequently, the compiler or agent engines may update:
+
+- candidate baskets
+- preferred sectors
+- ranking weights
+- signals
+- regimes
+- relations
+- rules
+- confidence scores
+
+The backtester still consumes only the newest compiled AIR artifact.

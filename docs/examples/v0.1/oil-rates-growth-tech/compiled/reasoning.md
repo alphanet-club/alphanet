@@ -79,3 +79,27 @@ compiled/strategy.ir.json
 ```
 
 This is the only file required by the backtester.
+
+
+## Portfolio Initialization Update
+
+The compiled AIR now explicitly separates:
+
+- initial allocation
+- candidate baskets
+- long-term targets
+- hard constraints
+- selection policy
+
+This allows the backtester to start from a known portfolio while still allowing later deterministic rotation into candidate baskets.
+
+## Basket Selection Update
+
+The compiler added candidate baskets for:
+
+- growth technology
+- defensive equities
+- duration
+- commodities and energy
+
+A basket rotation rule was added so oil/rates pressure can reduce growth technology exposure and rotate into defensive equities when appropriate.

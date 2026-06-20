@@ -50,6 +50,22 @@
     {
       "name": "decision_hierarchy_valid",
       "status": "pass"
+    },
+    {
+      "name": "initial_allocation_valid",
+      "status": "pass"
+    },
+    {
+      "name": "candidate_baskets_valid",
+      "status": "pass"
+    },
+    {
+      "name": "selection_policy_valid",
+      "status": "pass"
+    },
+    {
+      "name": "basket_targets_resolved",
+      "status": "pass"
     }
   ],
   "warnings": [

@@ -526,6 +526,18 @@
           "exclusiveMinimum": 0,
           "default": 100000
         },
+        "initial_allocation": {
+          "$ref": "#/$defs/initial_allocation"
+        },
+        "candidate_baskets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/candidate_basket"
+          }
+        },
+        "selection_policy": {
+          "$ref": "#/$defs/selection_policy"
+        },
         "targets": {
           "type": "object",
           "additionalProperties": {
@@ -965,12 +977,17 @@
             "rebalance",
             "raise_cash",
             "reduce_risk",
-            "block_trade"
+            "block_trade",
+            "rotate",
+            "allocate_to_basket",
+            "reduce_basket",
+            "rank_and_select",
+            "replace_low_ranked"
           ]
         },
         "target": {
           "type": "string",
-          "description": "Symbol, asset class, sector, theme, exposure bucket, or portfolio."
+          "description": "Symbol, basket id, asset class, sector, theme, exposure bucket, cash, or portfolio."
         },
         "amount": {
           "type": "number",
@@ -994,6 +1011,29 @@
         "metadata": {
           "type": "object",
           "additionalProperties": true
+        },
+        "target_type": {
+          "type": "string",
+          "enum": [
+            "symbol",
+            "basket",
+            "asset_class",
+            "sector",
+            "theme",
+            "factor",
+            "portfolio",
+            "cash",
+            "custom"
+          ],
+          "description": "Disambiguates the target namespace for basket and portfolio-level actions."
+        },
+        "from": {
+          "type": "string",
+          "description": "Source target for rotate actions."
+        },
+        "to": {
+          "type": "string",
+          "description": "Destination target for rotate actions."
         }
       }
     },
@@ -1098,6 +1138,340 @@
         },
         "ir_sha256": {
           "type": "string"
+        }
+      }
+    },
+    "initial_allocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Defines the portfolio holdings at the start of the backtest or runtime simulation.",
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "cash",
+            "weights",
+            "dollars",
+            "shares"
+          ],
+          "description": "How initial positions are specified."
+        },
+        "positions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/initial_position"
+          },
+          "description": "Initial cash and/or security positions."
+        },
+        "on_missing_prices": {
+          "type": "string",
+          "enum": [
+            "fail",
+            "skip",
+            "cash_substitute"
+          ],
+          "default": "fail"
+        },
+        "rebalance_on_start": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, immediately rebalance from the initial allocation toward portfolio targets on the first tradable date."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "cash"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "positions": {
+                "default": [
+                  {
+                    "symbol": "cash",
+                    "weight": 1.0
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "weights",
+                  "dollars",
+                  "shares"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "positions"
+            ]
+          }
+        }
+      ]
+    },
+    "initial_position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "symbol"
+      ],
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "Tradable symbol or cash."
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Dollar amount when mode is dollars, or cash amount when symbol is cash."
+        },
+        "shares": {
+          "type": "number",
+          "minimum": 0
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "weight"
+          ]
+        },
+        {
+          "required": [
+            "amount"
+          ]
+        },
+        {
+          "required": [
+            "shares"
+          ]
+        }
+      ]
+    },
+    "candidate_basket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basket_id",
+        "symbols"
+      ],
+      "properties": {
+        "basket_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._:-]+$",
+          "description": "Unique basket identifier that rules may target."
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "asset_class": {
+          "type": "string"
+        },
+        "sector": {
+          "type": "string"
+        },
+        "sectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "theme": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "risk_asset",
+            "defensive_asset",
+            "hedge",
+            "cash_proxy",
+            "duration",
+            "commodity",
+            "custom"
+          ]
+        },
+        "symbols": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "min_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_position_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_position_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "selection_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Defines how the portfolio engine selects securities inside candidate baskets.",
+      "properties": {
+        "default_method": {
+          "type": "string",
+          "enum": [
+            "equal_weight",
+            "ranked",
+            "score_weighted",
+            "market_cap_weighted",
+            "manual",
+            "custom"
+          ],
+          "default": "ranked"
+        },
+        "rebalance_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_holding_days": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "baskets": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/basket_selection_policy"
+          }
+        }
+      }
+    },
+    "basket_selection_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "equal_weight",
+            "ranked",
+            "score_weighted",
+            "market_cap_weighted",
+            "manual",
+            "custom"
+          ]
+        },
+        "max_positions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "min_position_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_position_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ranking": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ranking_signal"
+          }
+        },
+        "replacement_policy": {
+          "$ref": "#/$defs/replacement_policy"
+        }
+      }
+    },
+    "ranking_signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal",
+        "weight"
+      ],
+      "properties": {
+        "signal": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "higher_is_better",
+            "lower_is_better"
+          ]
+        }
+      }
+    },
+    "replacement_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "rebalance_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_holding_days": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     }

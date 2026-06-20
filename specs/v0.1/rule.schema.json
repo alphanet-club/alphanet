@@ -309,7 +309,7 @@
         },
         "target": {
           "type": "string",
-          "description": "Symbol, asset class, sector, theme, exposure bucket, regime, relation, or portfolio."
+          "description": "Symbol, basket id, asset class, sector, theme, exposure bucket, cash, or portfolio."
         },
         "amount": {
           "type": "number",
@@ -347,6 +347,29 @@
         "metadata": {
           "type": "object",
           "additionalProperties": true
+        },
+        "target_type": {
+          "type": "string",
+          "enum": [
+            "symbol",
+            "basket",
+            "asset_class",
+            "sector",
+            "theme",
+            "factor",
+            "portfolio",
+            "cash",
+            "custom"
+          ],
+          "description": "Disambiguates the target namespace for basket and portfolio-level actions."
+        },
+        "from": {
+          "type": "string",
+          "description": "Source target for rotate actions."
+        },
+        "to": {
+          "type": "string",
+          "description": "Destination target for rotate actions."
         }
       },
       "allOf": [
@@ -393,7 +416,12 @@
         "allow_trade",
         "set_regime_bias",
         "emit_signal",
-        "custom"
+        "custom",
+        "rotate",
+        "allocate_to_basket",
+        "reduce_basket",
+        "rank_and_select",
+        "replace_low_ranked"
       ]
     },
     "action_unit": {
@@ -548,6 +576,31 @@
           "May underperform if technology momentum remains strong despite macro pressure."
         ]
       }
+    },
+    {
+      "rule_id": "rotate_growth_to_defensive_when_liquidity_tight",
+      "name": "Rotate growth technology to defensive equities during tight liquidity",
+      "enabled": true,
+      "layer": "cross_asset_relations",
+      "priority": 75,
+      "confidence": 0.73,
+      "when": {
+        "relation": "oil_rates_negative_for_growth_tech",
+        "operator": "active",
+        "confidence_min": 0.65
+      },
+      "then": [
+        {
+          "action": "rotate",
+          "from": "growth_technology",
+          "to": "defensive_equities",
+          "target": "portfolio",
+          "target_type": "portfolio",
+          "amount": 0.1,
+          "unit": "weight",
+          "reason": "Rotate from rate-sensitive growth technology into defensive equities."
+        }
+      ]
     }
   ]
 }
