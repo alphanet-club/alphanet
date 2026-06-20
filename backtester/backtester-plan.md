@@ -1972,3 +1972,61 @@ The implementation is complete when:
 - excluded ranges return `uses_excluded_ranges`.
 - non-daily valuation returns `missing_required_valuation` when daily valuation is required.
 - accepted official suite returns `official`.
+
+---
+
+## Per-Provider Dolt Databases
+
+AlphaNet v1 uses one DoltHub database per public data source.
+
+Do not implement one combined database for all sources.
+
+Provider databases:
+
+```text
+alphanet_stooq
+alphanet_fred
+alphanet_cboe
+alphanet_imf_portwatch
+alphanet_alpha_vantage
+alphanet_yahoo_finance
+```
+
+Each source has a separate connection and a source-specific schema under:
+
+```text
+backtester/data-providers/<provider>/schema.sql
+```
+
+The backtester normalizes provider-specific rows in Go code through provider adapters and `CompositeProvider`.
+
+See:
+
+```text
+docs/data-sources.md
+backtester/data-access-plan.md
+backtester/data-providers/
+```
+
+---
+
+## Provider-Collocated Data Schemas
+
+Each public data source has a single provider folder:
+
+```text
+backtester/data-providers/<source>/
+```
+
+Each folder contains:
+
+```text
+README.md
+schema.sql
+```
+
+The `schema.sql` is a seed/maintainer schema for initially creating the public DoltHub database. Normal users usually clone the public database and do not run table creation statements.
+
+Public DoltHub writes are disabled by default and must be enabled explicitly by config or environment variables.
+
+Use of a local Dolt clone is configurable per source so local and cloud runs can choose the lowest-cost access mode.

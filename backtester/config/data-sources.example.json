@@ -1,0 +1,81 @@
+{
+  "data_sources": {
+    "priority": [
+      "local_csv",
+      "local_dolt",
+      "public_dolthub",
+      "public_api"
+    ],
+    "data_loading": {
+      "mode": "rolling_window",
+      "window_trading_days": 60,
+      "memory_limit_mb": 256
+    },
+    "cloud_data_access": {
+      "mode": "auto",
+      "allowed_modes": [
+        "auto",
+        "remote_first",
+        "ephemeral_clone"
+      ],
+      "record_decisions": true
+    },
+    "public_dolthub_writes": {
+      "enabled": false,
+      "allow_sources": [],
+      "require_clean_working_set": true,
+      "require_auth": true,
+      "commit_message_template": "Update {source} data from {provider}",
+      "push_remote": false,
+      "env_overrides": {
+        "write_enabled": "ALPHANET_DOLTHUB_WRITE_ENABLED",
+        "push_enabled": "ALPHANET_DOLTHUB_PUSH_ENABLED",
+        "allowed_sources": "ALPHANET_DOLTHUB_ALLOWED_SOURCES"
+      }
+    },
+    "sources": {
+      "stooq": {
+        "database": "alphanet_stooq",
+        "use_local_clone": true,
+        "local_clone_path": "./data/dolthub/alphanet_stooq",
+        "remote_mode": "fallback",
+        "connection": "root:@tcp(127.0.0.1:3306)/alphanet_stooq"
+      },
+      "fred": {
+        "database": "alphanet_fred",
+        "use_local_clone": true,
+        "local_clone_path": "./data/dolthub/alphanet_fred",
+        "remote_mode": "fallback",
+        "connection": "root:@tcp(127.0.0.1:3307)/alphanet_fred"
+      },
+      "cboe": {
+        "database": "alphanet_cboe",
+        "use_local_clone": true,
+        "local_clone_path": "./data/dolthub/alphanet_cboe",
+        "remote_mode": "fallback",
+        "connection": "root:@tcp(127.0.0.1:3308)/alphanet_cboe"
+      },
+      "imf_portwatch": {
+        "database": "alphanet_imf_portwatch",
+        "use_local_clone": false,
+        "local_clone_path": "./data/dolthub/alphanet_imf_portwatch",
+        "remote_mode": "remote_first",
+        "connection": "root:@tcp(127.0.0.1:3309)/alphanet_imf_portwatch"
+      },
+      "alpha_vantage": {
+        "database": "alphanet_alpha_vantage",
+        "use_local_clone": false,
+        "local_clone_path": "./data/dolthub/alphanet_alpha_vantage",
+        "remote_mode": "remote_first",
+        "connection": "root:@tcp(127.0.0.1:3310)/alphanet_alpha_vantage"
+      },
+      "yahoo_finance": {
+        "database": "alphanet_yahoo_finance",
+        "use_local_clone": false,
+        "local_clone_path": "./data/dolthub/alphanet_yahoo_finance",
+        "remote_mode": "disabled",
+        "connection": "root:@tcp(127.0.0.1:3311)/alphanet_yahoo_finance"
+      }
+    }
+  }
+}
