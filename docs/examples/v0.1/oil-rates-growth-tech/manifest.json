@@ -1,0 +1,83 @@
+{
+  "name": "Oil Rates Growth Tech",
+  "strategy_id": "oil-rates-growth-tech",
+  "description": "Reduce growth technology exposure when oil and long rates rise together, especially during tight liquidity regimes.",
+  "author": "AlphaNet Example",
+  "spec_version": "v0.1",
+  "version": "0.1.0",
+  "tags": [
+    "macro",
+    "rates",
+    "oil",
+    "growth-tech",
+    "risk-management"
+  ],
+  "universe": {
+    "symbols": [
+      "QQQ",
+      "NVDA",
+      "AMD",
+      "TLT",
+      "USO",
+      "SPY"
+    ],
+    "asset_classes": [
+      "cash",
+      "equities",
+      "bonds",
+      "commodities"
+    ]
+  },
+  "compiler": {
+    "mode": "ensemble",
+    "engines": [
+      {
+        "name": "TauricResearch/TradingAgents",
+        "version": "0.2.5",
+        "weight": 0.5,
+        "role": "market_and_technical_reasoning",
+        "symbols": [
+          "QQQ",
+          "NVDA",
+          "AMD",
+          "TLT",
+          "USO"
+        ]
+      },
+      {
+        "name": "virattt/ai-hedge-fund",
+        "version": "2026.6.17",
+        "weight": 0.5,
+        "role": "fundamental_sentiment_portfolio_reasoning",
+        "symbols": [
+          "QQQ",
+          "NVDA",
+          "AMD",
+          "TLT",
+          "USO"
+        ]
+      }
+    ],
+    "ensemble_method": "weighted_vote",
+    "training_window": {
+      "lookback_days": 365
+    },
+    "schedule": {
+      "type": "manual"
+    },
+    "allow_hosted_compute": false,
+    "allow_network": true,
+    "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json."
+  },
+  "portfolio": {
+    "base_currency": "USD",
+    "starting_cash": 100000
+  },
+  "backtest": {
+    "start": "2018-01-01",
+    "end": "2025-12-31",
+    "starting_cash": 100000,
+    "base_currency": "USD",
+    "backtester_version": "v0.1.0"
+  }
+}

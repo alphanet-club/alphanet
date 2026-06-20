@@ -1,0 +1,1294 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alphanet.dev/specs/v0.1/alphanet.schema.json",
+  "title": "AlphaNet Intermediate Representation",
+  "description": "Top-level schema for AlphaNet v0.1 compiled strategy.ir.json files. This is the deterministic AIR artifact consumed by the backtester.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "metadata",
+    "universe",
+    "signals",
+    "portfolio",
+    "decision_hierarchy",
+    "rules",
+    "execution"
+  ],
+  "properties": {
+    "metadata": {
+      "$ref": "#/$defs/metadata"
+    },
+    "universe": {
+      "$ref": "#/$defs/universe"
+    },
+    "signals": {
+      "type": "array",
+      "description": "Signal definitions available to regimes, relations, and rules.",
+      "items": {
+        "$ref": "#/$defs/signal"
+      },
+      "uniqueItems": false
+    },
+    "relations": {
+      "type": "array",
+      "description": "Cross-asset or cross-domain relation definitions.",
+      "items": {
+        "$ref": "#/$defs/relation"
+      },
+      "default": []
+    },
+    "regimes": {
+      "type": "array",
+      "description": "Regime definitions inferred from signals, relations, or portfolio state.",
+      "items": {
+        "$ref": "#/$defs/regime"
+      },
+      "default": []
+    },
+    "portfolio": {
+      "$ref": "#/$defs/portfolio"
+    },
+    "decision_hierarchy": {
+      "$ref": "#/$defs/decision_hierarchy"
+    },
+    "rules": {
+      "type": "array",
+      "description": "Rules evaluated by the backtester.",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "execution": {
+      "$ref": "#/$defs/execution"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Reserved extension object for future AlphaNet versions or private tooling."
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9._:-]+$"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "date_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "weight": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "signed_weight": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy_name",
+        "spec_version",
+        "generated_at"
+      ],
+      "properties": {
+        "strategy_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "strategy_id": {
+          "$ref": "#/$defs/id"
+        },
+        "description": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string",
+          "description": "Strategy version."
+        },
+        "spec_version": {
+          "type": "string",
+          "const": "v0.1"
+        },
+        "compiler_version": {
+          "type": "string"
+        },
+        "generated_at": {
+          "$ref": "#/$defs/date_time"
+        },
+        "source_hash": {
+          "type": "string",
+          "description": "Optional hash of source strategy files."
+        },
+        "ir_hash": {
+          "type": "string",
+          "description": "Optional SHA-256 hash of canonicalized AIR."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "universe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assets"
+      ],
+      "properties": {
+        "assets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
+        },
+        "asset_classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset_class"
+          },
+          "uniqueItems": true
+        },
+        "sectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "themes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/theme"
+          }
+        },
+        "benchmark": {
+          "type": "string",
+          "description": "Optional benchmark symbol, e.g. SPY."
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "symbol",
+        "asset_class"
+      ],
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        },
+        "name": {
+          "type": "string"
+        },
+        "asset_class": {
+          "$ref": "#/$defs/asset_class"
+        },
+        "sector": {
+          "type": "string"
+        },
+        "industry": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "exchange": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "tradable": {
+          "type": "boolean",
+          "default": true
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "asset_class": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "equities",
+        "bonds",
+        "commodities",
+        "crypto",
+        "real_assets",
+        "alternatives",
+        "currency",
+        "rates",
+        "volatility",
+        "custom"
+      ]
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "theme_id",
+        "members"
+      ],
+      "properties": {
+        "theme_id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal_id",
+        "family"
+      ],
+      "properties": {
+        "signal_id": {
+          "$ref": "#/$defs/id"
+        },
+        "family": {
+          "type": "string",
+          "enum": [
+            "valuation",
+            "macro",
+            "global_macro",
+            "fed",
+            "shipping",
+            "market_flow",
+            "events",
+            "sentiment",
+            "volatility",
+            "portfolio",
+            "custom"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "description": "Signal type, e.g. level, percent_change, rate_change, z_score, ranking, sentiment_score."
+        },
+        "source": {
+          "type": "string",
+          "description": "Data source identifier."
+        },
+        "instrument": {
+          "type": "string",
+          "description": "Instrument, economic series, or source symbol referenced by this signal."
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Primary asset symbol if applicable."
+        },
+        "field": {
+          "type": "string",
+          "description": "Input field, e.g. close, yield, volume, cpi_yoy."
+        },
+        "transform": {
+          "type": "string",
+          "enum": [
+            "level",
+            "change",
+            "percent_change",
+            "difference",
+            "ratio",
+            "spread",
+            "moving_average",
+            "z_score",
+            "rank",
+            "correlation",
+            "volatility",
+            "sentiment_score",
+            "event_count",
+            "custom"
+          ]
+        },
+        "window": {
+          "type": "string",
+          "pattern": "^[0-9]+[dwmqy]$",
+          "description": "Window such as 20d, 3m, 1y."
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit such as percent, basis_points, dollars, vessels, tons."
+        },
+        "value_range": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relation_id",
+        "drivers",
+        "targets",
+        "effect"
+      ],
+      "properties": {
+        "relation_id": {
+          "$ref": "#/$defs/id"
+        },
+        "description": {
+          "type": "string"
+        },
+        "drivers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Signal, regime, or relation ids that drive this relation."
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Symbols, asset classes, sectors, themes, or regimes affected by the relation."
+        },
+        "effect": {
+          "type": "string",
+          "enum": [
+            "positive",
+            "negative",
+            "neutral",
+            "mixed",
+            "risk_on",
+            "risk_off",
+            "increase_volatility",
+            "decrease_volatility"
+          ]
+        },
+        "conditions": {
+          "$ref": "#/$defs/condition"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "strength": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "window": {
+          "type": "string",
+          "pattern": "^[0-9]+[dwmqy]$"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "regime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "regime_id",
+        "conditions"
+      ],
+      "properties": {
+        "regime_id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "conditions": {
+          "$ref": "#/$defs/condition"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "state_mode": {
+          "type": "string",
+          "enum": [
+            "active_inactive",
+            "scored",
+            "probabilistic"
+          ],
+          "default": "active_inactive"
+        },
+        "implications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/regime_implication"
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "regime_implication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "effect"
+      ],
+      "properties": {
+        "target": {
+          "type": "string"
+        },
+        "effect": {
+          "type": "string"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        }
+      }
+    },
+    "portfolio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_currency",
+        "starting_cash"
+      ],
+      "properties": {
+        "base_currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "starting_cash": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 100000
+        },
+        "targets": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/weight"
+          },
+          "description": "Target weights by asset class, symbol, sector, theme, or exposure bucket."
+        },
+        "soft_targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/soft_target"
+          }
+        },
+        "constraints": {
+          "$ref": "#/$defs/portfolio_constraints"
+        },
+        "risk_budgets": {
+          "$ref": "#/$defs/risk_budgets"
+        },
+        "rebalance": {
+          "$ref": "#/$defs/rebalance_policy"
+        }
+      }
+    },
+    "soft_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "weight",
+        "tolerance"
+      ],
+      "properties": {
+        "target": {
+          "type": "string"
+        },
+        "weight": {
+          "$ref": "#/$defs/weight"
+        },
+        "tolerance": {
+          "$ref": "#/$defs/weight"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "portfolio_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cash_min": {
+          "$ref": "#/$defs/weight"
+        },
+        "cash_max": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_single_position": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_asset_class_weight": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/weight"
+          }
+        },
+        "min_asset_class_weight": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/weight"
+          }
+        },
+        "max_sector_weight": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/weight"
+          }
+        },
+        "max_theme_weight": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/weight"
+          }
+        },
+        "max_leverage": {
+          "type": "number",
+          "minimum": 0,
+          "default": 1
+        },
+        "allow_shorting": {
+          "type": "boolean",
+          "default": false
+        },
+        "allow_margin": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "risk_budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_portfolio_volatility": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_drawdown": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_beta": {
+          "type": "number"
+        },
+        "max_daily_turnover": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_trade_weight": {
+          "$ref": "#/$defs/weight"
+        }
+      }
+    },
+    "rebalance_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "frequency": {
+          "type": "string",
+          "enum": [
+            "daily",
+            "weekly",
+            "monthly",
+            "quarterly",
+            "event_driven"
+          ],
+          "default": "daily"
+        },
+        "threshold": {
+          "$ref": "#/$defs/weight"
+        },
+        "allow_partial_rebalance": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "decision_hierarchy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layers"
+      ],
+      "properties": {
+        "layers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/decision_layer"
+          }
+        },
+        "conflict_resolution": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "layer_priority",
+              "rule_priority",
+              "confidence",
+              "tie_breaker"
+            ]
+          },
+          "default": [
+            "layer_priority",
+            "rule_priority",
+            "confidence",
+            "tie_breaker"
+          ]
+        },
+        "tie_breaker": {
+          "type": "string",
+          "enum": [
+            "rule_order",
+            "lexicographic_rule_id",
+            "most_conservative",
+            "explicit"
+          ],
+          "default": "rule_order"
+        }
+      }
+    },
+    "decision_layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "priority"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "portfolio_safety",
+            "risk_management",
+            "regime",
+            "cross_asset_relations",
+            "strategy",
+            "tactical",
+            "experimental",
+            "custom"
+          ]
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule_id",
+        "layer",
+        "priority",
+        "when",
+        "then"
+      ],
+      "properties": {
+        "rule_id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "layer": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "when": {
+          "$ref": "#/$defs/condition"
+        },
+        "then": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action"
+          },
+          "minItems": 1
+        },
+        "valid_from": {
+          "$ref": "#/$defs/date"
+        },
+        "valid_to": {
+          "$ref": "#/$defs/date"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "all"
+          ],
+          "properties": {
+            "all": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/condition"
+              },
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "required": [
+            "any"
+          ],
+          "properties": {
+            "any": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/condition"
+              },
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "required": [
+            "not"
+          ],
+          "properties": {
+            "not": {
+              "$ref": "#/$defs/condition"
+            }
+          }
+        },
+        {
+          "required": [
+            "signal",
+            "operator"
+          ],
+          "properties": {
+            "signal": {
+              "type": "string"
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {},
+            "unit": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "required": [
+            "regime",
+            "operator"
+          ],
+          "properties": {
+            "regime": {
+              "type": "string"
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {}
+          }
+        },
+        {
+          "required": [
+            "relation",
+            "operator"
+          ],
+          "properties": {
+            "relation": {
+              "type": "string"
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {}
+          }
+        },
+        {
+          "required": [
+            "portfolio_metric",
+            "operator"
+          ],
+          "properties": {
+            "portfolio_metric": {
+              "type": "string"
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {}
+          }
+        },
+        {
+          "required": [
+            "event",
+            "operator"
+          ],
+          "properties": {
+            "event": {
+              "type": "string"
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {}
+          }
+        }
+      ]
+    },
+    "operator": {
+      "type": "string",
+      "enum": [
+        ">",
+        ">=",
+        "<",
+        "<=",
+        "==",
+        "!=",
+        "between",
+        "in",
+        "not_in",
+        "active",
+        "inactive",
+        "exists",
+        "missing"
+      ]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "target"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "increase_weight",
+            "decrease_weight",
+            "set_weight",
+            "buy",
+            "sell",
+            "hold",
+            "rebalance",
+            "raise_cash",
+            "reduce_risk",
+            "block_trade"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "description": "Symbol, asset class, sector, theme, exposure bucket, or portfolio."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Action amount. Interpretation depends on action_type."
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "weight",
+            "shares",
+            "dollars",
+            "percent",
+            "risk_fraction",
+            "custom"
+          ],
+          "default": "weight"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rebalance_frequency": {
+          "type": "string",
+          "enum": [
+            "daily",
+            "weekly",
+            "monthly",
+            "quarterly",
+            "event_driven"
+          ],
+          "default": "daily"
+        },
+        "order_timing": {
+          "type": "string",
+          "enum": [
+            "same_close",
+            "next_open",
+            "next_close"
+          ],
+          "default": "next_open"
+        },
+        "transaction_cost_bps": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        },
+        "slippage_bps": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        },
+        "allow_fractional_shares": {
+          "type": "boolean",
+          "default": true
+        },
+        "dividend_handling": {
+          "type": "string",
+          "enum": [
+            "ignore",
+            "cash",
+            "reinvest"
+          ],
+          "default": "cash"
+        },
+        "corporate_actions": {
+          "type": "string",
+          "enum": [
+            "adjusted_prices",
+            "explicit_events"
+          ],
+          "default": "adjusted_prices"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "compiler_version": {
+          "type": "string"
+        },
+        "generated_at": {
+          "$ref": "#/$defs/date_time"
+        },
+        "engines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "version"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "weight": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "training_window": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "source_hashes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "ir_sha256": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "metadata": {
+        "strategy_name": "Oil Rates Strategy",
+        "strategy_id": "oil_rates_strategy",
+        "description": "Reduce growth exposure when oil and long rates rise together.",
+        "author": "example",
+        "spec_version": "v0.1",
+        "compiler_version": "v0.1.0",
+        "generated_at": "2026-06-19T00:00:00Z",
+        "tags": [
+          "macro",
+          "rates",
+          "growth-tech"
+        ]
+      },
+      "universe": {
+        "assets": [
+          {
+            "symbol": "QQQ",
+            "asset_class": "equities",
+            "sector": "technology"
+          },
+          {
+            "symbol": "NVDA",
+            "asset_class": "equities",
+            "sector": "technology"
+          },
+          {
+            "symbol": "TLT",
+            "asset_class": "bonds",
+            "sector": "duration"
+          },
+          {
+            "symbol": "USO",
+            "asset_class": "commodities",
+            "sector": "energy"
+          }
+        ],
+        "benchmark": "SPY"
+      },
+      "signals": [
+        {
+          "signal_id": "wti_change_20d",
+          "family": "macro",
+          "type": "percent_change",
+          "instrument": "WTI",
+          "transform": "percent_change",
+          "window": "20d",
+          "unit": "percent"
+        },
+        {
+          "signal_id": "ust10y_change_20d",
+          "family": "macro",
+          "type": "rate_change",
+          "instrument": "UST10Y",
+          "transform": "change",
+          "window": "20d",
+          "unit": "basis_points"
+        }
+      ],
+      "relations": [
+        {
+          "relation_id": "oil_rates_negative_for_growth_tech",
+          "drivers": [
+            "wti_change_20d",
+            "ust10y_change_20d"
+          ],
+          "targets": [
+            "QQQ",
+            "NVDA"
+          ],
+          "effect": "negative",
+          "confidence": 0.72
+        }
+      ],
+      "regimes": [
+        {
+          "regime_id": "tight_liquidity",
+          "conditions": {
+            "all": [
+              {
+                "signal": "ust10y_change_20d",
+                "operator": ">",
+                "value": 25,
+                "unit": "basis_points"
+              }
+            ]
+          },
+          "confidence": 0.8
+        }
+      ],
+      "portfolio": {
+        "base_currency": "USD",
+        "starting_cash": 100000,
+        "targets": {
+          "cash": 0.25,
+          "equities": 0.5,
+          "bonds": 0.2,
+          "commodities": 0.05
+        },
+        "constraints": {
+          "cash_min": 0.1,
+          "max_single_position": 0.15,
+          "max_leverage": 1.0,
+          "allow_shorting": false
+        }
+      },
+      "decision_hierarchy": {
+        "layers": [
+          {
+            "name": "portfolio_safety",
+            "priority": 100
+          },
+          {
+            "name": "risk_management",
+            "priority": 90
+          },
+          {
+            "name": "regime",
+            "priority": 80
+          },
+          {
+            "name": "cross_asset_relations",
+            "priority": 70
+          },
+          {
+            "name": "strategy",
+            "priority": 60
+          }
+        ],
+        "conflict_resolution": [
+          "layer_priority",
+          "rule_priority",
+          "confidence",
+          "tie_breaker"
+        ],
+        "tie_breaker": "rule_order"
+      },
+      "rules": [
+        {
+          "rule_id": "reduce_growth_tech_when_oil_and_rates_rise",
+          "layer": "strategy",
+          "priority": 70,
+          "confidence": 0.76,
+          "when": {
+            "all": [
+              {
+                "signal": "wti_change_20d",
+                "operator": ">",
+                "value": 0.1
+              },
+              {
+                "signal": "ust10y_change_20d",
+                "operator": ">",
+                "value": 25,
+                "unit": "basis_points"
+              },
+              {
+                "regime": "tight_liquidity",
+                "operator": "active"
+              }
+            ]
+          },
+          "then": [
+            {
+              "action": "decrease_weight",
+              "target": "QQQ",
+              "amount": 0.05,
+              "unit": "weight"
+            },
+            {
+              "action": "increase_weight",
+              "target": "cash",
+              "amount": 0.05,
+              "unit": "weight"
+            }
+          ]
+        }
+      ],
+      "execution": {
+        "rebalance_frequency": "daily",
+        "order_timing": "next_open",
+        "transaction_cost_bps": 1,
+        "slippage_bps": 2,
+        "allow_fractional_shares": true
+      }
+    }
+  ]
+}

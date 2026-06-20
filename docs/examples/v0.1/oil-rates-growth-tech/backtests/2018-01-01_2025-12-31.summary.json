@@ -1,0 +1,21 @@
+{
+  "strategy_name": "Oil Rates Growth Tech",
+  "strategy_ir_sha256": "sha256:example",
+  "spec_version": "v0.1",
+  "backtester_version": "v0.1.0",
+  "data_version": "example-data-v0.1",
+  "date_range": {
+    "start": "2018-01-01",
+    "end": "2025-12-31"
+  },
+  "starting_cash": 100000,
+  "ending_value": 137250.42,
+  "total_return": 0.3725042,
+  "annualized_return": 0.0412,
+  "volatility": 0.142,
+  "sharpe": 0.61,
+  "sortino": 0.84,
+  "max_drawdown": -0.168,
+  "turnover": 1.94,
+  "notes": "Example-only summary values. Not produced by a real backtest."
+}

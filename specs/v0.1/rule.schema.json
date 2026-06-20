@@ -1,0 +1,553 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alphanet.dev/specs/v0.1/rule.schema.json",
+  "title": "AlphaNet Rule Schema",
+  "description": "Schema for AlphaNet v0.1 rules. Rules consume signals, regimes, relations, events, dates, and portfolio state, then emit requested actions. Conflict resolution is handled through layer priority, rule priority, confidence, and deterministic tie breakers.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "rule_id",
+    "layer",
+    "priority",
+    "when",
+    "then"
+  ],
+  "properties": {
+    "rule_id": {
+      "$ref": "#/$defs/id",
+      "description": "Unique rule identifier."
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "layer": {
+      "$ref": "#/$defs/layer"
+    },
+    "priority": {
+      "$ref": "#/$defs/priority",
+      "description": "Priority within the rule's layer. Layer priority is evaluated before individual rule priority."
+    },
+    "confidence": {
+      "$ref": "#/$defs/confidence"
+    },
+    "when": {
+      "$ref": "#/$defs/condition"
+    },
+    "then": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/action"
+      },
+      "minItems": 1
+    },
+    "else": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/action"
+      },
+      "description": "Optional actions when the condition does not match."
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date"
+    },
+    "valid_to": {
+      "type": "string",
+      "format": "date"
+    },
+    "cooldown": {
+      "$ref": "#/$defs/cooldown"
+    },
+    "limits": {
+      "$ref": "#/$defs/rule_limits"
+    },
+    "explain": {
+      "$ref": "#/$defs/explanation"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9._:-]+$"
+    },
+    "priority": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "layer": {
+      "type": "string",
+      "enum": [
+        "portfolio_safety",
+        "risk_management",
+        "regime",
+        "cross_asset_relations",
+        "strategy",
+        "tactical",
+        "experimental",
+        "custom"
+      ]
+    },
+    "operator": {
+      "type": "string",
+      "enum": [
+        ">",
+        ">=",
+        "<",
+        "<=",
+        "==",
+        "!=",
+        "between",
+        "in",
+        "not_in",
+        "active",
+        "inactive",
+        "exists",
+        "missing",
+        "crosses_above",
+        "crosses_below"
+      ]
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "all"
+          ],
+          "properties": {
+            "all": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/condition"
+              },
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "required": [
+            "any"
+          ],
+          "properties": {
+            "any": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/condition"
+              },
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "required": [
+            "not"
+          ],
+          "properties": {
+            "not": {
+              "$ref": "#/$defs/condition"
+            }
+          }
+        },
+        {
+          "required": [
+            "signal",
+            "operator"
+          ],
+          "properties": {
+            "signal": {
+              "$ref": "#/$defs/id"
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {},
+            "unit": {
+              "type": "string"
+            },
+            "lookback": {
+              "$ref": "#/$defs/window"
+            }
+          }
+        },
+        {
+          "required": [
+            "regime",
+            "operator"
+          ],
+          "properties": {
+            "regime": {
+              "$ref": "#/$defs/id"
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {},
+            "confidence_min": {
+              "$ref": "#/$defs/confidence"
+            }
+          }
+        },
+        {
+          "required": [
+            "relation",
+            "operator"
+          ],
+          "properties": {
+            "relation": {
+              "$ref": "#/$defs/id"
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {},
+            "confidence_min": {
+              "$ref": "#/$defs/confidence"
+            }
+          }
+        },
+        {
+          "required": [
+            "portfolio_metric",
+            "operator"
+          ],
+          "properties": {
+            "portfolio_metric": {
+              "type": "string"
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {},
+            "target": {
+              "type": "string",
+              "description": "Optional asset, asset class, sector, or theme for the metric."
+            },
+            "unit": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "required": [
+            "event",
+            "operator"
+          ],
+          "properties": {
+            "event": {
+              "$ref": "#/$defs/id"
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {},
+            "symbol": {
+              "type": "string"
+            },
+            "window": {
+              "$ref": "#/$defs/window"
+            }
+          }
+        },
+        {
+          "required": [
+            "date",
+            "operator"
+          ],
+          "properties": {
+            "date": {
+              "type": "string",
+              "enum": [
+                "current_date",
+                "month",
+                "quarter",
+                "day_of_week",
+                "days_since_start",
+                "custom"
+              ]
+            },
+            "operator": {
+              "$ref": "#/$defs/operator"
+            },
+            "value": {}
+          }
+        }
+      ]
+    },
+    "window": {
+      "type": "string",
+      "pattern": "^[0-9]+[dwmqy]$",
+      "description": "Window such as 5d, 20d, 3m, 1y."
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "target"
+      ],
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/action_type"
+        },
+        "target": {
+          "type": "string",
+          "description": "Symbol, asset class, sector, theme, exposure bucket, regime, relation, or portfolio."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Action amount. Interpretation depends on unit."
+        },
+        "unit": {
+          "$ref": "#/$defs/action_unit"
+        },
+        "order_type": {
+          "type": "string",
+          "enum": [
+            "market",
+            "limit",
+            "close",
+            "open",
+            "rebalance"
+          ]
+        },
+        "limit_price": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "max_trade_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reason": {
+          "type": "string"
+        },
+        "priority_override": {
+          "$ref": "#/$defs/priority",
+          "description": "Optional priority assigned to this specific action."
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "enum": [
+                  "increase_weight",
+                  "decrease_weight",
+                  "set_weight",
+                  "buy",
+                  "sell",
+                  "raise_cash",
+                  "reduce_risk"
+                ]
+              },
+              "required": [
+                "action"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "amount"
+            ]
+          }
+        }
+      ]
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "increase_weight",
+        "decrease_weight",
+        "set_weight",
+        "buy",
+        "sell",
+        "hold",
+        "rebalance",
+        "raise_cash",
+        "reduce_risk",
+        "block_trade",
+        "allow_trade",
+        "set_regime_bias",
+        "emit_signal",
+        "custom"
+      ]
+    },
+    "action_unit": {
+      "type": "string",
+      "enum": [
+        "weight",
+        "shares",
+        "dollars",
+        "percent",
+        "basis_points",
+        "risk_fraction",
+        "score",
+        "custom"
+      ],
+      "default": "weight"
+    },
+    "cooldown": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional rule cooldown to prevent repeated firing.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "rule",
+            "target",
+            "portfolio"
+          ],
+          "default": "rule"
+        }
+      }
+    },
+    "rule_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional limits applied to this rule's requested actions.",
+      "properties": {
+        "max_fire_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_fire_count_per_year": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_total_weight_change": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_single_action_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "requires_portfolio_approval": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "explanation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional human-readable explanation metadata used for decision traces.",
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "expected_behavior": {
+          "type": "string"
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "rule_id": "reduce_growth_tech_when_oil_and_rates_rise",
+      "name": "Reduce growth tech when oil and rates rise",
+      "description": "When oil and long rates rise together during tight liquidity, reduce growth technology exposure and raise cash.",
+      "enabled": true,
+      "layer": "strategy",
+      "priority": 70,
+      "confidence": 0.76,
+      "when": {
+        "all": [
+          {
+            "signal": "wti_change_20d",
+            "operator": ">",
+            "value": 0.1,
+            "unit": "percent"
+          },
+          {
+            "signal": "ust10y_change_20d",
+            "operator": ">",
+            "value": 25,
+            "unit": "basis_points"
+          },
+          {
+            "regime": "tight_liquidity",
+            "operator": "active",
+            "confidence_min": 0.65
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "decrease_weight",
+          "target": "QQQ",
+          "amount": 0.05,
+          "unit": "weight",
+          "reason": "Growth tech pressured by oil and rates rising together."
+        },
+        {
+          "action": "increase_weight",
+          "target": "cash",
+          "amount": 0.05,
+          "unit": "weight",
+          "reason": "Raise cash during tight liquidity."
+        }
+      ],
+      "cooldown": {
+        "enabled": true,
+        "days": 5,
+        "scope": "rule"
+      },
+      "limits": {
+        "max_single_action_weight": 0.05,
+        "requires_portfolio_approval": true
+      },
+      "explain": {
+        "summary": "Risk-off rule for growth tech during oil/rates pressure.",
+        "rationale": "Rising oil and yields can pressure long-duration growth equities.",
+        "risks": [
+          "May underperform if technology momentum remains strong despite macro pressure."
+        ]
+      }
+    }
+  ]
+}

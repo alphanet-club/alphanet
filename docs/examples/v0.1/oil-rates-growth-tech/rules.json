@@ -1,0 +1,68 @@
+{
+  "spec_version": "v0.1",
+  "description": "User-provided seed rules before compiler refinement.",
+  "rules": [
+    {
+      "rule_id": "seed_reduce_growth_tech_oil_rates",
+      "name": "Seed rule: reduce growth tech when oil and rates rise",
+      "layer": "strategy",
+      "priority": 65,
+      "confidence": 0.65,
+      "when": {
+        "all": [
+          {
+            "signal": "wti_change_20d",
+            "operator": ">",
+            "value": 0.1,
+            "unit": "percent"
+          },
+          {
+            "signal": "ust10y_change_20d",
+            "operator": ">",
+            "value": 25,
+            "unit": "basis_points"
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "decrease_weight",
+          "target": "QQQ",
+          "amount": 0.05,
+          "unit": "weight",
+          "reason": "Oil and long rates are rising together."
+        },
+        {
+          "action": "increase_weight",
+          "target": "cash",
+          "amount": 0.05,
+          "unit": "weight",
+          "reason": "Raise cash during macro pressure."
+        }
+      ]
+    }
+  ],
+  "portfolio": {
+    "targets": {
+      "cash": 0.25,
+      "equities": 0.5,
+      "bonds": 0.2,
+      "commodities": 0.05
+    },
+    "constraints": {
+      "cash_min": 0.1,
+      "max_single_position": 0.15,
+      "max_asset_class_weight": {
+        "equities": 0.65,
+        "bonds": 0.5,
+        "commodities": 0.25
+      },
+      "max_sector_weight": {
+        "technology": 0.35
+      },
+      "max_leverage": 1.0,
+      "allow_shorting": false,
+      "allow_margin": false
+    }
+  }
+}

@@ -1,0 +1,523 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alphanet.dev/specs/v0.1/manifest.schema.json",
+  "title": "AlphaNet Strategy Manifest",
+  "description": "Schema for AlphaNet v0.1 strategy manifest.json files. The manifest defines strategy identity, spec version, compiler behavior, agent engines, training windows, and optional execution/backtest defaults.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "spec_version"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable strategy name. This may later be used for registry or leaderboard display."
+    },
+    "strategy_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9._-]+$",
+      "description": "Optional stable machine-readable strategy identifier."
+    },
+    "description": {
+      "type": "string",
+      "description": "Short human-readable description of the strategy."
+    },
+    "author": {
+      "type": "string",
+      "description": "Strategy author or organization."
+    },
+    "license": {
+      "type": "string",
+      "description": "Optional strategy license."
+    },
+    "spec_version": {
+      "type": "string",
+      "const": "v0.1",
+      "description": "AlphaNet spec version targeted by this strategy."
+    },
+    "version": {
+      "type": "string",
+      "description": "Strategy version, independent of AlphaNet spec version."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "description": "Optional tags for strategy classification."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 creation timestamp."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 update timestamp."
+    },
+    "universe": {
+      "$ref": "#/$defs/universe"
+    },
+    "compiler": {
+      "$ref": "#/$defs/compiler"
+    },
+    "portfolio": {
+      "$ref": "#/$defs/portfolio_defaults"
+    },
+    "execution": {
+      "$ref": "#/$defs/execution_defaults"
+    },
+    "backtest": {
+      "$ref": "#/$defs/backtest_defaults"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Free-form metadata for external systems."
+    }
+  },
+  "$defs": {
+    "universe": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional default strategy universe. The compiler may expand or normalize this into AIR.",
+      "properties": {
+        "symbols": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:-]+$"
+          },
+          "uniqueItems": true
+        },
+        "asset_classes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "equities",
+              "bonds",
+              "commodities",
+              "crypto",
+              "real_assets",
+              "alternatives",
+              "custom"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "sectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "themes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Compiler configuration. The compiler converts manifest.json, strategy.md, and rules.json into compiled/strategy.ir.json.",
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "none",
+            "manual",
+            "single",
+            "ensemble"
+          ],
+          "description": "Compilation mode. 'none' means a valid strategy.ir.json is already provided."
+        },
+        "engines": {
+          "type": "array",
+          "description": "Optional agent/compiler engines used to generate AIR.",
+          "items": {
+            "$ref": "#/$defs/compiler_engine"
+          },
+          "minItems": 1
+        },
+        "ensemble_method": {
+          "type": "string",
+          "enum": [
+            "union",
+            "intersection",
+            "weighted_vote",
+            "priority_order",
+            "llm_judge",
+            "human_review"
+          ],
+          "description": "Required by convention when mode is 'ensemble'."
+        },
+        "training_window": {
+          "$ref": "#/$defs/training_window"
+        },
+        "schedule": {
+          "$ref": "#/$defs/compile_schedule"
+        },
+        "max_compute_credits": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Optional maximum compute credits allowed for hosted compilation."
+        },
+        "allow_hosted_compute": {
+          "type": "boolean",
+          "description": "Whether hosted compute may be used if local AIR is not provided."
+        },
+        "allow_network": {
+          "type": "boolean",
+          "description": "Whether compiler engines may access external APIs during compilation."
+        },
+        "notes": {
+          "type": "string"
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Free-form compiler-specific config."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "single"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "engines"
+            ],
+            "properties": {
+              "engines": {
+                "minItems": 1,
+                "maxItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "ensemble"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "engines",
+              "ensemble_method"
+            ],
+            "properties": {
+              "engines": {
+                "minItems": 2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "none",
+                  "manual"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "ensemble_method"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "compiler_engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Agent or compiler engine name, e.g. TauricResearch/TradingAgents."
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Pinned engine version or tag."
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Optional ensemble weight."
+        },
+        "symbols": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "Optional symbols this engine should analyze."
+        },
+        "role": {
+          "type": "string",
+          "description": "Optional role, e.g. macro, sentiment, fundamentals, portfolio, risk."
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Engine-specific config."
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "training_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Historical period available to the compiler when constructing AIR.",
+      "properties": {
+        "lookback_days": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "start": {
+          "type": "string",
+          "format": "date"
+        },
+        "end": {
+          "type": "string",
+          "format": "date"
+        },
+        "anchor_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Optional anchor date used with lookback_days."
+        },
+        "episodes": {
+          "type": "array",
+          "description": "Optional named historical episodes the compiler should consider.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "start",
+              "end"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "start": {
+                "type": "string",
+                "format": "date"
+              },
+              "end": {
+                "type": "string",
+                "format": "date"
+              },
+              "notes": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "lookback_days"
+          ]
+        },
+        {
+          "required": [
+            "start",
+            "end"
+          ]
+        }
+      ]
+    },
+    "compile_schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional recompilation schedule.",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "daily",
+            "weekly",
+            "monthly",
+            "quarterly",
+            "event_driven"
+          ]
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "fomc",
+              "cpi",
+              "earnings_season",
+              "volatility_spike",
+              "drawdown_threshold",
+              "regime_change",
+              "custom"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "timezone": {
+          "type": "string",
+          "description": "IANA timezone name."
+        },
+        "max_compute_credits_per_month": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "portfolio_defaults": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional default portfolio settings. Formal semantics are defined by portfolio.schema.json."
+    },
+    "execution_defaults": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional default execution settings. Formal semantics are defined by alphanet.schema.json."
+    },
+    "backtest_defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional default backtest settings.",
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date"
+        },
+        "end": {
+          "type": "string",
+          "format": "date"
+        },
+        "starting_cash": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "base_currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "data_source": {
+          "type": "string"
+        },
+        "data_version": {
+          "type": "string"
+        },
+        "backtester_version": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "name": "Oil Rates Strategy",
+      "description": "Reduce growth exposure when oil and long rates rise together.",
+      "author": "example",
+      "spec_version": "v0.1",
+      "version": "0.1.0",
+      "tags": [
+        "macro",
+        "rates",
+        "growth-tech"
+      ],
+      "universe": {
+        "symbols": [
+          "QQQ",
+          "NVDA",
+          "TLT",
+          "USO"
+        ],
+        "asset_classes": [
+          "equities",
+          "bonds",
+          "commodities",
+          "cash"
+        ]
+      },
+      "compiler": {
+        "mode": "ensemble",
+        "engines": [
+          {
+            "name": "TauricResearch/TradingAgents",
+            "version": "0.2.5",
+            "weight": 0.5
+          },
+          {
+            "name": "virattt/ai-hedge-fund",
+            "version": "2026.6.17",
+            "weight": 0.5
+          }
+        ],
+        "ensemble_method": "weighted_vote",
+        "training_window": {
+          "lookback_days": 365
+        },
+        "schedule": {
+          "type": "manual"
+        },
+        "allow_hosted_compute": false
+      }
+    }
+  ]
+}

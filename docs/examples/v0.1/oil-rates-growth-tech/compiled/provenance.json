@@ -1,0 +1,40 @@
+{
+  "strategy_name": "Oil Rates Growth Tech",
+  "strategy_id": "oil-rates-growth-tech",
+  "spec_version": "v0.1",
+  "compiler_version": "v0.1.0",
+  "generated_at": "2026-06-19T00:00:00Z",
+  "compiler_mode": "ensemble",
+  "engines": [
+    {
+      "name": "TauricResearch/TradingAgents",
+      "version": "0.2.5",
+      "weight": 0.5
+    },
+    {
+      "name": "virattt/ai-hedge-fund",
+      "version": "2026.6.17",
+      "weight": 0.5
+    }
+  ],
+  "ensemble_method": "weighted_vote",
+  "training_window": {
+    "lookback_days": 365
+  },
+  "source_files": [
+    "manifest.json",
+    "strategy.md",
+    "rules.json"
+  ],
+  "source_hashes": {
+    "manifest.json": "sha256:example",
+    "strategy.md": "sha256:example",
+    "rules.json": "sha256:example"
+  },
+  "outputs": {
+    "strategy.ir.json": "sha256:example",
+    "reasoning.md": "sha256:example",
+    "validation-report.json": "sha256:example"
+  },
+  "notes": "Example provenance values use placeholder hashes."
+}

@@ -1,0 +1,490 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alphanet.dev/specs/v0.1/portfolio.schema.json",
+  "title": "AlphaNet Portfolio Schema",
+  "description": "Schema for AlphaNet v0.1 portfolio configuration, allocation targets, constraints, rebalancing policy, and risk budgets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "base_currency",
+    "starting_cash"
+  ],
+  "properties": {
+    "base_currency": {
+      "type": "string",
+      "default": "USD",
+      "description": "Base currency used for portfolio accounting."
+    },
+    "starting_cash": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "default": 100000,
+      "description": "Initial portfolio capital."
+    },
+    "targets": {
+      "type": "object",
+      "description": "Hard or preferred allocation targets by asset class, symbol, sector, theme, or exposure bucket. Values are weights from 0 to 1.",
+      "additionalProperties": {
+        "$ref": "#/$defs/weight"
+      }
+    },
+    "soft_targets": {
+      "type": "array",
+      "description": "Allocation targets with tolerance bands.",
+      "items": {
+        "$ref": "#/$defs/soft_target"
+      }
+    },
+    "constraints": {
+      "$ref": "#/$defs/constraints"
+    },
+    "risk_budgets": {
+      "$ref": "#/$defs/risk_budgets"
+    },
+    "rebalance": {
+      "$ref": "#/$defs/rebalance_policy"
+    },
+    "execution_overrides": {
+      "$ref": "#/$defs/execution_overrides"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Free-form implementation metadata."
+    }
+  },
+  "$defs": {
+    "weight": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "signed_weight": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1
+    },
+    "non_negative_number": {
+      "type": "number",
+      "minimum": 0
+    },
+    "target_kind": {
+      "type": "string",
+      "enum": [
+        "asset_class",
+        "symbol",
+        "sector",
+        "theme",
+        "factor",
+        "exposure",
+        "custom"
+      ]
+    },
+    "asset_class": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "equities",
+        "bonds",
+        "commodities",
+        "crypto",
+        "real_assets",
+        "alternatives",
+        "currency",
+        "rates",
+        "volatility",
+        "custom"
+      ]
+    },
+    "soft_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "weight",
+        "tolerance"
+      ],
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "Target bucket, e.g. equities, cash, QQQ, technology."
+        },
+        "target_kind": {
+          "$ref": "#/$defs/target_kind"
+        },
+        "weight": {
+          "$ref": "#/$defs/weight"
+        },
+        "tolerance": {
+          "$ref": "#/$defs/weight",
+          "description": "Allowed absolute drift around target weight."
+        },
+        "min": {
+          "$ref": "#/$defs/weight",
+          "description": "Optional explicit minimum allowed weight."
+        },
+        "max": {
+          "$ref": "#/$defs/weight",
+          "description": "Optional explicit maximum allowed weight."
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Priority used if soft targets conflict."
+        },
+        "rebalance_when_breached": {
+          "type": "boolean",
+          "default": true
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Hard portfolio constraints. These should not be violated by the portfolio engine.",
+      "properties": {
+        "cash_min": {
+          "$ref": "#/$defs/weight"
+        },
+        "cash_max": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_single_position": {
+          "$ref": "#/$defs/weight"
+        },
+        "min_single_position": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_positions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "min_positions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_asset_class_weight": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/weight"
+          },
+          "description": "Maximum weight by asset class."
+        },
+        "min_asset_class_weight": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/weight"
+          },
+          "description": "Minimum weight by asset class."
+        },
+        "max_sector_weight": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/weight"
+          }
+        },
+        "min_sector_weight": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/weight"
+          }
+        },
+        "max_theme_weight": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/weight"
+          }
+        },
+        "max_factor_exposure": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/signed_weight"
+          },
+          "description": "Maximum signed exposure by factor."
+        },
+        "min_factor_exposure": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/signed_weight"
+          },
+          "description": "Minimum signed exposure by factor."
+        },
+        "max_leverage": {
+          "type": "number",
+          "minimum": 0,
+          "default": 1
+        },
+        "allow_shorting": {
+          "type": "boolean",
+          "default": false
+        },
+        "allow_margin": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowed_assets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "Optional explicit allowlist of tradable assets."
+        },
+        "blocked_assets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "Optional explicit blocklist of assets."
+        },
+        "allowed_asset_classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset_class"
+          },
+          "uniqueItems": true
+        },
+        "blocked_asset_classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset_class"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "risk_budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Risk limits and portfolio-level controls.",
+      "properties": {
+        "max_portfolio_volatility": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum annualized portfolio volatility."
+        },
+        "target_portfolio_volatility": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Optional target annualized portfolio volatility."
+        },
+        "max_drawdown": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_beta": {
+          "type": "number"
+        },
+        "min_beta": {
+          "type": "number"
+        },
+        "max_daily_turnover": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_monthly_turnover": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_trade_weight": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_trade_notional": {
+          "$ref": "#/$defs/non_negative_number"
+        },
+        "max_daily_loss": {
+          "$ref": "#/$defs/weight"
+        },
+        "max_var": {
+          "$ref": "#/$defs/weight",
+          "description": "Maximum Value-at-Risk as portfolio fraction."
+        },
+        "max_cvar": {
+          "$ref": "#/$defs/weight",
+          "description": "Maximum Conditional Value-at-Risk as portfolio fraction."
+        },
+        "de_risking_policy": {
+          "$ref": "#/$defs/de_risking_policy"
+        }
+      }
+    },
+    "de_risking_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional rules for reducing risk after a risk budget breach.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "drawdown",
+            "volatility",
+            "daily_loss",
+            "var",
+            "custom"
+          ]
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "raise_cash",
+            "reduce_equities",
+            "reduce_risk",
+            "rebalance_to_targets",
+            "block_new_positions",
+            "custom"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/weight"
+        },
+        "cooldown_days": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "rebalance_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Portfolio rebalancing policy.",
+      "properties": {
+        "frequency": {
+          "type": "string",
+          "enum": [
+            "daily",
+            "weekly",
+            "monthly",
+            "quarterly",
+            "event_driven"
+          ],
+          "default": "daily"
+        },
+        "threshold": {
+          "$ref": "#/$defs/weight",
+          "description": "Rebalance when drift exceeds this absolute weight."
+        },
+        "allow_partial_rebalance": {
+          "type": "boolean",
+          "default": true
+        },
+        "min_trade_weight": {
+          "$ref": "#/$defs/weight",
+          "description": "Ignore trades smaller than this portfolio weight."
+        },
+        "max_rebalance_turnover": {
+          "$ref": "#/$defs/weight"
+        },
+        "calendar": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "day_of_week": {
+              "type": "string",
+              "enum": [
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday"
+              ]
+            },
+            "day_of_month": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 31
+            }
+          }
+        }
+      }
+    },
+    "execution_overrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional execution-level overrides defined by the portfolio.",
+      "properties": {
+        "block_trades_when_cash_below_min": {
+          "type": "boolean",
+          "default": true
+        },
+        "scale_orders_to_fit_constraints": {
+          "type": "boolean",
+          "default": true
+        },
+        "prefer_cash_buffer": {
+          "type": "boolean",
+          "default": true
+        },
+        "rounding": {
+          "type": "string",
+          "enum": [
+            "none",
+            "nearest_share",
+            "floor_shares"
+          ],
+          "default": "none"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "base_currency": "USD",
+      "starting_cash": 100000,
+      "targets": {
+        "cash": 0.25,
+        "equities": 0.5,
+        "bonds": 0.2,
+        "commodities": 0.05
+      },
+      "soft_targets": [
+        {
+          "target": "equities",
+          "target_kind": "asset_class",
+          "weight": 0.5,
+          "tolerance": 0.1,
+          "priority": 60
+        }
+      ],
+      "constraints": {
+        "cash_min": 0.1,
+        "max_single_position": 0.15,
+        "max_asset_class_weight": {
+          "equities": 0.65,
+          "bonds": 0.5,
+          "commodities": 0.25
+        },
+        "max_sector_weight": {
+          "technology": 0.35
+        },
+        "max_leverage": 1.0,
+        "allow_shorting": false,
+        "allow_margin": false
+      },
+      "risk_budgets": {
+        "max_portfolio_volatility": 0.2,
+        "max_drawdown": 0.15,
+        "max_daily_turnover": 0.1,
+        "max_trade_weight": 0.05,
+        "de_risking_policy": {
+          "enabled": true,
+          "trigger": "drawdown",
+          "action": "raise_cash",
+          "amount": 0.1,
+          "cooldown_days": 10
+        }
+      },
+      "rebalance": {
+        "frequency": "daily",
+        "threshold": 0.05,
+        "allow_partial_rebalance": true,
+        "min_trade_weight": 0.005
+      }
+    }
+  ]
+}
