@@ -57,7 +57,15 @@
           "AMD",
           "TLT",
           "USO"
-        ]
+        ],
+        "config": {
+          "ta_path": "~/Github/TradingAgents",
+          "adapter_script": "scripts/tradingagents_adapter.py",
+          "analysts": [
+            "market"
+          ],
+          "max_symbols": 1
+        }
       },
       {
         "name": "virattt/ai-hedge-fund",
@@ -70,7 +78,12 @@
           "AMD",
           "TLT",
           "USO"
-        ]
+        ],
+        "config": {
+          "ahf_path": "~/Github/ai-hedge-fund",
+          "adapter_script": "scripts/ai_hedge_fund_adapter.py",
+          "max_symbols": 1
+        }
       }
     ],
     "ensemble_method": "weighted_vote",

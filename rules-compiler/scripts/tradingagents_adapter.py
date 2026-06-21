@@ -10,13 +10,14 @@ from typing import Any
 
 
 def log(message: str) -> None:
-    if os.environ.get("ALPHANET_TA_DEBUG"):
+    if os.environ.get("ALPHANET_TA_DEBUG") or os.environ.get("ALPHANET_ENGINE_DEBUG"):
         print(f"[tradingagents_adapter] {message}", file=sys.stderr, flush=True)
 
 
 def load_dotenv(root: Path) -> None:
     env_file = root / ".env"
     if not env_file.exists():
+        log(f"no .env found at {env_file}")
         return
     for raw in env_file.read_text().splitlines():
         line = raw.strip()

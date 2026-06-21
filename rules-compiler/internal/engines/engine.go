@@ -105,101 +105,113 @@ type adapterOutput struct {
 	Notes   string             `json:"notes,omitempty"`
 }
 
-type TradingAgentsEngine struct {
-	name          string
-	version       string
-	config        air.EngineConfig
-	python        string
-	adapterScript string
-	taPath        string
-	analysts      []string
-	maxSymbols    int
+type pythonAdapterConfig struct {
+	engineName      string
+	engineVersion   string
+	config          air.EngineConfig
+	python          string
+	adapterScript   string
+	home            string
+	homeEnv         string
+	pythonEnv       string
+	debugEnv        string
+	maxSymbolsEnv   string
+	defaultScript   string
+	defaultAnalysts []string
+	analysts        []string
+	maxSymbols      int
 }
 
-func (e *TradingAgentsEngine) Name() string    { return e.name }
-func (e *TradingAgentsEngine) Version() string { return e.version }
+func (c *pythonAdapterConfig) init(config air.EngineConfig) {
+	c.engineName = config.Name
+	c.engineVersion = config.Version
+	c.config = config
 
-func (e *TradingAgentsEngine) Init(config air.EngineConfig) error {
-	e.name = config.Name
-	e.version = config.Version
-	e.config = config
+	c.adapterScript = stringConfig(config.Config, "adapter_script")
+	if c.adapterScript == "" {
+		c.adapterScript = stringConfig(config.Config, "wrapper_script")
+	}
+	if c.adapterScript == "" {
+		c.adapterScript = c.defaultScript
+	}
+	c.adapterScript = absPath(c.adapterScript)
 
-	e.adapterScript = stringConfig(config.Config, "adapter_script")
-	if e.adapterScript == "" {
-		e.adapterScript = stringConfig(config.Config, "wrapper_script")
+	c.home = stringConfig(config.Config, "home")
+	if c.home == "" {
+		switch c.engineName {
+		case "TauricResearch/TradingAgents", "tradingagents":
+			c.home = stringConfig(config.Config, "ta_path")
+		case "virattt/ai-hedge-fund", "ai-hedge-fund":
+			c.home = stringConfig(config.Config, "ahf_path")
+		}
 	}
-	if e.adapterScript == "" {
-		e.adapterScript = "scripts/tradingagents_adapter.py"
+	if c.home == "" && c.homeEnv != "" {
+		c.home = os.Getenv(c.homeEnv)
 	}
-	e.adapterScript = absPath(e.adapterScript)
+	c.home = expandPath(c.home)
 
-	e.taPath = stringConfig(config.Config, "ta_path")
-	if e.taPath == "" {
-		e.taPath = os.Getenv("TRADINGAGENTS_HOME")
+	c.python = stringConfig(config.Config, "python")
+	if c.python == "" {
+		c.python = stringConfig(config.Config, "python_path")
 	}
-	e.taPath = expandPath(e.taPath)
+	if c.python == "" && c.pythonEnv != "" {
+		c.python = os.Getenv(c.pythonEnv)
+	}
+	if c.python == "" && c.home != "" {
+		c.python = findVenvPython(c.home)
+	}
+	if c.python == "" {
+		c.python = "python3"
+	}
+	c.python = expandPath(c.python)
 
-	e.python = stringConfig(config.Config, "python")
-	if e.python == "" {
-		e.python = stringConfig(config.Config, "python_path")
-	}
-	if e.python == "" {
-		e.python = os.Getenv("ALPHANET_TA_PYTHON")
-	}
-	if e.python == "" && e.taPath != "" {
-		e.python = findTradingAgentsPython(e.taPath)
-	}
-	if e.python == "" {
-		e.python = "python3"
-	}
-	e.python = expandPath(e.python)
-
-	e.analysts = stringSliceConfig(config.Config, "analysts")
-	if len(e.analysts) == 0 {
-		e.analysts = []string{"market"}
-	}
-
-	e.maxSymbols = intConfig(config.Config, "max_symbols")
-	if e.maxSymbols <= 0 {
-		e.maxSymbols = intEnv("ALPHANET_TA_MAX_SYMBOLS")
+	c.analysts = stringSliceConfig(config.Config, "analysts")
+	if len(c.analysts) == 0 {
+		c.analysts = append([]string{}, c.defaultAnalysts...)
 	}
 
-	return nil
+	c.maxSymbols = intConfig(config.Config, "max_symbols")
+	if c.maxSymbols <= 0 && c.maxSymbolsEnv != "" {
+		c.maxSymbols = intEnv(c.maxSymbolsEnv)
+	}
 }
 
-func (e *TradingAgentsEngine) Analyze(ctx context.Context, input EngineInput) (EngineOutput, error) {
-	symbols := e.symbolsForEngine(input)
-	if e.maxSymbols > 0 && len(symbols) > e.maxSymbols {
-		symbols = symbols[:e.maxSymbols]
+func (c *pythonAdapterConfig) analyze(ctx context.Context, input EngineInput) (EngineOutput, error) {
+	symbols := c.symbolsForEngine(input)
+	if c.maxSymbols > 0 && len(symbols) > c.maxSymbols {
+		symbols = symbols[:c.maxSymbols]
 	}
 	if len(symbols) == 0 {
-		return EngineOutput{Notes: fmt.Sprintf("%s: skipped; no symbols configured", e.name)}, nil
+		return EngineOutput{Notes: fmt.Sprintf("%s: skipped; no symbols configured", c.engineName)}, nil
 	}
 
-	req := adapterInput{
-		Symbols:  symbols,
-		Date:     resolveDate(input),
-		Analysts: e.analysts,
-	}
+	req := adapterInput{Symbols: symbols, Date: resolveDate(input), Analysts: c.analysts}
 	payload, err := json.Marshal(req)
 	if err != nil {
-		return EngineOutput{}, fmt.Errorf("marshal TradingAgents request: %w", err)
+		return EngineOutput{}, fmt.Errorf("marshal %s request: %w", c.engineName, err)
 	}
 
-	args := []string{e.adapterScript}
-	if e.taPath != "" {
-		args = append(args, "--ta-home", e.taPath)
+	args := []string{c.adapterScript}
+	if c.home != "" {
+		switch c.engineName {
+		case "TauricResearch/TradingAgents", "tradingagents":
+			args = append(args, "--ta-home", c.home)
+		case "virattt/ai-hedge-fund", "ai-hedge-fund":
+			args = append(args, "--ahf-home", c.home)
+		default:
+			args = append(args, "--home", c.home)
+		}
 	}
 
-	if os.Getenv("ALPHANET_TA_DEBUG") != "" {
-		fmt.Fprintf(os.Stderr, "[TradingAgents] python=%s adapter=%s symbols=%v date=%s\n", e.python, e.adapterScript, symbols, req.Date)
+	if os.Getenv(c.debugEnv) != "" || os.Getenv("ALPHANET_ENGINE_DEBUG") != "" {
+		fmt.Fprintf(os.Stderr, "[%s] python=%s adapter=%s symbols=%v date=%s\n", c.engineName, c.python, c.adapterScript, symbols, req.Date)
 	}
 
-	cmd := exec.CommandContext(ctx, e.python, args...)
+	cmd := exec.CommandContext(ctx, c.python, args...)
 	cmd.Stdin = bytes.NewReader(payload)
 	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
-	if e.taPath != "" {
-		cmd.Env = append(cmd.Env, "TRADINGAGENTS_HOME="+e.taPath)
+	if c.home != "" && c.homeEnv != "" {
+		cmd.Env = append(cmd.Env, c.homeEnv+"="+c.home)
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -207,28 +219,28 @@ func (e *TradingAgentsEngine) Analyze(ctx context.Context, input EngineInput) (E
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		return EngineOutput{}, fmt.Errorf("TradingAgents adapter failed: %w; stderr=%s; stdout=%s", err, tail(stderr.String(), 4000), tail(stdout.String(), 2000))
+		return EngineOutput{}, fmt.Errorf("%s adapter failed: %w; stderr=%s; stdout=%s", c.engineName, err, tail(stderr.String(), 4000), tail(stdout.String(), 2000))
 	}
 
-	if stderr.Len() > 0 && os.Getenv("ALPHANET_TA_DEBUG") != "" {
+	if stderr.Len() > 0 && (os.Getenv(c.debugEnv) != "" || os.Getenv("ALPHANET_ENGINE_DEBUG") != "") {
 		fmt.Fprintf(os.Stderr, "%s", stderr.String())
 	}
 
 	raw := strings.TrimSpace(stdout.String())
 	var out adapterOutput
 	if err := json.Unmarshal([]byte(raw), &out); err != nil {
-		return EngineOutput{}, fmt.Errorf("parse TradingAgents adapter JSON: %w; stdout=%s; stderr=%s", err, tail(raw, 4000), tail(stderr.String(), 2000))
+		return EngineOutput{}, fmt.Errorf("parse %s adapter JSON: %w; stdout=%s; stderr=%s", c.engineName, err, tail(raw, 4000), tail(stderr.String(), 2000))
 	}
 
 	return EngineOutput{
 		Signals: out.Signals,
-		Notes:   fmt.Sprintf("%s (v%s): %s", e.name, e.version, out.Notes),
+		Notes:   fmt.Sprintf("%s (v%s): %s", c.engineName, c.engineVersion, out.Notes),
 	}, nil
 }
 
-func (e *TradingAgentsEngine) symbolsForEngine(input EngineInput) []string {
+func (c *pythonAdapterConfig) symbolsForEngine(input EngineInput) []string {
 	set := map[string]bool{}
-	for _, s := range e.config.Symbols {
+	for _, s := range c.config.Symbols {
 		addSymbol(set, s)
 	}
 	if len(set) == 0 {
@@ -244,26 +256,43 @@ func (e *TradingAgentsEngine) symbolsForEngine(input EngineInput) []string {
 	return sortedSymbols(set)
 }
 
-type AIHedgeFundEngine struct {
-	name    string
-	version string
-	config  air.EngineConfig
-}
+type TradingAgentsEngine struct{ adapter pythonAdapterConfig }
 
-func (e *AIHedgeFundEngine) Name() string    { return e.name }
-func (e *AIHedgeFundEngine) Version() string { return e.version }
-
-func (e *AIHedgeFundEngine) Init(config air.EngineConfig) error {
-	e.name = config.Name
-	e.version = config.Version
-	e.config = config
+func (e *TradingAgentsEngine) Name() string    { return e.adapter.engineName }
+func (e *TradingAgentsEngine) Version() string { return e.adapter.engineVersion }
+func (e *TradingAgentsEngine) Init(config air.EngineConfig) error {
+	e.adapter = pythonAdapterConfig{
+		homeEnv:         "TRADINGAGENTS_HOME",
+		pythonEnv:       "ALPHANET_TA_PYTHON",
+		debugEnv:        "ALPHANET_TA_DEBUG",
+		maxSymbolsEnv:   "ALPHANET_TA_MAX_SYMBOLS",
+		defaultScript:   "scripts/tradingagents_adapter.py",
+		defaultAnalysts: []string{"market"},
+	}
+	e.adapter.init(config)
 	return nil
 }
+func (e *TradingAgentsEngine) Analyze(ctx context.Context, input EngineInput) (EngineOutput, error) {
+	return e.adapter.analyze(ctx, input)
+}
 
+type AIHedgeFundEngine struct{ adapter pythonAdapterConfig }
+
+func (e *AIHedgeFundEngine) Name() string    { return e.adapter.engineName }
+func (e *AIHedgeFundEngine) Version() string { return e.adapter.engineVersion }
+func (e *AIHedgeFundEngine) Init(config air.EngineConfig) error {
+	e.adapter = pythonAdapterConfig{
+		homeEnv:       "AI_HEDGE_FUND_HOME",
+		pythonEnv:     "ALPHANET_AHF_PYTHON",
+		debugEnv:      "ALPHANET_AHF_DEBUG",
+		maxSymbolsEnv: "ALPHANET_AHF_MAX_SYMBOLS",
+		defaultScript: "scripts/ai_hedge_fund_adapter.py",
+	}
+	e.adapter.init(config)
+	return nil
+}
 func (e *AIHedgeFundEngine) Analyze(ctx context.Context, input EngineInput) (EngineOutput, error) {
-	return EngineOutput{
-		Notes: fmt.Sprintf("%s (v%s): adapter not implemented; no changes emitted", e.name, e.version),
-	}, nil
+	return e.adapter.analyze(ctx, input)
 }
 
 func resolveDate(input EngineInput) string {
@@ -369,14 +398,14 @@ func intEnv(key string) int {
 	return n
 }
 
-func findTradingAgentsPython(taPath string) string {
+func findVenvPython(home string) string {
 	for _, rel := range []string{
 		"venv/bin/python3",
 		"venv/bin/python",
 		".venv/bin/python3",
 		".venv/bin/python",
 	} {
-		p := filepath.Join(taPath, rel)
+		p := filepath.Join(home, rel)
 		if st, err := os.Stat(p); err == nil && !st.IsDir() {
 			return p
 		}

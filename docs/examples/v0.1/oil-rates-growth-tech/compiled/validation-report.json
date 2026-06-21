@@ -1,7 +1,7 @@
 {
   "status": "invalid",
   "spec_version": "v0.1",
-  "validated_at": "2026-06-21T02:08:21Z",
+  "validated_at": "2026-06-21T04:13:39Z",
   "schemas": [
     "alphanet.schema.json",
     "manifest.schema.json",
@@ -79,6 +79,12 @@
     {
       "name": "source_file_contract_valid",
       "status": "pass"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "COMPILER_WARNING",
+      "message": "Engine \"virattt/ai-hedge-fund\" error: virattt/ai-hedge-fund adapter failed: exit status 1; stderr=AI Hedge Fund home not found: /Users/patrick/Github/ai-hedge-fund\n; stdout="
     }
   ],
   "errors": [

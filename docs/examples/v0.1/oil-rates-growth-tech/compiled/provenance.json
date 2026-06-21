@@ -3,7 +3,7 @@
   "strategy_id": "oil-rates-growth-tech",
   "spec_version": "v0.1",
   "compiler_version": "v0.1.0",
-  "generated_at": "2026-06-21T02:06:19Z",
+  "generated_at": "2026-06-21T04:11:12Z",
   "compiler_mode": "ensemble",
   "ensemble_method": "weighted_vote",
   "engines": [
@@ -18,7 +18,15 @@
         "AMD",
         "TLT",
         "USO"
-      ]
+      ],
+      "config": {
+        "adapter_script": "scripts/tradingagents_adapter.py",
+        "analysts": [
+          "market"
+        ],
+        "max_symbols": 1,
+        "ta_path": "~/Github/TradingAgents"
+      }
     },
     {
       "name": "virattt/ai-hedge-fund",
@@ -31,7 +39,12 @@
         "AMD",
         "TLT",
         "USO"
-      ]
+      ],
+      "config": {
+        "adapter_script": "scripts/ai_hedge_fund_adapter.py",
+        "ahf_path": "~/Github/ai-hedge-fund",
+        "max_symbols": 1
+      }
     }
   ],
   "training_window": {
@@ -59,15 +72,15 @@
     "strategy.md"
   ],
   "source_hashes": {
-    "manifest.json": "sha256:f164e1d601158284c181f2876d366c4c94eabefa60e5644b01fc5e7138ab0bc0",
+    "manifest.json": "sha256:dd38dfc989472c4a944c853c9b2e17f81b9c2183a1670d5d88386737e14af85c",
     "rules.json": "sha256:01220bd2330607632c9608546e875ab1166993864711c28c5993781f04d0c14e",
     "strategy.md": "sha256:fd7c8373f74998639e5a703177562d091a8581662b7e2a9aa627daf224dae5b4"
   },
   "outputs": {
     "reasoning.md": "sha256:example",
-    "strategy.ir.json": "sha256:beefaa5457afe914f2328b772a043a575d351bdf034a336cc39aac8f12c1505c",
+    "strategy.ir.json": "sha256:7dae6192b6650818de5db9727fe0e72d033b4e557f53bd5274e4ab68bbb2012a",
     "validation-report.json": "sha256:example"
   },
-  "ir_sha256": "sha256:beefaa5457afe914f2328b772a043a575d351bdf034a336cc39aac8f12c1505c",
-  "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy\n- virattt/ai-hedge-fund (v2026.6.17): adapter not implemented; no changes emitted"
+  "ir_sha256": "sha256:7dae6192b6650818de5db9727fe0e72d033b4e557f53bd5274e4ab68bbb2012a",
+  "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Hold"
 }

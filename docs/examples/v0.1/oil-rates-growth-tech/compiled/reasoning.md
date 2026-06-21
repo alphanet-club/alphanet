@@ -80,6 +80,11 @@ compiled/strategy.ir.json
 
 This is the only file required by the backtester.
 
+## Warnings
+
+- Engine "virattt/ai-hedge-fund" error: virattt/ai-hedge-fund adapter failed: exit status 1; stderr=AI Hedge Fund home not found: /Users/patrick/Github/ai-hedge-fund
+; stdout=
+
 ## Portfolio Initialization Update
 
 The compiled AIR now explicitly separates:
