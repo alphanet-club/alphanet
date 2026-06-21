@@ -1,7 +1,7 @@
 {
   "status": "invalid",
   "spec_version": "v0.1",
-  "validated_at": "2026-06-21T04:13:39Z",
+  "validated_at": "2026-06-21T05:13:35Z",
   "schemas": [
     "alphanet.schema.json",
     "manifest.schema.json",
