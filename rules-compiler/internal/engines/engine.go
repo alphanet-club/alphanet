@@ -42,7 +42,16 @@ type EngineOutput struct {
 	CandidateBaskets []CandidateBasketSuggestion `json:"candidate_baskets,omitempty"`
 	SelectionPolicy  *SelectionPolicySuggestion  `json:"selection_policy,omitempty"`
 	Portfolio        *PortfolioSuggestion        `json:"portfolio,omitempty"`
+	Reports          []EngineReport              `json:"reports,omitempty"`
 	Notes            string                      `json:"notes,omitempty"`
+}
+
+type EngineReport struct {
+	Engine  string `json:"engine"`
+	Symbol  string `json:"symbol,omitempty"`
+	Date    string `json:"date,omitempty"`
+	Format  string `json:"format"`
+	Content string `json:"content"`
 }
 
 type SignalSuggestion struct {
@@ -102,6 +111,7 @@ type adapterInput struct {
 
 type adapterOutput struct {
 	Signals []SignalSuggestion `json:"signals,omitempty"`
+	Reports []EngineReport     `json:"reports,omitempty"`
 	Notes   string             `json:"notes,omitempty"`
 }
 
@@ -234,6 +244,7 @@ func (c *pythonAdapterConfig) analyze(ctx context.Context, input EngineInput) (E
 
 	return EngineOutput{
 		Signals: out.Signals,
+		Reports: out.Reports,
 		Notes:   fmt.Sprintf("%s (v%s): %s", c.engineName, c.engineVersion, out.Notes),
 	}, nil
 }
@@ -260,6 +271,7 @@ type TradingAgentsEngine struct{ adapter pythonAdapterConfig }
 
 func (e *TradingAgentsEngine) Name() string    { return e.adapter.engineName }
 func (e *TradingAgentsEngine) Version() string { return e.adapter.engineVersion }
+
 func (e *TradingAgentsEngine) Init(config air.EngineConfig) error {
 	e.adapter = pythonAdapterConfig{
 		homeEnv:         "TRADINGAGENTS_HOME",
@@ -272,6 +284,7 @@ func (e *TradingAgentsEngine) Init(config air.EngineConfig) error {
 	e.adapter.init(config)
 	return nil
 }
+
 func (e *TradingAgentsEngine) Analyze(ctx context.Context, input EngineInput) (EngineOutput, error) {
 	return e.adapter.analyze(ctx, input)
 }
@@ -280,6 +293,7 @@ type AIHedgeFundEngine struct{ adapter pythonAdapterConfig }
 
 func (e *AIHedgeFundEngine) Name() string    { return e.adapter.engineName }
 func (e *AIHedgeFundEngine) Version() string { return e.adapter.engineVersion }
+
 func (e *AIHedgeFundEngine) Init(config air.EngineConfig) error {
 	e.adapter = pythonAdapterConfig{
 		homeEnv:       "AI_HEDGE_FUND_HOME",
@@ -291,6 +305,7 @@ func (e *AIHedgeFundEngine) Init(config air.EngineConfig) error {
 	e.adapter.init(config)
 	return nil
 }
+
 func (e *AIHedgeFundEngine) Analyze(ctx context.Context, input EngineInput) (EngineOutput, error) {
 	return e.adapter.analyze(ctx, input)
 }

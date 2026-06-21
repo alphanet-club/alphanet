@@ -18,21 +18,18 @@ type EngineFactory struct {
 
 func NewEngineFactory() *EngineFactory {
 	factory := &EngineFactory{registry: map[string]func() (engines.Engine, error){}}
-
 	factory.Register("tradingagents", func() (engines.Engine, error) {
 		return &engines.TradingAgentsEngine{}, nil
 	})
 	factory.Register("TauricResearch/TradingAgents", func() (engines.Engine, error) {
 		return &engines.TradingAgentsEngine{}, nil
 	})
-
 	factory.Register("ai-hedge-fund", func() (engines.Engine, error) {
 		return &engines.AIHedgeFundEngine{}, nil
 	})
 	factory.Register("virattt/ai-hedge-fund", func() (engines.Engine, error) {
 		return &engines.AIHedgeFundEngine{}, nil
 	})
-
 	return factory
 }
 
@@ -103,6 +100,8 @@ func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules [
 
 	var engineSignals []air.Signal
 	var engineNotes []string
+	var engineReports []engines.EngineReport
+
 	for _, engine := range engineList {
 		output, err := engine.Analyze(ctx, engineInput)
 		if err != nil {
@@ -117,6 +116,7 @@ func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules [
 		if strings.TrimSpace(output.Notes) != "" {
 			engineNotes = append(engineNotes, output.Notes)
 		}
+		engineReports = append(engineReports, output.Reports...)
 	}
 
 	enrichedSrc := *src
@@ -125,6 +125,12 @@ func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules [
 	decisionHierarchy := air.DefaultDecisionHierarchy()
 	execConfig := air.EnrichExecutionConfig(air.DefaultExecutionConfig(), src.Manifest.Backtest)
 	airData := air.BuildAIR(enrichedSrc, normPortfolio, normRules, decisionHierarchy, execConfig, nil)
+	if len(engineReports) > 0 {
+		if airData.Extensions == nil {
+			airData.Extensions = map[string]any{}
+		}
+		airData.Extensions["agent_reports"] = engineReports
+	}
 
 	prov := provenance.Build(&enrichedSrc, compilerMode, engineConfigs, "", nil)
 	canonical, err := air.CanonicalJSON(airData)

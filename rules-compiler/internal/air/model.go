@@ -72,6 +72,10 @@ type Signal struct {
 	Window      string       `json:"window,omitempty"`
 	Frequency   string       `json:"frequency,omitempty"`
 	Unit        string       `json:"unit,omitempty"`
+	Date        string       `json:"date,omitempty"`
+	Value       any          `json:"value,omitempty"`
+	Confidence  float64      `json:"confidence,omitempty"`
+	Rationale   string       `json:"rationale,omitempty"`
 	ValueRange  []float64    `json:"value_range,omitempty"`
 }
 

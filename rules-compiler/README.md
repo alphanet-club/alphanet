@@ -364,3 +364,41 @@ Messages like `structured-output invocation failed ... retrying once as free tex
 ### Unresolved signal references
 
 If validation reports unresolved signal references, add the signal definitions to the strategy source, usually `signals.json`, then regenerate `compiled/`.
+
+## Agent report preservation and later extraction
+
+Agent engines produce two kinds of useful output:
+
+1. **Raw research reports**: rich markdown/text artifacts from the engine run.
+2. **Compiled schema objects**: `signals`, future `signal_interests`, rules, and portfolio/trading constructs.
+
+The compiler preserves raw reports in:
+
+```json
+{
+  "extensions": {
+    "agent_reports": [
+      {
+        "engine": "TradingAgents",
+        "symbol": "SPY",
+        "date": "2026-06-21",
+        "format": "markdown",
+        "content": "# TradingAgents Research Report: SPY\\n..."
+      }
+    ]
+  }
+}
+```
+
+This is intentionally separate from schema extraction. A later relay extraction pass should convert those reports into structured AlphaNet objects:
+
+```text
+agent report markdown
+  -> deterministic extractor and/or LLM extractor
+  -> signals[]
+  -> signal_interests[]
+  -> rules[]
+  -> portfolio/trading constructs
+```
+
+Agent decisions still remain in the existing `signals[]` structure as dated point-in-time signals. The backtester should consume compiled AIR and should not call the agent engines daily unless a future explicit expensive runtime mode enables that behavior.
