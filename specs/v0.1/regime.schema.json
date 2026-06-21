@@ -69,6 +69,19 @@
     "metadata": {
       "type": "object",
       "additionalProperties": true
+    },
+    "signals": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/signal"
+      }
+    },
+    "signal_interests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/signal_interest"
+      },
+      "default": []
     }
   },
   "$defs": {
@@ -388,6 +401,538 @@
         },
         "description": {
           "type": "string"
+        }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_type": {
+          "type": "string"
+        },
+        "effective_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "expires_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "category_key": {
+          "type": "string"
+        },
+        "supersedes_policy": {
+          "type": "string",
+          "enum": [
+            "latest_effective_date_wins",
+            "none"
+          ]
+        },
+        "source_report_ref": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "signal_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "series_id": {
+          "type": "string"
+        },
+        "adapter": {
+          "type": "string"
+        },
+        "dataset": {
+          "type": "string"
+        }
+      }
+    },
+    "transform_spec": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "window": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "data_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dataset": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "required_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "frequency": {
+          "type": "string"
+        },
+        "lookback": {
+          "type": "string"
+        },
+        "price_adjustment": {
+          "type": "string"
+        },
+        "requires_ohlcv": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string"
+        },
+        "entry_price": {
+          "type": "number"
+        },
+        "target_price": {
+          "type": "number"
+        },
+        "stop_loss": {
+          "type": "number"
+        },
+        "time_horizon": {
+          "type": "string"
+        },
+        "horizon_days": {
+          "type": "integer"
+        },
+        "position_sizing": {
+          "type": "string"
+        },
+        "allocation_pct": {
+          "type": "number"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rationale": {
+          "type": "string"
+        }
+      }
+    },
+    "signal_interest_condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "left": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "right": {
+          "type": "string"
+        },
+        "value": {},
+        "unit": {
+          "type": "string"
+        }
+      }
+    },
+    "signal_interest_threshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "value": {},
+        "unit": {
+          "type": "string"
+        },
+        "source_text": {
+          "type": "string"
+        }
+      }
+    },
+    "signal_interest_interpretation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "interpretation_id": {
+          "type": "string"
+        },
+        "condition": {
+          "$ref": "#/$defs/signal_interest_condition"
+        },
+        "meaning": {
+          "type": "string"
+        },
+        "recommendation_bias": {
+          "type": "string"
+        },
+        "action_bias": {
+          "type": "string"
+        },
+        "applies_to": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "source_text": {
+          "type": "string"
+        },
+        "thresholds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signal_interest_threshold"
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "signal_interest_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "data_provider": {
+          "type": "string"
+        },
+        "backtester_supported": {
+          "type": "boolean"
+        },
+        "requires_ohlcv": {
+          "type": "boolean"
+        },
+        "missing_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "agent_report_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "format",
+        "path"
+      ],
+      "properties": {
+        "engine": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "format": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      }
+    },
+    "signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal_id",
+        "family"
+      ],
+      "properties": {
+        "signal_id": {
+          "type": "string"
+        },
+        "signal_kind": {
+          "type": "string"
+        },
+        "family": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "source": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/signal_source"
+            }
+          ]
+        },
+        "instrument": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "field": {
+          "type": "string"
+        },
+        "transform": {
+          "type": "string"
+        },
+        "transform_spec": {
+          "$ref": "#/$defs/transform_spec"
+        },
+        "window": {
+          "type": "string"
+        },
+        "frequency": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "value": {},
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "recommendation": {
+          "$ref": "#/$defs/recommendation"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycle"
+        },
+        "data_requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/data_requirement"
+          }
+        },
+        "required_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "input_price": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "value_range": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "signal_interest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal_id",
+        "family"
+      ],
+      "properties": {
+        "signal_id": {
+          "type": "string"
+        },
+        "family": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "source": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/signal_source"
+            }
+          ]
+        },
+        "instrument": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "field": {
+          "type": "string"
+        },
+        "transform": {
+          "type": "string"
+        },
+        "transform_spec": {
+          "$ref": "#/$defs/transform_spec"
+        },
+        "window": {
+          "type": "string"
+        },
+        "frequency": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycle"
+        },
+        "data_requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/data_requirement"
+          }
+        },
+        "required_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "input_price": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "value_range": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "reason": {
+          "type": "string"
+        },
+        "extracted_from": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string"
+        },
+        "resolution": {
+          "$ref": "#/$defs/signal_interest_resolution"
+        },
+        "thresholds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signal_interest_threshold"
+          }
+        },
+        "interpretations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signal_interest_interpretation"
+          }
         }
       }
     }

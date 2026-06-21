@@ -1,0 +1,260 @@
+package compiler
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	"github.com/alphanet/rules-compiler/internal/air"
+	"github.com/alphanet/rules-compiler/internal/engines"
+	"github.com/alphanet/rules-compiler/internal/provenance"
+	"github.com/alphanet/rules-compiler/internal/reasoning"
+	"github.com/alphanet/rules-compiler/internal/terminal"
+	"github.com/alphanet/rules-compiler/internal/validation"
+)
+
+type EngineFactory struct {
+	registry map[string]func() (engines.Engine, error)
+}
+
+func NewEngineFactory() *EngineFactory {
+	factory := &EngineFactory{registry: map[string]func() (engines.Engine, error){}}
+	factory.Register("tradingagents", func() (engines.Engine, error) {
+		return &engines.TradingAgentsEngine{}, nil
+	})
+	factory.Register("TauricResearch/TradingAgents", func() (engines.Engine, error) {
+		return &engines.TradingAgentsEngine{}, nil
+	})
+	factory.Register("ai-hedge-fund", func() (engines.Engine, error) {
+		return &engines.AIHedgeFundEngine{}, nil
+	})
+	factory.Register("virattt/ai-hedge-fund", func() (engines.Engine, error) {
+		return &engines.AIHedgeFundEngine{}, nil
+	})
+	factory.Register("priley86/ai-hedge-fund", func() (engines.Engine, error) {
+		return &engines.AIHedgeFundEngine{}, nil
+	})
+	return factory
+}
+
+func (f *EngineFactory) Register(name string, constructor func() (engines.Engine, error)) {
+	f.registry[name] = constructor
+}
+
+func (f *EngineFactory) CreateEngine(name string) (engines.Engine, error) {
+	constructor, ok := f.registry[name]
+	if !ok {
+		return nil, fmt.Errorf("unknown engine: %s", name)
+	}
+	return constructor()
+}
+
+func (f *EngineFactory) CreateEngines(configs []air.EngineConfig) ([]engines.Engine, error) {
+	var result []engines.Engine
+	for _, cfg := range configs {
+		if cfg.Enabled != nil && !*cfg.Enabled {
+			continue
+		}
+		engine, err := f.CreateEngine(cfg.Name)
+		if err != nil {
+			return nil, fmt.Errorf("creating engine %s: %w", cfg.Name, err)
+		}
+		if err := engine.Init(cfg); err != nil {
+			return nil, fmt.Errorf("initialising engine %s: %w", cfg.Name, err)
+		}
+		result = append(result, engine)
+	}
+	return result, nil
+}
+
+func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules []air.Rule, normPortfolio *air.AIRPortfolio, warnings []string, opts Options) (*CompileResult, error) {
+	compilerMode := resolveOriginalMode(src.Manifest, opts.ModeOverride)
+	engineConfigs := activeEngineConfigs(src.Manifest.Compiler.Engines)
+	if opts.EngineOverride != "" {
+		var filtered []air.EngineConfig
+		for _, cfg := range engineConfigs {
+			if engineNamesMatch(cfg.Name, opts.EngineOverride) {
+				filtered = append(filtered, cfg)
+			}
+		}
+		if len(filtered) == 0 {
+			return nil, fmt.Errorf("engine override %q did not match any enabled manifest engine", opts.EngineOverride)
+		}
+		engineConfigs = filtered
+	}
+
+	if compilerMode == "single" && len(engineConfigs) > 1 {
+		warnings = append(warnings, fmt.Sprintf("mode single selected; using first enabled engine only: %s", engineConfigs[0].Name))
+		engineConfigs = engineConfigs[:1]
+	}
+
+	factory := NewEngineFactory()
+	engineList, err := factory.CreateEngines(engineConfigs)
+	if err != nil {
+		return nil, fmt.Errorf("creating engines: %w", err)
+	}
+	if len(engineList) == 0 {
+		warnings = append(warnings, fmt.Sprintf("mode %q requested but no enabled engines are configured", compilerMode))
+		return compileManual(src, normRules, normPortfolio, warnings, opts)
+	}
+
+	engineInput := engines.EngineInput{
+		Manifest:       *src.Manifest,
+		StrategyMD:     src.StrategyMD,
+		Rules:          src.Rules,
+		Signals:        src.Signals,
+		Relations:      src.Relations,
+		Regimes:        src.Regimes,
+		TrainingWindow: src.Manifest.Compiler.TrainingWindow,
+		Portfolio:      src.Manifest.Portfolio,
+	}
+	for _, sym := range src.Manifest.Universe.Symbols {
+		if !strings.EqualFold(sym, "cash") {
+			engineInput.Universe = append(engineInput.Universe, sym)
+		}
+	}
+
+	var engineSignals []air.Signal
+	var engineNotes []string
+	var engineReports []engines.EngineReport
+
+	for _, engine := range engineList {
+		if opts.Verbose {
+			terminal.Step("Running engine %s", engine.Name())
+		}
+		output, err := engine.Analyze(ctx, engineInput)
+		if err != nil {
+			warnings = append(warnings, fmt.Sprintf("Engine %q error: %v", engine.Name(), err))
+			if opts.Verbose {
+				terminal.Warn("Engine %s failed; continuing with remaining compiler inputs", engine.Name())
+			}
+			continue
+		}
+		if opts.Verbose {
+			terminal.Info("Engine %s returned %d signal(s), %d report(s)", engine.Name(), len(output.Signals), len(output.Reports))
+		}
+		for _, sig := range output.Signals {
+			if sig.Action == "" || sig.Action == "add" {
+				if !isUsableEngineSignal(sig.Signal) {
+					warnings = append(warnings, fmt.Sprintf("Engine %q emitted unusable signal %q; skipped", engine.Name(), sig.Signal.SignalID))
+					continue
+				}
+				engineSignals = append(engineSignals, sig.Signal)
+			}
+		}
+		if strings.TrimSpace(output.Notes) != "" {
+			engineNotes = append(engineNotes, output.Notes)
+		}
+		engineReports = append(engineReports, output.Reports...)
+	}
+
+	enrichedSrc := *src
+	enrichedSrc.Signals = append(enrichedSrc.Signals, engineSignals...)
+
+	decisionHierarchy := air.DefaultDecisionHierarchy()
+	execConfig := air.EnrichExecutionConfig(air.DefaultExecutionConfig(), src.Manifest.Backtest)
+	airData := air.BuildAIR(enrichedSrc, normPortfolio, normRules, decisionHierarchy, execConfig, nil)
+	if len(engineReports) > 0 {
+		reportRefs, reportArtifacts := buildAgentReportArtifacts(engineReports)
+		airData.AgentReportContents = reportArtifacts
+		airData.SignalInterests = append(airData.SignalInterests, extractSignalInterestsFromReports(engineReports)...)
+		if airData.Extensions == nil {
+			airData.Extensions = map[string]any{}
+		}
+		airData.Extensions["agent_reports"] = reportRefs
+	}
+
+	prov := provenance.Build(&enrichedSrc, compilerMode, engineConfigs, "", nil)
+	canonical, err := air.CanonicalJSON(airData)
+	if err != nil {
+		return nil, fmt.Errorf("computing canonical AIR: %w", err)
+	}
+	irHash := air.HashBytes(canonical)
+	outputHashes := computeOutputHashes(airData, irHash)
+	prov = provenance.Build(&enrichedSrc, compilerMode, engineConfigs, irHash, outputHashes)
+	if len(engineNotes) > 0 {
+		prov.Notes = strings.TrimSpace(prov.Notes + "\n\nEngine notes:\n- " + strings.Join(engineNotes, "\n- "))
+	}
+	airData.Provenance = prov
+
+	reason := reasoning.Build(&enrichedSrc, compilerMode, normRules, warnings)
+	vr := validation.BuildReport(airData, warnings, src.Manifest.SpecVersion)
+
+	if opts.ValidateOnly {
+		return &CompileResult{
+			AIR:              nil,
+			Provenance:       prov,
+			Reasoning:        reason,
+			ValidationReport: vr,
+			Warnings:         warnings,
+		}, nil
+	}
+
+	return &CompileResult{
+		AIR:              airData,
+		Provenance:       prov,
+		Reasoning:        reason,
+		ValidationReport: vr,
+		Warnings:         warnings,
+	}, nil
+}
+
+func isUsableEngineSignal(sig air.Signal) bool {
+	if strings.TrimSpace(sig.SignalID) == "" {
+		return false
+	}
+	action := ""
+	if sig.Recommendation != nil {
+		action = sig.Recommendation.Action
+	}
+	if action == "" {
+		action = fmt.Sprint(sig.Value)
+	}
+	action = strings.TrimSpace(strings.ToLower(action))
+	if action == "" || strings.HasPrefix(action, "error") || action == "unknown" || action == "no output" {
+		return false
+	}
+	switch action {
+	case "buy", "sell", "hold", "short", "neutral", "overweight", "underweight", "trim", "reduce", "add":
+		return true
+	default:
+		return sig.SignalKind != "recommendation" && sig.Recommendation == nil
+	}
+}
+
+func activeEngineConfigs(configs []air.EngineConfig) []air.EngineConfig {
+	out := make([]air.EngineConfig, 0, len(configs))
+	for _, cfg := range configs {
+		if cfg.Enabled != nil && !*cfg.Enabled {
+			continue
+		}
+		out = append(out, cfg)
+	}
+	return out
+}
+
+func engineNamesMatch(left, right string) bool {
+	return canonicalEngineName(left) == canonicalEngineName(right)
+}
+
+func canonicalEngineName(name string) string {
+	normalized := strings.ToLower(strings.TrimSpace(name))
+	switch normalized {
+	case "tradingagents", "tauricresearch/tradingagents":
+		return "tradingagents"
+	case "ai-hedge-fund", "virattt/ai-hedge-fund", "priley86/ai-hedge-fund":
+		return "ai-hedge-fund"
+	default:
+		return normalized
+	}
+}
+
+func resolveOriginalMode(m *air.Manifest, override string) string {
+	if override != "" {
+		return override
+	}
+	if m.Compiler.Mode != "" {
+		return m.Compiler.Mode
+	}
+	return "manual"
+}

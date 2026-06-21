@@ -1,878 +1,2153 @@
 {
-  "metadata": {
-    "strategy_name": "Oil Rates Growth Tech",
-    "strategy_id": "oil-rates-growth-tech",
-    "description": "Compiled AIR for reducing growth technology exposure when oil and rates rise together during tight liquidity.",
-    "author": "AlphaNet Example",
-    "version": "0.1.0",
-    "spec_version": "v0.1",
-    "compiler_version": "v0.1.0",
-    "generated_at": "2026-06-19T00:00:00Z",
-    "tags": [
-      "macro",
-      "rates",
-      "oil",
-      "growth-tech",
-      "risk-management"
-    ]
-  },
-  "universe": {
-    "assets": [
-      {
-        "symbol": "QQQ",
-        "name": "Invesco QQQ Trust",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "NVDA",
-        "name": "NVIDIA Corporation",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "AMD",
-        "name": "Advanced Micro Devices, Inc.",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "TLT",
-        "name": "iShares 20+ Year Treasury Bond ETF",
-        "asset_class": "bonds",
-        "sector": "duration",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "USO",
-        "name": "United States Oil Fund",
-        "asset_class": "commodities",
-        "sector": "energy",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "SPY",
-        "name": "SPDR S&P 500 ETF Trust",
-        "asset_class": "equities",
-        "sector": "broad_market",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "MSFT",
-        "name": "Microsoft Corporation",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "AAPL",
-        "name": "Apple Inc.",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "AVGO",
-        "name": "Broadcom Inc.",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "SMH",
-        "name": "VanEck Semiconductor ETF",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "SHY",
-        "name": "iShares 1-3 Year Treasury Bond ETF",
-        "asset_class": "bonds",
-        "sector": "duration",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "IEF",
-        "name": "iShares 7-10 Year Treasury Bond ETF",
-        "asset_class": "bonds",
-        "sector": "duration",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "XLE",
-        "name": "Energy Select Sector SPDR Fund",
-        "asset_class": "equities",
-        "sector": "energy",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "XOM",
-        "name": "Exxon Mobil Corporation",
-        "asset_class": "equities",
-        "sector": "energy",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "CVX",
-        "name": "Chevron Corporation",
-        "asset_class": "equities",
-        "sector": "energy",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "XLU",
-        "name": "Utilities Select Sector SPDR Fund",
-        "asset_class": "equities",
-        "sector": "utilities",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "XLP",
-        "name": "Consumer Staples Select Sector SPDR Fund",
-        "asset_class": "equities",
-        "sector": "consumer_staples",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "XLV",
-        "name": "Health Care Select Sector SPDR Fund",
-        "asset_class": "equities",
-        "sector": "healthcare",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "JNJ",
-        "name": "Johnson & Johnson",
-        "asset_class": "equities",
-        "sector": "healthcare",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "PG",
-        "name": "Procter & Gamble Co.",
-        "asset_class": "equities",
-        "sector": "consumer_staples",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "KO",
-        "name": "Coca-Cola Company",
-        "asset_class": "equities",
-        "sector": "consumer_staples",
-        "currency": "USD",
-        "tradable": true
-      }
-    ],
-    "asset_classes": [
-      "cash",
-      "equities",
-      "bonds",
-      "commodities"
-    ],
-    "sectors": [
-      "technology",
-      "duration",
-      "energy",
-      "broad_market"
-    ],
-    "themes": [
-      {
-        "theme_id": "growth_technology",
-        "name": "Growth Technology",
-        "members": [
-          "QQQ",
-          "NVDA",
-          "AMD"
-        ],
-        "description": "Long-duration growth technology exposure."
-      },
-      {
-        "theme_id": "defensive_equities",
-        "name": "Defensive Equities",
-        "members": [
-          "XLU",
-          "XLP",
-          "XLV",
-          "JNJ",
-          "PG",
-          "KO"
-        ],
-        "description": "Defensive equity candidates for risk-off rotation."
-      }
-    ],
-    "benchmark": "SPY"
-  },
-  "signals": [
-    {
-      "signal_id": "wti_change_20d",
-      "family": "macro",
-      "type": "percent_change",
-      "description": "20-day percent change in WTI crude oil.",
-      "source": {
-        "name": "fred",
-        "series_id": "DCOILWTICO"
-      },
-      "instrument": "WTI",
-      "field": "close",
-      "transform": "percent_change",
-      "window": "20d",
-      "frequency": "daily",
-      "unit": "percent"
-    },
-    {
-      "signal_id": "ust10y_change_20d",
-      "family": "macro",
-      "type": "rate_change",
-      "description": "20-day change in the U.S. 10-year Treasury yield.",
-      "source": {
-        "name": "fred",
-        "series_id": "DGS10"
-      },
-      "instrument": "UST10Y",
-      "field": "yield",
-      "transform": "change",
-      "window": "20d",
-      "frequency": "daily",
-      "unit": "basis_points"
-    },
-    {
-      "signal_id": "dxy_change_60d",
-      "family": "macro",
-      "type": "percent_change",
-      "description": "60-day percent change in broad dollar index.",
-      "source": {
-        "name": "fred"
-      },
-      "instrument": "DXY_BROAD",
-      "field": "level",
-      "transform": "percent_change",
-      "window": "60d",
-      "frequency": "daily",
-      "unit": "percent"
-    },
-    {
-      "signal_id": "vix_level",
-      "family": "volatility",
-      "type": "level",
-      "description": "VIX level.",
-      "source": {
-        "name": "market_data"
-      },
-      "instrument": "VIX",
-      "field": "close",
-      "transform": "level",
-      "frequency": "daily",
-      "unit": "index_level"
-    },
-    {
-      "signal_id": "nvda_news_sentiment_7d",
-      "family": "sentiment",
-      "type": "sentiment_score",
-      "description": "7-day aggregate news sentiment score for NVDA.",
-      "source": {
-        "name": "news_api",
-        "adapter": "news_sentiment"
-      },
-      "symbol": "NVDA",
-      "transform": "sentiment_score",
-      "window": "7d",
-      "frequency": "daily",
-      "unit": "score",
-      "value_range": [
-        -1,
-        1
-      ]
-    }
+ "metadata": {
+  "strategy_name": "Oil Rates Growth Tech",
+  "strategy_id": "oil-rates-growth-tech",
+  "description": "Reduce growth technology exposure when oil and long rates rise together, especially during tight liquidity regimes.",
+  "author": "AlphaNet Example",
+  "version": "0.1.0",
+  "spec_version": "v0.1",
+  "compiler_version": "v0.1.0",
+  "generated_at": "2026-06-21T19:01:42Z",
+  "tags": [
+   "macro",
+   "rates",
+   "oil",
+   "growth-tech",
+   "risk-management"
+  ]
+ },
+ "universe": {
+  "assets": [
+   {
+    "symbol": "AAPL",
+    "name": "Apple Inc.",
+    "asset_class": "equities",
+    "sector": "technology",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "AGG",
+    "name": "iShares Core U.S. Aggregate Bond ETF",
+    "asset_class": "bonds",
+    "sector": "duration",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "AMD",
+    "name": "Advanced Micro Devices, Inc.",
+    "asset_class": "equities",
+    "sector": "technology",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "AVGO",
+    "name": "Broadcom Inc.",
+    "asset_class": "equities",
+    "sector": "technology",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "CVX",
+    "name": "Chevron Corporation",
+    "asset_class": "equities",
+    "sector": "energy",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "DBC",
+    "name": "Invesco DB Commodity Index Tracking Fund",
+    "asset_class": "commodities",
+    "sector": "commodities",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "IEF",
+    "name": "iShares 7-10 Year Treasury Bond ETF",
+    "asset_class": "bonds",
+    "sector": "duration",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "IWM",
+    "name": "iShares Russell 2000 ETF",
+    "asset_class": "equities",
+    "sector": "broad_market",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "JNJ",
+    "name": "Johnson & Johnson",
+    "asset_class": "equities",
+    "sector": "healthcare",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "KO",
+    "name": "Coca-Cola Company",
+    "asset_class": "equities",
+    "sector": "consumer_staples",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "MSFT",
+    "name": "Microsoft Corporation",
+    "asset_class": "equities",
+    "sector": "technology",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "NVDA",
+    "name": "NVIDIA Corporation",
+    "asset_class": "equities",
+    "sector": "technology",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "PG",
+    "name": "Procter & Gamble Co.",
+    "asset_class": "equities",
+    "sector": "consumer_staples",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "QQQ",
+    "name": "Invesco QQQ Trust",
+    "asset_class": "equities",
+    "sector": "technology",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "SHY",
+    "name": "iShares 1-3 Year Treasury Bond ETF",
+    "asset_class": "bonds",
+    "sector": "duration",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "SMH",
+    "name": "VanEck Semiconductor ETF",
+    "asset_class": "equities",
+    "sector": "technology",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "SPY",
+    "name": "SPDR S&P 500 ETF Trust",
+    "asset_class": "equities",
+    "sector": "broad_market",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "TLT",
+    "name": "iShares 20+ Year Treasury Bond ETF",
+    "asset_class": "bonds",
+    "sector": "duration",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "USO",
+    "name": "United States Oil Fund",
+    "asset_class": "commodities",
+    "sector": "energy",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "XAUUSD",
+    "name": "Gold Spot Price USD",
+    "asset_class": "commodities",
+    "sector": "commodities",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "XLE",
+    "name": "Energy Select Sector SPDR Fund",
+    "asset_class": "equities",
+    "sector": "energy",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "XLP",
+    "name": "Consumer Staples Select Sector SPDR Fund",
+    "asset_class": "equities",
+    "sector": "consumer_staples",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "XLU",
+    "name": "Utilities Select Sector SPDR Fund",
+    "asset_class": "equities",
+    "sector": "utilities",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "XLV",
+    "name": "Health Care Select Sector SPDR Fund",
+    "asset_class": "equities",
+    "sector": "healthcare",
+    "currency": "USD",
+    "tradable": true
+   },
+   {
+    "symbol": "XOM",
+    "name": "Exxon Mobil Corporation",
+    "asset_class": "equities",
+    "sector": "energy",
+    "currency": "USD",
+    "tradable": true
+   }
   ],
-  "relations": [
-    {
-      "relation_id": "oil_rates_negative_for_growth_tech",
-      "description": "Oil and long rates rising together create negative pressure on growth technology exposure.",
-      "drivers": [
-        "wti_change_20d",
-        "ust10y_change_20d"
-      ],
-      "targets": [
-        "QQQ",
-        "NVDA",
-        "AMD",
-        "growth_technology"
-      ],
-      "effect": "negative",
-      "conditions": {
-        "all": [
-          {
-            "signal": "wti_change_20d",
-            "operator": ">",
-            "value": 0.1,
-            "unit": "percent"
-          },
-          {
-            "signal": "ust10y_change_20d",
-            "operator": ">",
-            "value": 25,
-            "unit": "basis_points"
-          }
-        ]
-      },
-      "confidence": 0.72,
-      "strength": -0.65,
-      "window": "20d"
-    },
-    {
-      "relation_id": "high_volatility_supports_cash_raise",
-      "description": "Elevated volatility increases preference for cash and lower gross exposure.",
-      "drivers": [
-        "vix_level"
-      ],
-      "targets": [
-        "cash",
-        "portfolio"
-      ],
-      "effect": "risk_off",
-      "conditions": {
-        "signal": "vix_level",
-        "operator": ">",
-        "value": 24
-      },
-      "confidence": 0.68,
-      "strength": 0.5
-    }
+  "asset_classes": [
+   "bonds",
+   "cash",
+   "commodities",
+   "equities"
   ],
-  "regimes": [
-    {
-      "regime_id": "tight_liquidity",
-      "name": "Tight Liquidity",
-      "description": "Tight-liquidity regime driven by rising long rates and/or dollar pressure.",
-      "conditions": {
-        "any": [
-          {
-            "signal": "ust10y_change_20d",
-            "operator": ">",
-            "value": 25,
-            "unit": "basis_points"
-          },
-          {
-            "signal": "dxy_change_60d",
-            "operator": ">",
-            "value": 0.03,
-            "unit": "percent"
-          }
-        ]
-      },
-      "confidence": 0.8,
-      "state_mode": "active_inactive",
-      "implications": [
-        {
-          "target": "growth_technology",
-          "effect": "negative",
-          "confidence": 0.7
-        },
-        {
-          "target": "cash",
-          "effect": "increase_cash",
-          "confidence": 0.7
-        }
-      ]
-    },
-    {
-      "regime_id": "high_volatility",
-      "name": "High Volatility",
-      "description": "High-volatility regime when VIX is elevated.",
-      "conditions": {
-        "signal": "vix_level",
-        "operator": ">",
-        "value": 24
-      },
-      "confidence": 0.75,
-      "state_mode": "active_inactive",
-      "implications": [
-        {
-          "target": "portfolio",
-          "effect": "reduce_exposure",
-          "confidence": 0.7
-        }
-      ]
-    }
+  "sectors": [
+   "broad_market",
+   "commodities",
+   "consumer_staples",
+   "duration",
+   "energy",
+   "healthcare",
+   "technology",
+   "utilities"
   ],
-  "portfolio": {
-    "base_currency": "USD",
-    "starting_cash": 100000,
-    "targets": {
-      "cash": 0.25,
-      "equities": 0.5,
-      "bonds": 0.2,
-      "commodities": 0.05
-    },
-    "soft_targets": [
-      {
-        "target": "equities",
-        "weight": 0.5,
-        "tolerance": 0.1,
-        "priority": 60
-      },
-      {
-        "target": "cash",
-        "weight": 0.25,
-        "tolerance": 0.1,
-        "priority": 80
-      }
+  "themes": [
+   {
+    "theme_id": "growth_technology",
+    "name": "Growth Technology",
+    "members": [
+     "QQQ",
+     "NVDA",
+     "AMD"
     ],
-    "constraints": {
-      "cash_min": 0.1,
-      "max_single_position": 0.15,
-      "max_asset_class_weight": {
-        "equities": 0.65,
-        "bonds": 0.5,
-        "commodities": 0.25
-      },
-      "max_sector_weight": {
-        "technology": 0.35
-      },
-      "max_leverage": 1.0,
-      "allow_shorting": false,
-      "allow_margin": false
-    },
-    "risk_budgets": {
-      "max_portfolio_volatility": 0.2,
-      "max_drawdown": 0.15,
-      "max_daily_turnover": 0.1,
-      "max_trade_weight": 0.05
-    },
-    "rebalance": {
-      "frequency": "daily",
-      "threshold": 0.05,
-      "allow_partial_rebalance": true
-    },
-    "initial_allocation": {
-      "mode": "weights",
-      "positions": [
-        {
-          "symbol": "SPY",
-          "weight": 0.4
-        },
-        {
-          "symbol": "QQQ",
-          "weight": 0.25
-        },
-        {
-          "symbol": "TLT",
-          "weight": 0.2
-        },
-        {
-          "symbol": "cash",
-          "weight": 0.15
-        }
-      ]
-    },
-    "candidate_baskets": [
-      {
-        "basket_id": "growth_technology",
-        "description": "Growth technology and AI-related equities the strategy may buy or sell.",
-        "asset_class": "equities",
-        "sector": "technology",
-        "role": "risk_asset",
-        "symbols": [
-          "QQQ",
-          "NVDA",
-          "AMD",
-          "MSFT",
-          "AAPL",
-          "AVGO",
-          "SMH"
-        ],
-        "max_weight": 0.35,
-        "min_position_weight": 0.02,
-        "max_position_weight": 0.1
-      },
-      {
-        "basket_id": "defensive_equities",
-        "description": "Defensive equity alternatives.",
-        "asset_class": "equities",
-        "sectors": [
-          "utilities",
-          "consumer_staples",
-          "healthcare"
-        ],
-        "role": "defensive_asset",
-        "symbols": [
-          "XLU",
-          "XLP",
-          "XLV",
-          "JNJ",
-          "PG",
-          "KO"
-        ],
-        "max_weight": 0.3
-      },
-      {
-        "basket_id": "duration",
-        "description": "Treasury duration instruments.",
-        "asset_class": "bonds",
-        "role": "duration",
-        "symbols": [
-          "SHY",
-          "IEF",
-          "TLT"
-        ],
-        "max_weight": 0.5
-      },
-      {
-        "basket_id": "commodities_energy",
-        "description": "Energy and oil-related instruments.",
-        "asset_class": "commodities",
-        "sector": "energy",
-        "role": "commodity",
-        "symbols": [
-          "USO",
-          "XLE",
-          "XOM",
-          "CVX"
-        ],
-        "max_weight": 0.25
-      }
+    "description": "Long-duration growth technology exposure."
+   },
+   {
+    "theme_id": "defensive_equities",
+    "name": "Defensive Equities",
+    "members": [
+     "XLU",
+     "XLP",
+     "XLV"
     ],
-    "selection_policy": {
-      "default_method": "ranked",
-      "rebalance_threshold": 0.05,
-      "min_holding_days": 10,
-      "baskets": {
-        "growth_technology": {
-          "method": "ranked",
-          "max_positions": 5,
-          "min_position_weight": 0.02,
-          "max_position_weight": 0.1,
-          "ranking": [
-            {
-              "signal": "relative_strength_60d",
-              "weight": 0.4,
-              "direction": "higher_is_better"
-            },
-            {
-              "signal": "news_sentiment_7d",
-              "weight": 0.3,
-              "direction": "higher_is_better"
-            },
-            {
-              "signal": "realized_volatility_20d",
-              "weight": 0.3,
-              "direction": "lower_is_better"
-            }
-          ],
-          "replacement_policy": {
-            "enabled": true,
-            "rebalance_threshold": 0.15,
-            "min_holding_days": 10
-          }
-        }
-      }
-    }
-  },
-  "decision_hierarchy": {
-    "layers": [
-      {
-        "name": "portfolio_safety",
-        "priority": 100
-      },
-      {
-        "name": "risk_management",
-        "priority": 90
-      },
-      {
-        "name": "regime",
-        "priority": 80
-      },
-      {
-        "name": "cross_asset_relations",
-        "priority": 70
-      },
-      {
-        "name": "strategy",
-        "priority": 60
-      },
-      {
-        "name": "tactical",
-        "priority": 50
-      },
-      {
-        "name": "experimental",
-        "priority": 25
-      }
+    "description": "Defensive equity candidates for risk-off rotation."
+   },
+   {
+    "theme_id": "commodities_energy",
+    "name": "Commodities / Energy",
+    "members": [
+     "USO",
+     "XLE",
+     "XOM"
     ],
-    "conflict_resolution": [
-      "layer_priority",
-      "rule_priority",
-      "confidence",
-      "tie_breaker"
+    "description": "Energy and commodity exposure."
+   },
+   {
+    "theme_id": "duration",
+    "name": "Duration",
+    "members": [
+     "SHY",
+     "IEF",
+     "TLT"
     ],
-    "tie_breaker": "rule_order"
-  },
-  "rules": [
-    {
-      "rule_id": "reduce_growth_tech_when_oil_and_rates_rise",
-      "name": "Reduce growth tech when oil and rates rise",
-      "description": "Trim growth technology exposure and raise cash when oil and long rates rise together during tight liquidity.",
-      "enabled": true,
-      "layer": "strategy",
-      "priority": 70,
-      "confidence": 0.76,
-      "when": {
-        "all": [
-          {
-            "signal": "wti_change_20d",
-            "operator": ">",
-            "value": 0.1,
-            "unit": "percent"
-          },
-          {
-            "signal": "ust10y_change_20d",
-            "operator": ">",
-            "value": 25,
-            "unit": "basis_points"
-          },
-          {
-            "regime": "tight_liquidity",
-            "operator": "active",
-            "confidence_min": 0.65
-          }
-        ]
-      },
-      "then": [
-        {
-          "action": "decrease_weight",
-          "target": "QQQ",
-          "amount": 0.05,
-          "unit": "weight",
-          "reason": "Growth tech pressured by rising oil and long rates."
-        },
-        {
-          "action": "decrease_weight",
-          "target": "NVDA",
-          "amount": 0.03,
-          "unit": "weight",
-          "reason": "High-beta semiconductor exposure trimmed during macro pressure."
-        },
-        {
-          "action": "increase_weight",
-          "target": "cash",
-          "amount": 0.08,
-          "unit": "weight",
-          "reason": "Raise cash during tight liquidity."
-        }
-      ],
-      "cooldown": {
-        "enabled": true,
-        "days": 5,
-        "scope": "rule"
-      },
-      "limits": {
-        "max_single_action_weight": 0.05,
-        "requires_portfolio_approval": true
-      }
-    },
-    {
-      "rule_id": "high_volatility_reduce_risk",
-      "name": "Reduce risk during high volatility",
-      "description": "Reduce total equity exposure when volatility is elevated.",
-      "enabled": true,
-      "layer": "risk_management",
-      "priority": 65,
-      "confidence": 0.72,
-      "when": {
-        "all": [
-          {
-            "regime": "high_volatility",
-            "operator": "active",
-            "confidence_min": 0.65
-          },
-          {
-            "portfolio_metric": "equities_weight",
-            "operator": ">",
-            "value": 0.55
-          }
-        ]
-      },
-      "then": [
-        {
-          "action": "reduce_risk",
-          "target": "portfolio",
-          "amount": 0.1,
-          "unit": "risk_fraction",
-          "reason": "Volatility elevated while equities exceed target."
-        }
-      ]
-    },
-    {
-      "rule_id": "block_cash_below_minimum",
-      "name": "Block trades that violate minimum cash",
-      "description": "Portfolio safety rule blocking actions that would push cash below the minimum.",
-      "enabled": true,
-      "layer": "portfolio_safety",
-      "priority": 100,
-      "confidence": 1.0,
-      "when": {
-        "portfolio_metric": "cash_weight",
-        "operator": "<",
-        "value": 0.1
-      },
-      "then": [
-        {
-          "action": "block_trade",
-          "target": "portfolio",
-          "reason": "Cash weight below required minimum."
-        }
-      ]
-    },
-    {
-      "rule_id": "rotate_growth_to_defensive_when_oil_rates_pressure_active",
-      "name": "Rotate growth technology to defensive equities when oil/rates pressure is active",
-      "description": "Move part of the growth technology allocation into defensive equity candidates when oil and rates pressure is active.",
-      "enabled": true,
-      "layer": "cross_asset_relations",
-      "priority": 72,
-      "confidence": 0.7,
-      "when": {
-        "relation": "oil_rates_negative_for_growth_tech",
-        "operator": "active",
-        "confidence_min": 0.65
-      },
-      "then": [
-        {
-          "action": "rotate",
-          "from": "growth_technology",
-          "to": "defensive_equities",
-          "target": "portfolio",
-          "target_type": "portfolio",
-          "amount": 0.1,
-          "unit": "weight",
-          "reason": "Rotate from rate-sensitive growth technology into defensive equities."
-        }
-      ],
-      "limits": {
-        "max_single_action_weight": 0.1,
-        "requires_portfolio_approval": true
-      }
-    }
+    "description": "Treasury duration instruments."
+   }
   ],
-  "execution": {
-    "rebalance_frequency": "daily",
-    "order_timing": "next_open",
-    "transaction_cost_bps": 1,
-    "slippage_bps": 2,
-    "allow_fractional_shares": true,
-    "dividend_handling": "cash",
-    "corporate_actions": "adjusted_prices",
-    "decision_sampling": {
-      "frequency": "weekly",
-      "anchor": "friday",
-      "calendar": "trading",
-      "missing_date_policy": "nearest_previous",
-      "include_start": true,
-      "include_end": true,
-      "timezone": "America/New_York"
-    },
-    "valuation_frequency": "daily",
-    "benchmarks": [
-      {
-        "symbol": "SPY",
-        "name": "SPDR S&P 500 ETF Trust",
-        "type": "fund"
-      },
-      {
-        "symbol": "QQQ",
-        "name": "Invesco QQQ Trust",
-        "type": "fund"
-      },
-      {
-        "symbol": "IWM",
-        "name": "iShares Russell 2000 ETF",
-        "type": "fund"
-      },
-      {
-        "symbol": "TLT",
-        "name": "iShares 20+ Year Treasury Bond ETF",
-        "type": "fund"
-      },
-      {
-        "symbol": "AGG",
-        "name": "iShares Core U.S. Aggregate Bond ETF",
-        "type": "fund"
-      },
-      {
-        "symbol": "XAUUSD",
-        "name": "Gold Spot Price USD",
-        "type": "commodity_spot",
-        "currency": "USD",
-        "data_field": "close"
-      },
-      {
-        "symbol": "DBC",
-        "name": "Invesco DB Commodity Index Tracking Fund",
-        "type": "fund"
-      },
-      {
-        "symbol": "CASH",
-        "name": "Cash / risk-free baseline",
-        "type": "cash"
-      }
-    ]
+  "benchmark": "SPY"
+ },
+ "signals": [
+  {
+   "signal_id": "amd_tradingagents_decision",
+   "family": "agents",
+   "type": "trading_signal",
+   "name": "TradingAgents decision for AMD",
+   "description": "TradingAgents decision for AMD on 2025-12-31: Buy",
+   "source": {
+    "name": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "transform": "level",
+   "frequency": "point_in_time",
+   "unit": "decision",
+   "date": "2025-12-31",
+   "value": "buy",
+   "confidence": 0.7,
+   "rationale": "Buy",
+   "recommendation": {
+    "action": "buy",
+    "rating": "buy",
+    "confidence": 0.7,
+    "rationale": "Buy"
+   }
   },
-  "provenance": {
-    "compiler_version": "v0.1.0",
-    "generated_at": "2026-06-19T00:00:00Z",
-    "engines": [
-      {
-        "name": "TauricResearch/TradingAgents",
-        "version": "0.2.5",
-        "weight": 0.5
-      },
-      {
-        "name": "virattt/ai-hedge-fund",
-        "version": "2026.6.17",
-        "weight": 0.5
-      }
-    ],
-    "training_window": {
-      "lookback_days": 365,
-      "sampling": {
-        "frequency": "monthly",
-        "anchor": "month_end",
-        "calendar": "trading",
-        "missing_date_policy": "nearest_previous",
-        "include_start": true,
-        "include_end": true,
-        "timezone": "America/New_York"
-      }
-    },
-    "source_hashes": {
-      "manifest.json": "sha256:example",
-      "strategy.md": "sha256:example",
-      "rules.json": "sha256:example"
-    },
-    "ir_sha256": "sha256:example"
+  {
+   "signal_id": "amd_ai_hedge_fund_decision",
+   "family": "agents",
+   "type": "trading_signal",
+   "description": "AI Hedge Fund decision for AMD on 2025-12-31: Hold",
+   "source": {
+    "name": "ai-hedge-fund"
+   },
+   "symbol": "AMD",
+   "transform": "level",
+   "frequency": "daily",
+   "unit": "signal"
   }
+ ],
+ "signal_interests": [
+  {
+   "signal_id": "wti_change_20d",
+   "family": "macro",
+   "type": "price_change",
+   "description": "Twenty trading day percentage change in WTI crude oil proxy using USO.",
+   "source": {
+    "name": "AlphaNet sample data",
+    "dataset": "market_prices"
+   },
+   "symbol": "USO",
+   "field": "close",
+   "transform": "pct_change_20d",
+   "transform_spec": {
+    "name": "pct_change",
+    "inputs": [
+     "close"
+    ],
+    "window": "20d"
+   },
+   "window": "20d",
+   "frequency": "daily",
+   "unit": "percent",
+   "reason": "Rules reduce growth technology exposure when oil rises quickly.",
+   "status": "candidate",
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "backtester_supported": true,
+    "notes": "Backtester should compute this from adjusted USO close prices."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "USO",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "20d",
+     "price_adjustment": "adjusted"
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "wti_20d_rising",
+     "condition": {
+      "left": "wti_change_20d",
+      "operator": ">",
+      "value": 0.1,
+      "unit": "percent"
+     },
+     "meaning": "oil has risen quickly over the last twenty trading days",
+     "action_bias": "reduce_growth_technology"
+    }
+   ]
+  },
+  {
+   "signal_id": "ust10y_change_20d",
+   "family": "macro",
+   "type": "yield_change",
+   "description": "Twenty trading day change in the 10-year Treasury yield proxy.",
+   "source": {
+    "name": "AlphaNet sample data",
+    "dataset": "rates"
+   },
+   "symbol": "UST10Y",
+   "field": "yield",
+   "transform": "change_20d",
+   "transform_spec": {
+    "name": "change",
+    "inputs": [
+     "yield"
+    ],
+    "window": "20d"
+   },
+   "window": "20d",
+   "frequency": "daily",
+   "unit": "basis_points",
+   "reason": "Rules reduce growth technology exposure when long rates rise quickly.",
+   "status": "candidate",
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "rates",
+    "backtester_supported": true,
+    "notes": "Backtester should compute this from the configured 10-year Treasury yield series."
+   },
+   "data_requirements": [
+    {
+     "dataset": "rates",
+     "symbol": "UST10Y",
+     "required_fields": [
+      "yield"
+     ],
+     "frequency": "daily",
+     "lookback": "20d"
+    }
+   ],
+   "required_fields": [
+    "yield"
+   ],
+   "interpretations": [
+    {
+     "interpretation_id": "ust10y_20d_rising",
+     "condition": {
+      "left": "ust10y_change_20d",
+      "operator": ">",
+      "value": 25,
+      "unit": "basis_points"
+     },
+     "meaning": "long rates have risen quickly over the last twenty trading days",
+     "action_bias": "reduce_growth_technology"
+    }
+   ]
+  },
+  {
+   "signal_id": "relative_strength_60d",
+   "family": "technical",
+   "type": "relative_strength",
+   "description": "Sixty trading day relative strength score used for ranked basket selection.",
+   "source": {
+    "name": "AlphaNet sample data",
+    "dataset": "market_prices"
+   },
+   "field": "close",
+   "transform": "relative_strength_60d",
+   "transform_spec": {
+    "name": "relative_strength",
+    "inputs": [
+     "close"
+    ],
+    "window": "60d"
+   },
+   "window": "60d",
+   "frequency": "daily",
+   "unit": "score",
+   "reason": "Portfolio selection policy ranks candidate basket members by medium-term relative strength.",
+   "status": "candidate"
+  },
+  {
+   "signal_id": "news_sentiment_7d",
+   "family": "sentiment",
+   "type": "news_sentiment",
+   "description": "Seven day news sentiment score used for ranked basket selection.",
+   "source": {
+    "name": "AlphaNet sample data",
+    "dataset": "news"
+   },
+   "transform": "rolling_mean_7d",
+   "transform_spec": {
+    "name": "rolling_mean",
+    "inputs": [
+     "sentiment_score"
+    ],
+    "window": "7d"
+   },
+   "window": "7d",
+   "frequency": "daily",
+   "unit": "score",
+   "reason": "Portfolio selection policy ranks candidate basket members by short-term news sentiment.",
+   "status": "candidate"
+  },
+  {
+   "signal_id": "realized_volatility_20d",
+   "family": "risk",
+   "type": "realized_volatility",
+   "description": "Twenty trading day realized volatility used for ranked basket selection.",
+   "source": {
+    "name": "AlphaNet sample data",
+    "dataset": "market_prices"
+   },
+   "field": "close",
+   "transform": "realized_volatility_20d",
+   "transform_spec": {
+    "name": "realized_volatility",
+    "inputs": [
+     "close"
+    ],
+    "window": "20d"
+   },
+   "window": "20d",
+   "frequency": "daily",
+   "unit": "annualized_volatility",
+   "reason": "Portfolio selection policy penalizes high-volatility candidate basket members.",
+   "status": "candidate"
+  },
+  {
+   "signal_id": "amd_close_10_ema",
+   "family": "technical",
+   "type": "moving_average",
+   "name": "AMD 10 EMA",
+   "description": "Track price versus the 10-day EMA because the agent report used it as an immediate momentum/support filter.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "close",
+   "transform": "ema_10d",
+   "transform_spec": {
+    "name": "ema",
+    "inputs": [
+     "close"
+    ],
+    "window": "10d"
+   },
+   "window": "10d",
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:close_10_ema:short_term_momentum",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "10d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "close_10_ema_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "close_10_ema"
+     },
+     "meaning": "price above the 10-day EMA indicates short-term momentum remains constructive",
+     "recommendation_bias": "buy_or_hold",
+     "action_bias": "buy_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Medium-term Position**: The stock is currently **trading below the 50 SMA ($227.92)**, suggesting the stock is in a **short-term pullback** within the broader bullish trend. The 10 EMA ($213.89) sits just below current price, indicating recent consolidation."
+    },
+    {
+     "interpretation_id": "close_10_ema_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "close_10_ema"
+     },
+     "meaning": "price below the 10-day EMA indicates immediate momentum weakening",
+     "recommendation_bias": "trim_or_reduce",
+     "action_bias": "trim_or_reduce",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Medium-term Position**: The stock is currently **trading below the 50 SMA ($227.92)**, suggesting the stock is in a **short-term pullback** within the broader bullish trend. The 10 EMA ($213.89) sits just below current price, indicating recent consolidation."
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_close_50_sma",
+   "family": "technical",
+   "type": "moving_average",
+   "name": "AMD 50 SMA",
+   "description": "Track price versus the 50-day SMA because the agent report used it as medium-term trend support/resistance.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "close",
+   "transform": "sma_50d",
+   "transform_spec": {
+    "name": "sma",
+    "inputs": [
+     "close"
+    ],
+    "window": "50d"
+   },
+   "window": "50d",
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:close_50_sma:medium_term_trend",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "50d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "close_50_sma_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "close_50_sma"
+     },
+     "meaning": "price above the 50-day SMA indicates medium-term trend support or resistance breakout",
+     "recommendation_bias": "buy_or_increase",
+     "action_bias": "buy_or_increase",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Medium-term Position**: The stock is currently **trading below the 50 SMA ($227.92)**, suggesting the stock is in a **short-term pullback** within the broader bullish trend. The 10 EMA ($213.89) sits just below current price, indicating recent consolidation."
+    },
+    {
+     "interpretation_id": "close_50_sma_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "close_50_sma"
+     },
+     "meaning": "price below the 50-day SMA indicates medium-term bearish pressure or failed resistance",
+     "recommendation_bias": "sell_or_underweight",
+     "action_bias": "sell_or_underweight",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Medium-term Position**: The stock is currently **trading below the 50 SMA ($227.92)**, suggesting the stock is in a **short-term pullback** within the broader bullish trend. The 10 EMA ($213.89) sits just below current price, indicating recent consolidation."
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_close_200_sma",
+   "family": "technical",
+   "type": "moving_average",
+   "name": "AMD 200 SMA",
+   "description": "Track price versus the 200-day SMA because the agent report used it as the long-term trend anchor.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "close",
+   "transform": "sma_200d",
+   "transform_spec": {
+    "name": "sma",
+    "inputs": [
+     "close"
+    ],
+    "window": "200d"
+   },
+   "window": "200d",
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:close_200_sma:long_term_trend",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "200d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "close_200_sma_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "close_200_sma"
+     },
+     "meaning": "price above the 200-day SMA indicates long-term trend remains positive",
+     "recommendation_bias": "allow_long_or_hold",
+     "action_bias": "allow_long_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Macro Trend**: AMD is in a **bullish long-term trend** with the current price ($214.16) trading significantly **above the 200 SMA ($162.63)**, indicating sustained upward momentum over the past year."
+    },
+    {
+     "interpretation_id": "close_200_sma_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "close_200_sma"
+     },
+     "meaning": "price below the 200-day SMA indicates long-term trend breakdown",
+     "recommendation_bias": "reduce_or_avoid",
+     "action_bias": "reduce_or_avoid",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Macro Trend**: AMD is in a **bullish long-term trend** with the current price ($214.16) trading significantly **above the 200 SMA ($162.63)**, indicating sustained upward momentum over the past year."
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_rsi_14d",
+   "family": "technical",
+   "type": "momentum",
+   "name": "AMD RSI 14D",
+   "description": "Track 14-day RSI because the agent report used RSI as a momentum and overbought/oversold gauge.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "close",
+   "transform": "rsi_14d",
+   "transform_spec": {
+    "name": "rsi",
+    "inputs": [
+     "close"
+    ],
+    "window": "14d"
+   },
+   "window": "14d",
+   "frequency": "daily",
+   "unit": "score",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:rsi_14d:momentum_state",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "14d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "rsi_14d_bullish",
+     "condition": {
+      "left": "rsi_14d",
+      "operator": ">",
+      "value": 50,
+      "unit": "score"
+     },
+     "meaning": "RSI above neutral with room below overbought indicates constructive momentum",
+     "recommendation_bias": "buy_or_hold",
+     "action_bias": "buy_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**RSI Analysis** (Current: 47.76)"
+    },
+    {
+     "interpretation_id": "rsi_14d_bearish",
+     "condition": {
+      "left": "rsi_14d",
+      "operator": "<",
+      "value": 50,
+      "unit": "score"
+     },
+     "meaning": "RSI deterioration or overbought reversal indicates weakening momentum",
+     "recommendation_bias": "trim_or_watch",
+     "action_bias": "trim_or_watch",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**RSI Analysis** (Current: 47.76)"
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_macd",
+   "family": "technical",
+   "type": "momentum",
+   "name": "AMD MACD",
+   "description": "Track MACD because the agent report used MACD trend/momentum and divergence as decision evidence.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "close",
+   "transform": "macd_12_26_9",
+   "transform_spec": {
+    "name": "macd",
+    "inputs": [
+     "close"
+    ],
+    "parameters": {
+     "fast_window": "12d",
+     "signal_window": "9d",
+     "slow_window": "26d"
+    }
+   },
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:macd:trend_momentum",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "35d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "parameters": {
+    "fast_window": "12d",
+    "signal_window": "9d",
+    "slow_window": "26d"
+   },
+   "interpretations": [
+    {
+     "interpretation_id": "macd_bullish",
+     "condition": {
+      "left": "macd",
+      "operator": ">",
+      "right": "macd_signal"
+     },
+     "meaning": "MACD confirmation indicates positive trend momentum",
+     "recommendation_bias": "buy_or_increase",
+     "action_bias": "buy_or_increase",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**MACD Analysis**"
+    },
+    {
+     "interpretation_id": "macd_bearish",
+     "condition": {
+      "left": "macd",
+      "operator": "<",
+      "right": "macd_signal"
+     },
+     "meaning": "MACD deterioration or negative crossover indicates weakening trend momentum",
+     "recommendation_bias": "trim_or_reduce",
+     "action_bias": "trim_or_reduce",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**MACD Analysis**"
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_macd_histogram",
+   "family": "technical",
+   "type": "momentum",
+   "name": "AMD MACD histogram",
+   "description": "Track MACD histogram because the agent report used histogram divergence/acceleration as a warning signal.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "close",
+   "transform": "macd_histogram_12_26_9",
+   "transform_spec": {
+    "name": "macd_histogram",
+    "inputs": [
+     "close"
+    ],
+    "parameters": {
+     "fast_window": "12d",
+     "signal_window": "9d",
+     "slow_window": "26d"
+    }
+   },
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:macd_histogram:momentum_divergence",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "35d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "parameters": {
+    "fast_window": "12d",
+    "signal_window": "9d",
+    "slow_window": "26d"
+   },
+   "interpretations": [
+    {
+     "interpretation_id": "macd_histogram_bullish",
+     "condition": {
+      "left": "macd_histogram",
+      "operator": ">",
+      "value": 0
+     },
+     "meaning": "improving MACD histogram indicates momentum acceleration",
+     "recommendation_bias": "buy_or_hold",
+     "action_bias": "buy_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **Histogram**: +1.04 (turning positive from negative levels)"
+    },
+    {
+     "interpretation_id": "macd_histogram_bearish",
+     "condition": {
+      "left": "macd_histogram",
+      "operator": "<",
+      "value": 0
+     },
+     "meaning": "negative or deteriorating MACD histogram indicates momentum deceleration",
+     "recommendation_bias": "trim_or_underweight",
+     "action_bias": "trim_or_underweight",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **Histogram**: +1.04 (turning positive from negative levels)"
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_bollinger_bands_20d",
+   "family": "technical",
+   "type": "volatility",
+   "name": "AMD Bollinger Bands 20D",
+   "description": "Track 20-day Bollinger bands because the agent report used upper/lower bands as support, resistance, and volatility context.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "close",
+   "transform": "bollinger_bands_20d",
+   "transform_spec": {
+    "name": "bollinger_bands",
+    "inputs": [
+     "close"
+    ],
+    "window": "20d",
+    "parameters": {
+     "stddev": 2
+    }
+   },
+   "window": "20d",
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:bollinger_bands_20d:volatility_support_resistance",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "20d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "parameters": {
+    "stddev": 2
+   },
+   "interpretations": [
+    {
+     "interpretation_id": "bollinger_bands_20d_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "bollinger_mid"
+     },
+     "meaning": "price holding above the middle band or bouncing from lower band indicates constructive support",
+     "recommendation_bias": "buy_or_hold",
+     "action_bias": "buy_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Bollinger Bands**"
+    },
+    {
+     "interpretation_id": "bollinger_bands_20d_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "bollinger_lower"
+     },
+     "meaning": "price rejecting at the upper band or breaking below the lower band indicates downside risk",
+     "recommendation_bias": "trim_or_reduce",
+     "action_bias": "trim_or_reduce",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Bollinger Bands**"
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_atr_14d",
+   "family": "risk",
+   "type": "volatility",
+   "name": "AMD ATR 14D",
+   "description": "Track 14-day ATR because the agent report used ATR for stop placement, volatility context, and position sizing.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "high",
+   "transform": "atr_14d",
+   "transform_spec": {
+    "name": "atr",
+    "inputs": [
+     "high",
+     "low",
+     "close"
+    ],
+    "window": "14d"
+   },
+   "window": "14d",
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:atr_14d:risk_sizing",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "high",
+      "low",
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "14d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "high",
+    "low",
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "atr_14d_bullish",
+     "condition": {
+      "left": "atr_14d",
+      "operator": "is_available"
+     },
+     "meaning": "ATR provides risk sizing and stop distance context, not a standalone directional signal",
+     "recommendation_bias": "size_position",
+     "action_bias": "size_position",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**ATR**: $8.16 indicates **moderate daily volatility** - healthy for an actively traded stock"
+    },
+    {
+     "interpretation_id": "atr_14d_bearish",
+     "condition": {
+      "left": "atr_14d",
+      "operator": "rising"
+     },
+     "meaning": "rising ATR may require smaller position sizes or wider stops",
+     "recommendation_bias": "reduce_position_size",
+     "action_bias": "reduce_position_size",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**ATR**: $8.16 indicates **moderate daily volatility** - healthy for an actively traded stock"
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_support_level",
+   "family": "technical",
+   "type": "support_resistance",
+   "name": "AMD Support level",
+   "description": "Track support levels because the agent report referenced support zones for entries, stops, and failure conditions.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "high",
+   "transform": "support_level",
+   "transform_spec": {
+    "name": "support_level",
+    "inputs": [
+     "high",
+     "low",
+     "close"
+    ]
+   },
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:support_level:support_failure",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "high",
+      "low",
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "252d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "high",
+    "low",
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "support_level_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "support_level"
+     },
+     "meaning": "price holding above support supports long exposure",
+     "recommendation_bias": "buy_or_hold",
+     "action_bias": "buy_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### Volatility & Support Analysis"
+    },
+    {
+     "interpretation_id": "support_level_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "support_level"
+     },
+     "meaning": "price breaking below support implies downside risk or stop trigger",
+     "recommendation_bias": "sell_or_reduce",
+     "action_bias": "sell_or_reduce",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### Volatility & Support Analysis"
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_resistance_level",
+   "family": "technical",
+   "type": "support_resistance",
+   "name": "AMD Resistance level",
+   "description": "Track resistance levels because the agent report referenced resistance zones for breakouts and profit targets.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "high",
+   "transform": "resistance_level",
+   "transform_spec": {
+    "name": "resistance_level",
+    "inputs": [
+     "high",
+     "low",
+     "close"
+    ]
+   },
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:resistance_level:resistance_breakout",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "high",
+      "low",
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "252d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "high",
+    "low",
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "resistance_level_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "resistance_level"
+     },
+     "meaning": "price breaking above resistance supports buy/increase bias",
+     "recommendation_bias": "buy_or_increase",
+     "action_bias": "buy_or_increase",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **Upper Band**: $226.72 (resistance)"
+    },
+    {
+     "interpretation_id": "resistance_level_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "resistance_level"
+     },
+     "meaning": "price failing below resistance supports caution or underweight bias",
+     "recommendation_bias": "hold_or_underweight",
+     "action_bias": "hold_or_underweight",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **Upper Band**: $226.72 (resistance)"
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_stop_loss",
+   "family": "risk",
+   "type": "risk_control",
+   "name": "AMD Stop loss",
+   "description": "Track agent-described stop-loss levels as forward-looking risk-control interests.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "close",
+   "transform": "agent_report_level",
+   "transform_spec": {
+    "name": "agent_report_level",
+    "inputs": [
+     "close"
+    ]
+   },
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:stop_loss:risk_control",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "252d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "stop_loss_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "stop_loss"
+     },
+     "meaning": "price above stop keeps thesis active",
+     "recommendation_bias": "hold",
+     "action_bias": "hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Stop Loss**: 200.0"
+    },
+    {
+     "interpretation_id": "stop_loss_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "stop_loss"
+     },
+     "meaning": "price below stop invalidates thesis and should reduce exposure",
+     "recommendation_bias": "sell_or_reduce",
+     "action_bias": "sell_or_reduce",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Stop Loss**: 200.0"
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_price_target",
+   "family": "portfolio",
+   "type": "target",
+   "name": "AMD Price target",
+   "description": "Track agent-described price targets as forward-looking portfolio/trading interests.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "close",
+   "transform": "agent_report_level",
+   "transform_spec": {
+    "name": "agent_report_level",
+    "inputs": [
+     "close"
+    ]
+   },
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:price_target:target_tracking",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "252d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "price_target_bullish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "price_target"
+     },
+     "meaning": "price below target leaves upside potential",
+     "recommendation_bias": "hold_or_increase",
+     "action_bias": "hold_or_increase",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Price Target**: 235.0"
+    },
+    {
+     "interpretation_id": "price_target_bearish",
+     "condition": {
+      "left": "close",
+      "operator": ">=",
+      "right": "price_target"
+     },
+     "meaning": "price reaching or exceeding target suggests taking profit or reassessing",
+     "recommendation_bias": "trim_or_take_profit",
+     "action_bias": "trim_or_take_profit",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Price Target**: 235.0"
+    }
+   ]
+  }
+ ],
+ "portfolio": {
+  "base_currency": "USD",
+  "starting_cash": 100000,
+  "targets": {
+   "bonds": 0.2,
+   "cash": 0.15,
+   "equities": 0.65
+  },
+  "soft_targets": [
+   {
+    "target": "growth_technology",
+    "target_kind": "theme",
+    "weight": 0.25,
+    "tolerance": 0.1,
+    "priority": 70,
+    "rebalance_when_breached": true,
+    "description": "Keep growth technology meaningful, but allow the rules to de-risk during oil and rate stress."
+   },
+   {
+    "target": "cash",
+    "target_kind": "asset_class",
+    "weight": 0.15,
+    "tolerance": 0.05,
+    "priority": 90,
+    "rebalance_when_breached": true,
+    "description": "Preserve a liquidity buffer for defensive rotations."
+   }
+  ],
+  "constraints": {
+   "cash_min": 0.1,
+   "max_single_position": 0.15,
+   "max_asset_class_weight": {
+    "bonds": 0.5,
+    "commodities": 0.25,
+    "equities": 0.75
+   },
+   "max_sector_weight": {
+    "energy": 0.25,
+    "technology": 0.4
+   },
+   "max_leverage": 1,
+   "allow_shorting": false,
+   "allow_margin": false
+  },
+  "risk_budgets": {
+   "max_portfolio_volatility": 0.22,
+   "max_drawdown": 0.18,
+   "max_daily_turnover": 0.12,
+   "max_trade_weight": 0.08,
+   "de_risking_policy": {
+    "enabled": true,
+    "trigger": "drawdown",
+    "action": "raise_cash",
+    "amount": 0.1,
+    "cooldown_days": 10
+   }
+  },
+  "rebalance": {
+   "frequency": "daily",
+   "threshold": 0.05,
+   "allow_partial_rebalance": true,
+   "min_trade_weight": 0.005,
+   "max_rebalance_turnover": 0.15
+  },
+  "initial_allocation": {
+   "mode": "weights",
+   "positions": [
+    {
+     "symbol": "SPY",
+     "weight": 0.4
+    },
+    {
+     "symbol": "QQQ",
+     "weight": 0.25
+    },
+    {
+     "symbol": "TLT",
+     "weight": 0.2
+    },
+    {
+     "symbol": "cash",
+     "weight": 0.15
+    }
+   ]
+  },
+  "candidate_baskets": [
+   {
+    "basket_id": "growth_technology",
+    "description": "Growth technology and AI-related equities the strategy may buy or sell.",
+    "asset_class": "equities",
+    "sector": "technology",
+    "symbols": [
+     "QQQ",
+     "NVDA",
+     "AMD",
+     "MSFT",
+     "AAPL",
+     "AVGO",
+     "SMH"
+    ],
+    "role": "risk_asset",
+    "max_weight": 0.35,
+    "min_position_weight": 0.02,
+    "max_position_weight": 0.1
+   },
+   {
+    "basket_id": "defensive_equities",
+    "description": "Defensive equity alternatives.",
+    "asset_class": "equities",
+    "sectors": [
+     "utilities",
+     "consumer_staples",
+     "healthcare"
+    ],
+    "symbols": [
+     "XLU",
+     "XLP",
+     "XLV",
+     "JNJ",
+     "PG",
+     "KO"
+    ],
+    "role": "defensive_asset",
+    "max_weight": 0.3
+   },
+   {
+    "basket_id": "duration",
+    "description": "Treasury duration instruments.",
+    "asset_class": "bonds",
+    "symbols": [
+     "SHY",
+     "IEF",
+     "TLT"
+    ],
+    "role": "duration",
+    "max_weight": 0.5
+   },
+   {
+    "basket_id": "commodities_energy",
+    "description": "Energy and oil-related instruments.",
+    "asset_class": "commodities",
+    "sector": "energy",
+    "symbols": [
+     "USO",
+     "XLE",
+     "XOM",
+     "CVX"
+    ],
+    "role": "commodity",
+    "max_weight": 0.25
+   }
+  ],
+  "selection_policy": {
+   "default_method": "ranked",
+   "rebalance_threshold": 0.05,
+   "min_holding_days": 10,
+   "baskets": {
+    "growth_technology": {
+     "method": "ranked",
+     "max_positions": 5,
+     "min_position_weight": 0.02,
+     "max_position_weight": 0.1,
+     "ranking": [
+      {
+       "signal": "relative_strength_60d",
+       "weight": 0.4,
+       "direction": "higher_is_better"
+      },
+      {
+       "signal": "news_sentiment_7d",
+       "weight": 0.3,
+       "direction": "higher_is_better"
+      },
+      {
+       "signal": "realized_volatility_20d",
+       "weight": 0.3,
+       "direction": "lower_is_better"
+      }
+     ],
+     "replacement_policy": {
+      "enabled": true,
+      "rebalance_threshold": 0.15,
+      "min_holding_days": 10
+     }
+    }
+   }
+  }
+ },
+ "decision_hierarchy": {
+  "layers": [
+   {
+    "name": "portfolio_safety",
+    "priority": 100
+   },
+   {
+    "name": "risk_management",
+    "priority": 90
+   },
+   {
+    "name": "regime",
+    "priority": 80
+   },
+   {
+    "name": "cross_asset_relations",
+    "priority": 70
+   },
+   {
+    "name": "strategy",
+    "priority": 60
+   },
+   {
+    "name": "tactical",
+    "priority": 50
+   },
+   {
+    "name": "experimental",
+    "priority": 25
+   }
+  ],
+  "conflict_resolution": [
+   "layer_priority",
+   "rule_priority",
+   "confidence",
+   "tie_breaker"
+  ],
+  "tie_breaker": "rule_order"
+ },
+ "rules": [
+  {
+   "rule_id": "seed_reduce_growth_tech_oil_rates",
+   "name": "Seed rule: reduce growth tech when oil and rates rise",
+   "enabled": true,
+   "layer": "strategy",
+   "priority": 65,
+   "confidence": 0.65,
+   "when": {
+    "all": [
+     {
+      "signal": "wti_change_20d",
+      "operator": ">",
+      "value": 0.1,
+      "unit": "percent"
+     },
+     {
+      "signal": "ust10y_change_20d",
+      "operator": ">",
+      "value": 25,
+      "unit": "basis_points"
+     }
+    ]
+   },
+   "then": [
+    {
+     "action": "decrease_weight",
+     "target": "QQQ",
+     "amount": 0.05,
+     "unit": "weight",
+     "reason": "Oil and long rates are rising together."
+    },
+    {
+     "action": "increase_weight",
+     "target": "cash",
+     "amount": 0.05,
+     "unit": "weight",
+     "reason": "Raise cash during macro pressure."
+    }
+   ]
+  },
+  {
+   "rule_id": "rotate_growth_to_defensive_when_oil_rates_pressure_active",
+   "name": "Rotate growth technology to defensive equities when oil/rates pressure is active",
+   "enabled": true,
+   "layer": "cross_asset_relations",
+   "priority": 72,
+   "confidence": 0.7,
+   "when": {
+    "all": [
+     {
+      "signal": "wti_change_20d",
+      "operator": ">",
+      "value": 0.1,
+      "unit": "percent"
+     },
+     {
+      "signal": "ust10y_change_20d",
+      "operator": ">",
+      "value": 25,
+      "unit": "basis_points"
+     }
+    ]
+   },
+   "then": [
+    {
+     "action": "rotate",
+     "target": "portfolio",
+     "target_type": "portfolio",
+     "from": "growth_technology",
+     "to": "defensive_equities",
+     "amount": 0.1,
+     "unit": "weight",
+     "reason": "Rotate from rate-sensitive growth technology into defensive equities."
+    }
+   ]
+  }
+ ],
+ "execution": {
+  "rebalance_frequency": "daily",
+  "order_timing": "next_open",
+  "transaction_cost_bps": 1,
+  "slippage_bps": 2,
+  "allow_fractional_shares": true,
+  "dividend_handling": "cash",
+  "corporate_actions": "adjusted_prices",
+  "decision_sampling": {
+   "frequency": "weekly",
+   "anchor": "friday",
+   "calendar": "trading",
+   "missing_date_policy": "nearest_previous",
+   "include_start": true,
+   "include_end": true,
+   "timezone": "America/New_York"
+  },
+  "valuation_frequency": "daily",
+  "benchmarks": [
+   {
+    "symbol": "SPY",
+    "name": "SPDR S&P 500 ETF Trust",
+    "type": "fund"
+   },
+   {
+    "symbol": "QQQ",
+    "name": "Invesco QQQ Trust",
+    "type": "fund"
+   },
+   {
+    "symbol": "IWM",
+    "name": "iShares Russell 2000 ETF",
+    "type": "fund"
+   },
+   {
+    "symbol": "TLT",
+    "name": "iShares 20+ Year Treasury Bond ETF",
+    "type": "fund"
+   },
+   {
+    "symbol": "AGG",
+    "name": "iShares Core U.S. Aggregate Bond ETF",
+    "type": "fund"
+   },
+   {
+    "symbol": "XAUUSD",
+    "name": "Gold Spot Price USD",
+    "type": "commodity_spot",
+    "currency": "USD",
+    "data_field": "close"
+   },
+   {
+    "symbol": "DBC",
+    "name": "Invesco DB Commodity Index Tracking Fund",
+    "type": "fund"
+   },
+   {
+    "symbol": "CASH",
+    "name": "Cash / risk-free baseline",
+    "type": "cash"
+   }
+  ]
+ },
+ "provenance": {
+  "strategy_name": "Oil Rates Growth Tech",
+  "strategy_id": "oil-rates-growth-tech",
+  "spec_version": "v0.1",
+  "compiler_version": "v0.1.0",
+  "generated_at": "2026-06-21T19:01:42Z",
+  "compiler_mode": "ensemble",
+  "ensemble_method": "weighted_vote",
+  "engines": [
+   {
+    "name": "TauricResearch/TradingAgents",
+    "version": "0.2.5",
+    "weight": 0.5,
+    "role": "market_and_technical_reasoning",
+    "symbols": [
+     "QQQ",
+     "NVDA",
+     "AMD",
+     "TLT",
+     "USO"
+    ],
+    "config": {
+     "adapter_script": "scripts/tradingagents_adapter.py",
+     "analysts": [
+      "market"
+     ],
+     "max_symbols": 1,
+     "ta_path": "~/Github/TradingAgents"
+    }
+   },
+   {
+    "name": "priley86/ai-hedge-fund",
+    "version": "2026.6.17",
+    "weight": 0.5,
+    "role": "fundamental_sentiment_portfolio_reasoning",
+    "symbols": [
+     "QQQ",
+     "NVDA",
+     "AMD",
+     "TLT",
+     "USO"
+    ],
+    "config": {
+     "adapter_script": "scripts/ai_hedge_fund_adapter.py",
+     "ahf_path": "~/Github/ai-hedge-fund",
+     "analysts": [
+      "ben_graham"
+     ],
+     "max_symbols": 1
+    }
+   }
+  ],
+  "training_window": {
+   "lookback_days": 365,
+   "sampling": {
+    "frequency": "monthly",
+    "anchor": "month_end",
+    "calendar": "trading",
+    "missing_date_policy": "nearest_previous",
+    "include_start": true,
+    "include_end": true,
+    "timezone": "America/New_York"
+   },
+   "include_ranges": [
+    {
+     "start": "2018-01-01",
+     "end": "2025-12-31",
+     "label": "primary_training_range"
+    }
+   ]
+  },
+  "source_files": [
+   "manifest.json",
+   "rules.json",
+   "signal_interests.json",
+   "signals.json",
+   "strategy.md"
+  ],
+  "source_hashes": {
+   "manifest.json": "sha256:e0c6f28ab7c26a18f30547bc64736c273e8f9b83e01b845159f33bfc321f2b47",
+   "rules.json": "sha256:01220bd2330607632c9608546e875ab1166993864711c28c5993781f04d0c14e",
+   "signal_interests.json": "sha256:5f8edcea7b17d2ddaa493c2f6e96330698420466f3cd47228c6d7ae82dde5d19",
+   "signals.json": "sha256:e5ad81d40dff05c8061760bcaad9493a9cf44b88efd399578e007b11bdfff5cb",
+   "strategy.md": "sha256:fd7c8373f74998639e5a703177562d091a8581662b7e2a9aa627daf224dae5b4"
+  },
+  "outputs": {
+   "reasoning.md": "sha256:example",
+   "strategy.ir.json": "sha256:ccb5173ba208be29515944dbe3fab22850ebf81ce72798c689f7f1006b2cab6f",
+   "validation-report.json": "sha256:example"
+  },
+  "ir_sha256": "sha256:ccb5173ba208be29515944dbe3fab22850ebf81ce72798c689f7f1006b2cab6f",
+  "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy\n- priley86/ai-hedge-fund (v2026.6.17): AI Hedge Fund adapter completed\nDecision: Hold\n\nUsing .env model: OpenRouter - cohere/north-mini-code:free\n\n ✓ Ben Graham          [AMD] Done                                               \n ✓ Portfolio Manager   [AMD] Done                                               \n ✓ Risk Management     [AMD] Done                                               \nAnalysis for AMD\n==================================================\n\nAGENT ANALYSIS: [AMD]\n+------------+----------+--------------+-------------------------------------------------------------+\n| Agent      |  Signal  |   Confidence | Reasoning                                                   |\n+============+==========+==============+=============================================================+\n| Ben Graham | BEARISH  |        20.0% | The provided analysis shows insufficient data for earnings  |\n|            |          |              | stability, financial strength, and valuation, yielding a    |\n|            |          |              | score of 0 out of a possible 15 in each category. Without   |\n|            |          |              | concrete metrics on AMD's intrinsic value, current asset    |\n|            |          |              | base, debt levels, or earnings consistency, there is no     |\n|            |          |              | margin of safety as defined by Graham. The initial bearish  |\n|            |          |              | signal reflects this lack of supporting quantitative        |\n|            |          |              | evidence; therefore, a cautious bearish stance is warranted |\n|            |          |              | with low confidence until more comprehensive data becomes   |\n|            |          |              | available.                                                  |\n+------------+----------+--------------+-------------------------------------------------------------+\n\nTRADING DECISION: [AMD]\n+------------+--------------------------+\n| Action     | HOLD                     |\n+------------+--------------------------+\n| Quantity   | 0                        |\n+------------+--------------------------+\n| Confidence | 100.0%                   |\n+------------+--------------------------+\n| Reasoning  | No valid trade available |\n+------------+--------------------------+\n\nPORTFOLIO SUMMARY:\n+----------+----------+------------+--------------+-----------+-----------+-----------+\n| Ticker   |  Action  |   Quantity |   Confidence |  Bullish  |  Bearish  |  Neutral  |\n+==========+==========+============+==============+===========+===========+===========+\n| AMD      |   HOLD   |          0 |       100.0% |     0     |     1     |     0     |\n+----------+----------+------------+--------------+-----------+-----------+-----------+\n\nPortfolio Strategy:\nNo valid trade available"
+ },
+ "extensions": {
+  "agent_reports": [
+   {
+    "engine": "TradingAgents",
+    "symbol": "AMD",
+    "date": "2025-12-31",
+    "format": "markdown",
+    "path": "agent-reports/tradingagents-AMD-2025-12-31.md",
+    "sha256": "sha256:b582722817f9ebf278839e0b5f3d3b9a3139ecda1d8bdcb3a09048923555f3d5"
+   },
+   {
+    "engine": "ai-hedge-fund",
+    "symbol": "AMD",
+    "date": "2025-12-31",
+    "format": "markdown",
+    "path": "agent-reports/ai-hedge-fund-AMD-2025-12-31.md",
+    "sha256": "sha256:c83d26f00f196e77da954ab74f0496366e5b529ef5422acada99c507783889a7"
+   }
+  ]
+ }
 }

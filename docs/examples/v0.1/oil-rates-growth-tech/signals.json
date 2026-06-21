@@ -1,0 +1,5 @@
+{
+  "spec_version": "v0.1",
+  "description": "Optional user-authored concrete signals. This example relies on signal_interests.json instead.",
+  "signals": []
+}

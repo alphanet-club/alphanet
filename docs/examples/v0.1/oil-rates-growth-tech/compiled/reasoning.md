@@ -10,7 +10,7 @@ The compiler converted the user-provided strategy description and seed rules int
 
 The core compiled belief is:
 
-> Rising oil and rising long-term rates can pressure growth technology assets, especially during tight liquidity or elevated volatility regimes.
+> This strategy reduces growth technology exposure when oil prices and long-term interest rates rise together.
 
 ## Inputs Reviewed
 
@@ -25,7 +25,7 @@ The core compiled belief is:
 Configured engines:
 
 - `TauricResearch/TradingAgents` version `0.2.5`
-- `virattt/ai-hedge-fund` version `2026.6.17`
+- `priley86/ai-hedge-fund` version `2026.6.17`
 
 This example does not include real agent logs. In a real compile, this file would summarize relevant agent feedback and explain why rules were accepted, modified, or rejected.
 
@@ -80,7 +80,6 @@ compiled/strategy.ir.json
 
 This is the only file required by the backtester.
 
-
 ## Portfolio Initialization Update
 
 The compiled AIR now explicitly separates:
@@ -104,19 +103,9 @@ The compiler added candidate baskets for:
 
 A basket rotation rule was added so oil/rates pressure can reduce growth technology exposure and rotate into defensive equities when appropriate.
 
-
 ## Source File Contract
 
 The source strategy keeps portfolio configuration in `manifest.json`, human strategy intent in `strategy.md`, and user-authored seed rules in `rules.json`.
 
 The compiler normalizes those inputs into `compiled/strategy.ir.json`, which is the only strategy artifact required by the backtester.
 
----
-
-## Sampling Decisions
-
-This example uses different sampling policies for compilation and backtesting.
-
-The compiler training window uses monthly sampling anchored to month-end. This lets the compiler inspect a broad historical range without requiring daily agent analysis.
-
-The backtest uses weekly decision sampling anchored to Friday, while portfolio valuation remains daily. This means the strategy can trade weekly but still measure daily drawdown and risk.

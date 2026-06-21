@@ -1,390 +1,548 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://alphanet.dev/specs/v0.1/signal.schema.json",
-  "title": "AlphaNet Signal Schema",
-  "description": "Schema for AlphaNet v0.1 signal definitions. Signals are named observations or derived metrics evaluated by the backtester against historical data.",
+  "title": "AlphaNet Signal and Signal Interest Schema",
   "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "signal_id",
-    "family"
-  ],
-  "properties": {
-    "signal_id": {
-      "$ref": "#/$defs/id",
-      "description": "Unique signal identifier referenced by regimes, relations, and rules."
+  "oneOf": [
+    {
+      "$ref": "#/$defs/signal"
     },
-    "family": {
-      "$ref": "#/$defs/signal_family"
-    },
-    "type": {
-      "$ref": "#/$defs/signal_type"
-    },
-    "name": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
-    "source": {
-      "$ref": "#/$defs/source"
-    },
-    "instrument": {
-      "type": "string",
-      "description": "Instrument, macro series, index, asset, or external source identifier."
-    },
-    "symbol": {
-      "type": "string",
-      "description": "Tradable symbol if applicable."
-    },
-    "field": {
-      "type": "string",
-      "description": "Input field, e.g. close, adjusted_close, yield, volume, cpi_yoy, vessels, tons."
-    },
-    "transform": {
-      "$ref": "#/$defs/transform"
-    },
-    "window": {
-      "$ref": "#/$defs/window"
-    },
-    "comparison_window": {
-      "$ref": "#/$defs/window"
-    },
-    "frequency": {
-      "$ref": "#/$defs/frequency"
-    },
-    "unit": {
-      "type": "string",
-      "description": "Unit such as percent, basis_points, dollars, vessels, tons, index_level, score."
-    },
-    "value_type": {
-      "type": "string",
-      "enum": [
-        "number",
-        "integer",
-        "boolean",
-        "string",
-        "category",
-        "date",
-        "datetime",
-        "array",
-        "object"
-      ],
-      "default": "number"
-    },
-    "value_range": {
-      "type": "array",
-      "items": {
-        "type": "number"
-      },
-      "minItems": 2,
-      "maxItems": 2,
-      "description": "Optional expected value range, e.g. [-1, 1] for sentiment."
-    },
-    "directional_interpretation": {
-      "$ref": "#/$defs/directional_interpretation"
-    },
-    "parameters": {
-      "type": "object",
-      "additionalProperties": true,
-      "description": "Transform-specific or adapter-specific parameters."
-    },
-    "dependencies": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/id"
-      },
-      "uniqueItems": true,
-      "description": "Other signal ids required to compute this signal."
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "uniqueItems": true
-    },
-    "metadata": {
-      "type": "object",
-      "additionalProperties": true
+    {
+      "$ref": "#/$defs/signal_interest"
     }
-  },
+  ],
   "$defs": {
-    "id": {
-      "type": "string",
-      "pattern": "^[a-zA-Z0-9._:-]+$"
-    },
-    "signal_family": {
-      "type": "string",
-      "enum": [
-        "valuation",
-        "macro",
-        "global_macro",
-        "fed",
-        "shipping",
-        "market_flow",
-        "events",
-        "sentiment",
-        "volatility",
-        "portfolio",
-        "custom"
-      ]
-    },
-    "signal_type": {
-      "type": "string",
-      "enum": [
-        "level",
-        "change",
-        "percent_change",
-        "rate_change",
-        "spread",
-        "ratio",
-        "moving_average",
-        "z_score",
-        "rank",
-        "correlation",
-        "volatility",
-        "sentiment_score",
-        "event_count",
-        "event_flag",
-        "event_window",
-        "volume",
-        "relative_volume",
-        "dollar_volume",
-        "breadth",
-        "rotation",
-        "topic_score",
-        "regime_score",
-        "custom"
-      ]
-    },
-    "source": {
+    "lifecycle": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "type": "string",
-          "description": "Source name, e.g. fred, yahoo, fmp, oecd, imf-portwatch, multpl, nyfed."
+        "source_type": {
+          "type": "string"
         },
-        "dataset": {
+        "effective_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "expires_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "category_key": {
+          "type": "string"
+        },
+        "supersedes_policy": {
+          "type": "string",
+          "enum": [
+            "latest_effective_date_wins",
+            "none"
+          ]
+        },
+        "source_report_ref": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "signal_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
           "type": "string"
         },
         "series_id": {
           "type": "string"
         },
         "adapter": {
-          "type": "string",
-          "description": "Implementation adapter name."
+          "type": "string"
         },
-        "url": {
-          "type": "string",
-          "format": "uri"
-        },
-        "version": {
-          "type": "string",
-          "description": "Optional source or dataset version."
-        },
-        "license": {
+        "dataset": {
           "type": "string"
         }
       }
     },
-    "transform": {
-      "type": "string",
-      "enum": [
-        "identity",
-        "level",
-        "change",
-        "percent_change",
-        "difference",
-        "ratio",
-        "spread",
-        "moving_average",
-        "exponential_moving_average",
-        "z_score",
-        "rank",
-        "percentile_rank",
-        "rolling_correlation",
-        "rolling_beta",
-        "realized_volatility",
-        "implied_volatility",
-        "term_structure",
-        "sentiment_score",
-        "event_count",
-        "event_flag",
-        "days_until_event",
-        "aggregate",
-        "normalize",
-        "custom"
-      ]
+    "transform_spec": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "window": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
     },
-    "window": {
-      "type": "string",
-      "pattern": "^[0-9]+[dwmqy]$",
-      "description": "Window such as 1d, 20d, 3m, 1y."
-    },
-    "frequency": {
-      "type": "string",
-      "enum": [
-        "intraday",
-        "daily",
-        "weekly",
-        "monthly",
-        "quarterly",
-        "annual",
-        "event_driven",
-        "custom"
-      ]
-    },
-    "directional_interpretation": {
+    "data_requirement": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Optional semantic interpretation of higher/lower values.",
       "properties": {
-        "higher": {
-          "type": "string",
-          "description": "Meaning of higher values, e.g. risk_on, risk_off, inflation_up."
+        "dataset": {
+          "type": "string"
         },
-        "lower": {
-          "type": "string",
-          "description": "Meaning of lower values."
+        "provider": {
+          "type": "string"
         },
-        "neutral": {
+        "symbol": {
+          "type": "string"
+        },
+        "required_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "frequency": {
+          "type": "string"
+        },
+        "lookback": {
+          "type": "string"
+        },
+        "price_adjustment": {
+          "type": "string"
+        },
+        "requires_ohlcv": {
+          "type": "boolean"
+        },
+        "notes": {
           "type": "string"
         }
       }
-    }
-  },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "family": {
-            "const": "sentiment"
-          }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string"
         },
-        "required": [
-          "family"
-        ]
-      },
-      "then": {
-        "properties": {
-          "value_range": {
-            "default": [
-              -1,
-              1
-            ]
-          }
+        "rating": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string"
+        },
+        "entry_price": {
+          "type": "number"
+        },
+        "target_price": {
+          "type": "number"
+        },
+        "stop_loss": {
+          "type": "number"
+        },
+        "time_horizon": {
+          "type": "string"
+        },
+        "horizon_days": {
+          "type": "integer"
+        },
+        "position_sizing": {
+          "type": "string"
+        },
+        "allocation_pct": {
+          "type": "number"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rationale": {
+          "type": "string"
         }
       }
     },
-    {
-      "if": {
-        "properties": {
-          "family": {
-            "const": "events"
-          }
+    "signal_interest_condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "left": {
+          "type": "string"
         },
-        "required": [
-          "family"
-        ]
-      },
-      "then": {
-        "properties": {
-          "type": {
-            "enum": [
-              "event_count",
-              "event_flag",
-              "event_window",
-              "custom"
-            ]
-          }
+        "operator": {
+          "type": "string"
+        },
+        "right": {
+          "type": "string"
+        },
+        "value": {},
+        "unit": {
+          "type": "string"
         }
       }
-    }
-  ],
-  "examples": [
-    {
-      "signal_id": "wti_change_20d",
-      "family": "macro",
-      "type": "percent_change",
-      "description": "20-day percent change in WTI crude oil.",
-      "source": {
-        "name": "fred",
-        "series_id": "DCOILWTICO"
-      },
-      "instrument": "WTI",
-      "field": "close",
-      "transform": "percent_change",
-      "window": "20d",
-      "frequency": "daily",
-      "unit": "percent",
-      "directional_interpretation": {
-        "higher": "oil_pressure_up",
-        "lower": "oil_pressure_down"
+    },
+    "signal_interest_threshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "value": {},
+        "unit": {
+          "type": "string"
+        },
+        "source_text": {
+          "type": "string"
+        }
       }
     },
-    {
-      "signal_id": "ust10y_change_20d",
-      "family": "macro",
-      "type": "rate_change",
-      "description": "20-day change in the U.S. 10-year Treasury yield.",
-      "source": {
-        "name": "fred",
-        "series_id": "DGS10"
-      },
-      "instrument": "UST10Y",
-      "field": "yield",
-      "transform": "change",
-      "window": "20d",
-      "frequency": "daily",
-      "unit": "basis_points",
-      "directional_interpretation": {
-        "higher": "rates_up",
-        "lower": "rates_down"
+    "signal_interest_interpretation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "interpretation_id": {
+          "type": "string"
+        },
+        "condition": {
+          "$ref": "#/$defs/signal_interest_condition"
+        },
+        "meaning": {
+          "type": "string"
+        },
+        "recommendation_bias": {
+          "type": "string"
+        },
+        "action_bias": {
+          "type": "string"
+        },
+        "applies_to": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "source_text": {
+          "type": "string"
+        },
+        "thresholds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signal_interest_threshold"
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
       }
     },
-    {
-      "signal_id": "nvda_news_sentiment_7d",
-      "family": "sentiment",
-      "type": "sentiment_score",
-      "description": "7-day aggregate news sentiment score for NVDA.",
-      "source": {
-        "name": "news_api",
-        "adapter": "news_sentiment"
-      },
-      "symbol": "NVDA",
-      "transform": "sentiment_score",
-      "window": "7d",
-      "frequency": "daily",
-      "unit": "score",
-      "value_range": [
-        -1,
-        1
+    "signal_interest_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "data_provider": {
+          "type": "string"
+        },
+        "backtester_supported": {
+          "type": "boolean"
+        },
+        "requires_ohlcv": {
+          "type": "boolean"
+        },
+        "missing_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "agent_report_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "format",
+        "path"
       ],
-      "directional_interpretation": {
-        "higher": "positive_sentiment",
-        "lower": "negative_sentiment"
+      "properties": {
+        "engine": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "format": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
       }
     },
-    {
-      "signal_id": "suez_tonnage_change_4w",
-      "family": "shipping",
-      "type": "percent_change",
-      "description": "Four-week percent change in Suez Canal tonnage.",
-      "source": {
-        "name": "imf-portwatch"
-      },
-      "instrument": "suez_canal",
-      "field": "tonnage",
-      "transform": "percent_change",
-      "window": "4w",
-      "frequency": "weekly",
-      "unit": "percent",
-      "directional_interpretation": {
-        "higher": "trade_intensity_up",
-        "lower": "trade_intensity_down"
+    "signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal_id",
+        "family"
+      ],
+      "properties": {
+        "signal_id": {
+          "type": "string"
+        },
+        "signal_kind": {
+          "type": "string"
+        },
+        "family": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "source": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/signal_source"
+            }
+          ]
+        },
+        "instrument": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "field": {
+          "type": "string"
+        },
+        "transform": {
+          "type": "string"
+        },
+        "transform_spec": {
+          "$ref": "#/$defs/transform_spec"
+        },
+        "window": {
+          "type": "string"
+        },
+        "frequency": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "value": {},
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "recommendation": {
+          "$ref": "#/$defs/recommendation"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycle"
+        },
+        "data_requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/data_requirement"
+          }
+        },
+        "required_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "input_price": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "value_range": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "signal_interest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal_id",
+        "family"
+      ],
+      "properties": {
+        "signal_id": {
+          "type": "string"
+        },
+        "family": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "source": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/signal_source"
+            }
+          ]
+        },
+        "instrument": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "field": {
+          "type": "string"
+        },
+        "transform": {
+          "type": "string"
+        },
+        "transform_spec": {
+          "$ref": "#/$defs/transform_spec"
+        },
+        "window": {
+          "type": "string"
+        },
+        "frequency": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycle"
+        },
+        "data_requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/data_requirement"
+          }
+        },
+        "required_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "input_price": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "value_range": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "reason": {
+          "type": "string"
+        },
+        "extracted_from": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string"
+        },
+        "resolution": {
+          "$ref": "#/$defs/signal_interest_resolution"
+        },
+        "thresholds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signal_interest_threshold"
+          }
+        },
+        "interpretations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signal_interest_interpretation"
+          }
+        }
       }
     }
-  ]
+  }
 }

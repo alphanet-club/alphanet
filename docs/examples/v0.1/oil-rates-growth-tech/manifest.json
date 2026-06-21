@@ -57,10 +57,18 @@
           "AMD",
           "TLT",
           "USO"
-        ]
+        ],
+        "config": {
+          "ta_path": "~/Github/TradingAgents",
+          "adapter_script": "scripts/tradingagents_adapter.py",
+          "analysts": [
+            "market"
+          ],
+          "max_symbols": 1
+        }
       },
       {
-        "name": "virattt/ai-hedge-fund",
+        "name": "priley86/ai-hedge-fund",
         "version": "2026.6.17",
         "weight": 0.5,
         "role": "fundamental_sentiment_portfolio_reasoning",
@@ -70,7 +78,15 @@
           "AMD",
           "TLT",
           "USO"
-        ]
+        ],
+        "config": {
+          "ahf_path": "~/Github/ai-hedge-fund",
+          "adapter_script": "scripts/ai_hedge_fund_adapter.py",
+          "analysts": [
+            "ben_graham"
+          ],
+          "max_symbols": 1
+        }
       }
     ],
     "ensemble_method": "weighted_vote",
@@ -104,6 +120,67 @@
   "portfolio": {
     "base_currency": "USD",
     "starting_cash": 100000,
+    "targets": {
+      "cash": 0.15,
+      "equities": 0.65,
+      "bonds": 0.2
+    },
+    "soft_targets": [
+      {
+        "target": "growth_technology",
+        "target_kind": "theme",
+        "weight": 0.25,
+        "tolerance": 0.1,
+        "priority": 70,
+        "rebalance_when_breached": true,
+        "description": "Keep growth technology meaningful, but allow the rules to de-risk during oil and rate stress."
+      },
+      {
+        "target": "cash",
+        "target_kind": "asset_class",
+        "weight": 0.15,
+        "tolerance": 0.05,
+        "priority": 90,
+        "rebalance_when_breached": true,
+        "description": "Preserve a liquidity buffer for defensive rotations."
+      }
+    ],
+    "constraints": {
+      "cash_min": 0.1,
+      "max_single_position": 0.15,
+      "max_asset_class_weight": {
+        "equities": 0.75,
+        "bonds": 0.5,
+        "commodities": 0.25
+      },
+      "max_sector_weight": {
+        "technology": 0.4,
+        "energy": 0.25
+      },
+      "max_leverage": 1.0,
+      "allow_shorting": false,
+      "allow_margin": false
+    },
+    "risk_budgets": {
+      "max_portfolio_volatility": 0.22,
+      "max_drawdown": 0.18,
+      "max_daily_turnover": 0.12,
+      "max_trade_weight": 0.08,
+      "de_risking_policy": {
+        "enabled": true,
+        "trigger": "drawdown",
+        "action": "raise_cash",
+        "amount": 0.1,
+        "cooldown_days": 10
+      }
+    },
+    "rebalance": {
+      "frequency": "daily",
+      "threshold": 0.05,
+      "allow_partial_rebalance": true,
+      "min_trade_weight": 0.005,
+      "max_rebalance_turnover": 0.15
+    },
     "initial_allocation": {
       "mode": "weights",
       "positions": [

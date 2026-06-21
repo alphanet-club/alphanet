@@ -1,82 +1,84 @@
 {
-  "status": "valid",
-  "spec_version": "v0.1",
-  "validated_at": "2026-06-19T00:00:00Z",
-  "schemas": [
-    "alphanet.schema.json",
-    "manifest.schema.json",
-    "portfolio.schema.json",
-    "signal.schema.json",
-    "rule.schema.json",
-    "regime.schema.json"
-  ],
-  "checks": [
-    {
-      "name": "manifest_schema",
-      "status": "pass"
-    },
-    {
-      "name": "rules_schema",
-      "status": "pass"
-    },
-    {
-      "name": "air_schema",
-      "status": "pass"
-    },
-    {
-      "name": "unique_signal_ids",
-      "status": "pass"
-    },
-    {
-      "name": "unique_rule_ids",
-      "status": "pass"
-    },
-    {
-      "name": "unique_regime_ids",
-      "status": "pass"
-    },
-    {
-      "name": "signal_references_resolved",
-      "status": "pass"
-    },
-    {
-      "name": "regime_references_resolved",
-      "status": "pass"
-    },
-    {
-      "name": "portfolio_constraints_valid",
-      "status": "pass"
-    },
-    {
-      "name": "decision_hierarchy_valid",
-      "status": "pass"
-    },
-    {
-      "name": "initial_allocation_valid",
-      "status": "pass"
-    },
-    {
-      "name": "candidate_baskets_valid",
-      "status": "pass"
-    },
-    {
-      "name": "selection_policy_valid",
-      "status": "pass"
-    },
-    {
-      "name": "basket_targets_resolved",
-      "status": "pass"
-    },
-    {
-      "name": "source_file_contract_valid",
-      "status": "pass"
-    }
-  ],
-  "warnings": [
-    {
-      "code": "PLACEHOLDER_HASHES",
-      "message": "Example strategy uses placeholder SHA-256 hashes."
-    }
-  ],
-  "errors": []
+ "status": "valid",
+ "spec_version": "v0.1",
+ "validated_at": "2026-06-21T19:03:28Z",
+ "schemas": [
+  "alphanet.schema.json",
+  "manifest.schema.json",
+  "portfolio.schema.json",
+  "signal.schema.json",
+  "rule.schema.json",
+  "regime.schema.json"
+ ],
+ "checks": [
+  {
+   "name": "manifest_schema",
+   "status": "pass"
+  },
+  {
+   "name": "rules_schema",
+   "status": "pass"
+  },
+  {
+   "name": "air_schema",
+   "status": "pass"
+  },
+  {
+   "name": "unique_signal_ids",
+   "status": "pass"
+  },
+  {
+   "name": "unique_rule_ids",
+   "status": "pass"
+  },
+  {
+   "name": "unique_regime_ids",
+   "status": "pass"
+  },
+  {
+   "name": "unique_relation_ids",
+   "status": "pass"
+  },
+  {
+   "name": "candidate_baskets_valid",
+   "status": "pass"
+  },
+  {
+   "name": "signal_references_resolved",
+   "status": "pass"
+  },
+  {
+   "name": "regime_references_resolved",
+   "status": "pass"
+  },
+  {
+   "name": "portfolio_constraints_valid",
+   "status": "pass"
+  },
+  {
+   "name": "decision_hierarchy_valid",
+   "status": "pass"
+  },
+  {
+   "name": "initial_allocation_valid",
+   "status": "pass"
+  },
+  {
+   "name": "candidate_baskets_valid",
+   "status": "pass"
+  },
+  {
+   "name": "selection_policy_valid",
+   "status": "pass"
+  },
+  {
+   "name": "basket_targets_resolved",
+   "status": "pass"
+  },
+  {
+   "name": "source_file_contract_valid",
+   "status": "pass"
+  }
+ ],
+ "errors": null
 }

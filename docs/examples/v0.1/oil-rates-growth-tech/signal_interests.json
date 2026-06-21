@@ -1,0 +1,197 @@
+{
+  "spec_version": "v0.1",
+  "description": "User-authored signal interests referenced by rules.json and portfolio ranking policies.",
+  "signal_interests": [
+    {
+      "signal_id": "wti_change_20d",
+      "family": "macro",
+      "type": "price_change",
+      "description": "Twenty trading day percentage change in WTI crude oil proxy using USO.",
+      "source": {
+        "name": "AlphaNet sample data",
+        "dataset": "market_prices"
+      },
+      "symbol": "USO",
+      "field": "close",
+      "transform": "pct_change_20d",
+      "transform_spec": {
+        "name": "pct_change",
+        "inputs": [
+          "close"
+        ],
+        "window": "20d"
+      },
+      "window": "20d",
+      "frequency": "daily",
+      "unit": "percent",
+      "reason": "Rules reduce growth technology exposure when oil rises quickly.",
+      "status": "candidate",
+      "resolution": {
+        "status": "candidate",
+        "data_provider": "market_prices",
+        "backtester_supported": true,
+        "requires_ohlcv": false,
+        "notes": "Backtester should compute this from adjusted USO close prices."
+      },
+      "data_requirements": [
+        {
+          "dataset": "market_prices",
+          "symbol": "USO",
+          "required_fields": [
+            "close"
+          ],
+          "frequency": "daily",
+          "lookback": "20d",
+          "price_adjustment": "adjusted"
+        }
+      ],
+      "required_fields": [
+        "close"
+      ],
+      "input_price": "close",
+      "interpretations": [
+        {
+          "interpretation_id": "wti_20d_rising",
+          "condition": {
+            "left": "wti_change_20d",
+            "operator": ">",
+            "value": 0.1,
+            "unit": "percent"
+          },
+          "meaning": "oil has risen quickly over the last twenty trading days",
+          "action_bias": "reduce_growth_technology"
+        }
+      ]
+    },
+    {
+      "signal_id": "ust10y_change_20d",
+      "family": "macro",
+      "type": "yield_change",
+      "description": "Twenty trading day change in the 10-year Treasury yield proxy.",
+      "source": {
+        "name": "AlphaNet sample data",
+        "dataset": "rates"
+      },
+      "symbol": "UST10Y",
+      "field": "yield",
+      "transform": "change_20d",
+      "transform_spec": {
+        "name": "change",
+        "inputs": [
+          "yield"
+        ],
+        "window": "20d"
+      },
+      "window": "20d",
+      "frequency": "daily",
+      "unit": "basis_points",
+      "reason": "Rules reduce growth technology exposure when long rates rise quickly.",
+      "status": "candidate",
+      "resolution": {
+        "status": "candidate",
+        "data_provider": "rates",
+        "backtester_supported": true,
+        "requires_ohlcv": false,
+        "notes": "Backtester should compute this from the configured 10-year Treasury yield series."
+      },
+      "data_requirements": [
+        {
+          "dataset": "rates",
+          "symbol": "UST10Y",
+          "required_fields": [
+            "yield"
+          ],
+          "frequency": "daily",
+          "lookback": "20d"
+        }
+      ],
+      "required_fields": [
+        "yield"
+      ],
+      "interpretations": [
+        {
+          "interpretation_id": "ust10y_20d_rising",
+          "condition": {
+            "left": "ust10y_change_20d",
+            "operator": ">",
+            "value": 25,
+            "unit": "basis_points"
+          },
+          "meaning": "long rates have risen quickly over the last twenty trading days",
+          "action_bias": "reduce_growth_technology"
+        }
+      ]
+    },
+    {
+      "signal_id": "relative_strength_60d",
+      "family": "technical",
+      "type": "relative_strength",
+      "description": "Sixty trading day relative strength score used for ranked basket selection.",
+      "source": {
+        "name": "AlphaNet sample data",
+        "dataset": "market_prices"
+      },
+      "field": "close",
+      "transform": "relative_strength_60d",
+      "transform_spec": {
+        "name": "relative_strength",
+        "inputs": [
+          "close"
+        ],
+        "window": "60d"
+      },
+      "window": "60d",
+      "frequency": "daily",
+      "unit": "score",
+      "reason": "Portfolio selection policy ranks candidate basket members by medium-term relative strength.",
+      "status": "candidate"
+    },
+    {
+      "signal_id": "news_sentiment_7d",
+      "family": "sentiment",
+      "type": "news_sentiment",
+      "description": "Seven day news sentiment score used for ranked basket selection.",
+      "source": {
+        "name": "AlphaNet sample data",
+        "dataset": "news"
+      },
+      "transform": "rolling_mean_7d",
+      "transform_spec": {
+        "name": "rolling_mean",
+        "inputs": [
+          "sentiment_score"
+        ],
+        "window": "7d"
+      },
+      "window": "7d",
+      "frequency": "daily",
+      "unit": "score",
+      "reason": "Portfolio selection policy ranks candidate basket members by short-term news sentiment.",
+      "status": "candidate"
+    },
+    {
+      "signal_id": "realized_volatility_20d",
+      "family": "risk",
+      "type": "realized_volatility",
+      "description": "Twenty trading day realized volatility used for ranked basket selection.",
+      "source": {
+        "name": "AlphaNet sample data",
+        "dataset": "market_prices"
+      },
+      "field": "close",
+      "transform": "realized_volatility_20d",
+      "transform_spec": {
+        "name": "realized_volatility",
+        "inputs": [
+          "close"
+        ],
+        "window": "20d"
+      },
+      "window": "20d",
+      "frequency": "daily",
+      "unit": "annualized_volatility",
+      "reason": "Portfolio selection policy penalizes high-volatility candidate basket members.",
+      "status": "candidate"
+    }
+  ]
+}
