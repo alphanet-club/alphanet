@@ -3,18 +3,20 @@ package air
 // AIR is the top-level AlphaNet Intermediate Representation artifact.
 // It mirrors alphanet.schema.json and is the deterministic input to the backtester.
 type AIR struct {
-	Metadata          AIRMetadata       `json:"metadata"`
-	Universe          AIRUniverse       `json:"universe"`
-	Signals           []Signal          `json:"signals"`
-	Relations         []Relation        `json:"relations,omitempty"`
-	Regimes           []Regime          `json:"regimes,omitempty"`
-	Portfolio         AIRPortfolio      `json:"portfolio"`
-	DecisionHierarchy DecisionHierarchy `json:"decision_hierarchy"`
-	Rules             []Rule            `json:"rules"`
-	Execution         ExecutionConfig   `json:"execution"`
-	Provenance        *Provenance       `json:"provenance,omitempty"`
-	Benchmarks        []Benchmark       `json:"benchmarks,omitempty"`
-	Extensions        map[string]any    `json:"extensions,omitempty"`
+	Metadata            AIRMetadata           `json:"metadata"`
+	Universe            AIRUniverse           `json:"universe"`
+	Signals             []Signal              `json:"signals"`
+	SignalInterests     []SignalInterest      `json:"signal_interests,omitempty"`
+	Relations           []Relation            `json:"relations,omitempty"`
+	Regimes             []Regime              `json:"regimes,omitempty"`
+	Portfolio           AIRPortfolio          `json:"portfolio"`
+	DecisionHierarchy   DecisionHierarchy     `json:"decision_hierarchy"`
+	Rules               []Rule                `json:"rules"`
+	Execution           ExecutionConfig       `json:"execution"`
+	Provenance          *Provenance           `json:"provenance,omitempty"`
+	Benchmarks          []Benchmark           `json:"benchmarks,omitempty"`
+	Extensions          map[string]any        `json:"extensions,omitempty"`
+	AgentReportContents []AgentReportArtifact `json:"-"`
 }
 
 // AIRMetadata contains strategy identity and compilation metadata.
@@ -57,7 +59,7 @@ type Theme struct {
 	Description string   `json:"description,omitempty"`
 }
 
-// Signal defines a named observation or derived metric.
+// Signal defines a named observation, derived metric, or point-in-time value.
 type Signal struct {
 	SignalID    string       `json:"signal_id"`
 	Family      string       `json:"family"`
@@ -79,11 +81,60 @@ type Signal struct {
 	ValueRange  []float64    `json:"value_range,omitempty"`
 }
 
+// SignalInterest defines a signal the backtester should compute or watch over time.
+type SignalInterest struct {
+	SignalID      string                    `json:"signal_id"`
+	Family        string                    `json:"family"`
+	Type          string                    `json:"type,omitempty"`
+	Name          string                    `json:"name,omitempty"`
+	Description   string                    `json:"description,omitempty"`
+	Source        SignalSource              `json:"source,omitempty"`
+	Instrument    string                    `json:"instrument,omitempty"`
+	Symbol        string                    `json:"symbol,omitempty"`
+	Field         string                    `json:"field,omitempty"`
+	Transform     string                    `json:"transform,omitempty"`
+	Window        string                    `json:"window,omitempty"`
+	Frequency     string                    `json:"frequency,omitempty"`
+	Unit          string                    `json:"unit,omitempty"`
+	Reason        string                    `json:"reason,omitempty"`
+	ExtractedFrom string                    `json:"extracted_from,omitempty"`
+	Confidence    float64                   `json:"confidence,omitempty"`
+	Tags          []string                  `json:"tags,omitempty"`
+	Thresholds    []SignalInterestThreshold `json:"thresholds,omitempty"`
+}
+
+// SignalInterestThreshold captures a watched threshold extracted from strategy text or an agent report.
+type SignalInterestThreshold struct {
+	Label      string `json:"label,omitempty"`
+	Operator   string `json:"operator,omitempty"`
+	Value      any    `json:"value,omitempty"`
+	Unit       string `json:"unit,omitempty"`
+	SourceText string `json:"source_text,omitempty"`
+}
+
+// AgentReportRef is the lightweight IR reference to a raw report artifact.
+type AgentReportRef struct {
+	Engine string `json:"engine"`
+	Symbol string `json:"symbol,omitempty"`
+	Date   string `json:"date,omitempty"`
+	Format string `json:"format"`
+	Path   string `json:"path"`
+	SHA256 string `json:"sha256,omitempty"`
+}
+
+// AgentReportArtifact carries report body content during output writing.
+// It is intentionally excluded from strategy.ir.json.
+type AgentReportArtifact struct {
+	Ref     AgentReportRef `json:"ref"`
+	Content string         `json:"content"`
+}
+
 // SignalSource describes where the signal data comes from.
 type SignalSource struct {
 	Name     string `json:"name"`
 	SeriesID string `json:"series_id,omitempty"`
 	Adapter  string `json:"adapter,omitempty"`
+	Dataset  string `json:"dataset,omitempty"`
 }
 
 // Relation defines a cross-asset or cross-domain relationship.

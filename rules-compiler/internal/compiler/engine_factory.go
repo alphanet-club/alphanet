@@ -126,10 +126,13 @@ func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules [
 	execConfig := air.EnrichExecutionConfig(air.DefaultExecutionConfig(), src.Manifest.Backtest)
 	airData := air.BuildAIR(enrichedSrc, normPortfolio, normRules, decisionHierarchy, execConfig, nil)
 	if len(engineReports) > 0 {
+		reportRefs, reportArtifacts := buildAgentReportArtifacts(engineReports)
+		airData.AgentReportContents = reportArtifacts
+		airData.SignalInterests = append(airData.SignalInterests, extractSignalInterestsFromReports(engineReports)...)
 		if airData.Extensions == nil {
 			airData.Extensions = map[string]any{}
 		}
-		airData.Extensions["agent_reports"] = engineReports
+		airData.Extensions["agent_reports"] = reportRefs
 	}
 
 	prov := provenance.Build(&enrichedSrc, compilerMode, engineConfigs, "", nil)

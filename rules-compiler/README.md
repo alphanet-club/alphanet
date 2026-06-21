@@ -394,7 +394,7 @@ This is intentionally separate from schema extraction. A later relay extraction 
 
 ```text
 agent report markdown
-  -> deterministic extractor and/or LLM extractor
+  -> deterministic extractor runs on agent reports & observations
   -> signals[]
   -> signal_interests[]
   -> rules[]
@@ -402,3 +402,40 @@ agent report markdown
 ```
 
 Agent decisions still remain in the existing `signals[]` structure as dated point-in-time signals. The backtester should consume compiled AIR and should not call the agent engines daily unless a future explicit expensive runtime mode enables that behavior.
+
+## Agent report artifacts
+
+Raw agent reports are compiled artifacts, not canonical strategy IR payloads.
+
+The compiler writes report bodies to sibling files under:
+
+```text
+compiled/agent-reports/
+```
+
+Example:
+
+```text
+compiled/agent-reports/tradingagents-AMD-2025-12-31.md
+```
+
+`strategy.ir.json` keeps only lightweight report references:
+
+```json
+{
+  "extensions": {
+    "agent_reports": [
+      {
+        "engine": "TradingAgents",
+        "symbol": "AMD",
+        "date": "2025-12-31",
+        "format": "markdown",
+        "path": "agent-reports/tradingagents-AMD-2025-12-31.md",
+        "sha256": "sha256:..."
+      }
+    ]
+  }
+}
+```
+
+The report body is then available for a later extraction stage. The first deterministic extraction pass creates `signal_interests[]` from obvious report terms such as RSI, MACD, moving averages, Bollinger bands, ATR, support/resistance, stop-loss, and price targets. An extractor can enrich those interests into more precise rules and portfolio/trading constructs.

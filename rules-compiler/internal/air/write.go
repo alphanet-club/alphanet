@@ -10,33 +10,54 @@ import (
 
 // WriteOutputs writes all compiled output files to the given output directory.
 func WriteOutputs(air *AIR, provenance *Provenance, reasoning string, validation *ValidationReport, outDir string, dryRun bool) error {
-	// Create output directory
 	if !dryRun {
 		if err := os.MkdirAll(outDir, 0755); err != nil {
 			return fmt.Errorf("creating output directory: %w", err)
 		}
 	}
 
-	// 1. Write strategy.ir.json
+	if air != nil && len(air.AgentReportContents) > 0 {
+		if err := writeAgentReportArtifacts(air.AgentReportContents, outDir, dryRun); err != nil {
+			return err
+		}
+	}
+
 	if err := writeJSON(filepath.Join(outDir, "strategy.ir.json"), air, dryRun); err != nil {
 		return fmt.Errorf("writing strategy.ir.json: %w", err)
 	}
-
-	// 2. Write provenance.json
 	if err := writeJSON(filepath.Join(outDir, "provenance.json"), provenance, dryRun); err != nil {
 		return fmt.Errorf("writing provenance.json: %w", err)
 	}
-
-	// 3. Write reasoning.md
 	if err := writeText(filepath.Join(outDir, "reasoning.md"), reasoning, dryRun); err != nil {
 		return fmt.Errorf("writing reasoning.md: %w", err)
 	}
-
-	// 4. Write validation-report.json
 	if err := writeJSON(filepath.Join(outDir, "validation-report.json"), validation, dryRun); err != nil {
 		return fmt.Errorf("writing validation-report.json: %w", err)
 	}
+	return nil
+}
 
+func writeAgentReportArtifacts(reports []AgentReportArtifact, outDir string, dryRun bool) error {
+	for _, report := range reports {
+		if report.Ref.Path == "" || report.Content == "" {
+			continue
+		}
+		path := filepath.Join(outDir, filepath.FromSlash(report.Ref.Path))
+		if dryRun {
+			fmt.Printf("=== %s ===\n", report.Ref.Path)
+			fmt.Print(report.Content)
+			if len(report.Content) == 0 || report.Content[len(report.Content)-1] != '\n' {
+				fmt.Println()
+			}
+			continue
+		}
+		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+			return fmt.Errorf("creating agent report directory: %w", err)
+		}
+		if err := os.WriteFile(path, []byte(report.Content), 0644); err != nil {
+			return fmt.Errorf("writing agent report %s: %w", report.Ref.Path, err)
+		}
+	}
 	return nil
 }
 
@@ -45,15 +66,12 @@ func writeJSON(path string, v any, dryRun bool) error {
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
 	enc.SetEscapeHTML(false)
-	enc.SetIndent("", "  ")
-
+	enc.SetIndent("", " ")
 	if err := enc.Encode(v); err != nil {
 		return fmt.Errorf("encoding JSON: %w", err)
 	}
-
 	data := buf.Bytes()
 
-	// json.Encoder adds a trailing newline; that's fine for files
 	if dryRun {
 		fmt.Printf("=== %s ===\n", filepath.Base(path))
 		fmt.Print(string(data))
@@ -73,7 +91,6 @@ func writeText(path string, content string, dryRun bool) error {
 		fmt.Println()
 		return nil
 	}
-
 	return os.WriteFile(path, []byte(content), 0644)
 }
 
