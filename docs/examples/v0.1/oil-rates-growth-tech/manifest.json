@@ -68,7 +68,7 @@
         }
       },
       {
-        "name": "virattt/ai-hedge-fund",
+        "name": "priley86/ai-hedge-fund",
         "version": "2026.6.17",
         "weight": 0.5,
         "role": "fundamental_sentiment_portfolio_reasoning",
@@ -82,6 +82,9 @@
         "config": {
           "ahf_path": "~/Github/ai-hedge-fund",
           "adapter_script": "scripts/ai_hedge_fund_adapter.py",
+          "analysts": [
+            "ben_graham"
+          ],
           "max_symbols": 1
         }
       }

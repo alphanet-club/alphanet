@@ -25,7 +25,7 @@ The core compiled belief is:
 Configured engines:
 
 - `TauricResearch/TradingAgents` version `0.2.5`
-- `virattt/ai-hedge-fund` version `2026.6.17`
+- `priley86/ai-hedge-fund` version `2026.6.17`
 
 This example does not include real agent logs. In a real compile, this file would summarize relevant agent feedback and explain why rules were accepted, modified, or rejected.
 
@@ -79,10 +79,6 @@ compiled/strategy.ir.json
 ```
 
 This is the only file required by the backtester.
-
-## Warnings
-
-- mode single selected; using first enabled engine only: TauricResearch/TradingAgents
 
 ## Portfolio Initialization Update
 

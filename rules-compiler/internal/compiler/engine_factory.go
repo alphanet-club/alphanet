@@ -31,6 +31,9 @@ func NewEngineFactory() *EngineFactory {
 	factory.Register("virattt/ai-hedge-fund", func() (engines.Engine, error) {
 		return &engines.AIHedgeFundEngine{}, nil
 	})
+	factory.Register("priley86/ai-hedge-fund", func() (engines.Engine, error) {
+		return &engines.AIHedgeFundEngine{}, nil
+	})
 	return factory
 }
 
@@ -67,6 +70,18 @@ func (f *EngineFactory) CreateEngines(configs []air.EngineConfig) ([]engines.Eng
 func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules []air.Rule, normPortfolio *air.AIRPortfolio, warnings []string, opts Options) (*CompileResult, error) {
 	compilerMode := resolveOriginalMode(src.Manifest, opts.ModeOverride)
 	engineConfigs := activeEngineConfigs(src.Manifest.Compiler.Engines)
+	if opts.EngineOverride != "" {
+		var filtered []air.EngineConfig
+		for _, cfg := range engineConfigs {
+			if engineNamesMatch(cfg.Name, opts.EngineOverride) {
+				filtered = append(filtered, cfg)
+			}
+		}
+		if len(filtered) == 0 {
+			return nil, fmt.Errorf("engine override %q did not match any enabled manifest engine", opts.EngineOverride)
+		}
+		engineConfigs = filtered
+	}
 
 	if compilerMode == "single" && len(engineConfigs) > 1 {
 		warnings = append(warnings, fmt.Sprintf("mode single selected; using first enabled engine only: %s", engineConfigs[0].Name))
@@ -216,6 +231,22 @@ func activeEngineConfigs(configs []air.EngineConfig) []air.EngineConfig {
 		out = append(out, cfg)
 	}
 	return out
+}
+
+func engineNamesMatch(left, right string) bool {
+	return canonicalEngineName(left) == canonicalEngineName(right)
+}
+
+func canonicalEngineName(name string) string {
+	normalized := strings.ToLower(strings.TrimSpace(name))
+	switch normalized {
+	case "tradingagents", "tauricresearch/tradingagents":
+		return "tradingagents"
+	case "ai-hedge-fund", "virattt/ai-hedge-fund", "priley86/ai-hedge-fund":
+		return "ai-hedge-fund"
+	default:
+		return normalized
+	}
 }
 
 func resolveOriginalMode(m *air.Manifest, override string) string {

@@ -51,7 +51,7 @@ The compiler may call agent engines during compilation, but the backtester never
 - Python 3.11+ for agent adapters
 - Agent repositories only when using `single` or `ensemble` mode:
   - `TauricResearch/TradingAgents`
-  - `virattt/ai-hedge-fund`
+  - `priley86/ai-hedge-fund`
 
 ## Build
 
@@ -81,7 +81,23 @@ Single-engine test with TradingAgents:
 TRADINGAGENTS_HOME=~/Github/TradingAgents \
 ALPHANET_TA_DEBUG=1 \
 ALPHANET_TA_MAX_SYMBOLS=1 \
-./alphanet-compile ../docs/examples/v0.1/oil-rates-growth-tech --mode single --verbose
+./alphanet-compile ../docs/examples/v0.1/oil-rates-growth-tech \
+  --mode single \
+  --engine TauricResearch/TradingAgents \
+  --verbose
+```
+
+Single-engine test with AI Hedge Fund:
+
+```bash
+AI_HEDGE_FUND_HOME=~/Github/ai-hedge-fund \
+ALPHANET_AHF_DEBUG=1 \
+ALPHANET_AHF_USE_POETRY=1 \
+ALPHANET_AHF_MAX_SYMBOLS=1 \
+./alphanet-compile ../docs/examples/v0.1/oil-rates-growth-tech \
+  --mode single \
+  --engine priley86/ai-hedge-fund \
+  --verbose
 ```
 
 ## CLI Usage
@@ -97,13 +113,13 @@ Flags:
   --spec string                Path to specs directory
   --out string                 Output directory (default: <strategy-dir>/compiled)
   --mode string                Override compiler mode (none, manual, single, ensemble)
+  --engine string              Override engine name
   --dry-run                    Validate and print output without writing files
   --emit-reasoning             Emit reasoning.md
   --validate-only              Run validation only, skip compilation
   --verbose                    Enable verbose logging
 
 Future/prepared flags:
-  --engine string              Override engine name
   --training-start string      Training window start date
   --training-end string        Training window end date
   --lookback-days int          Training window lookback in days
@@ -206,28 +222,44 @@ Environment variables used by the relay compiler:
 Clone and install:
 
 ```bash
-git clone https://github.com/virattt/ai-hedge-fund.git ~/Github/ai-hedge-fund
+git clone https://github.com/priley86/ai-hedge-fund.git ~/Github/ai-hedge-fund
 cd ~/Github/ai-hedge-fund
+poetry env use /opt/homebrew/bin/python3.12 # recommended on macOS/Homebrew
 poetry install
 cp .env.example .env
 ```
 
-At minimum, configure one LLM provider key and the financial data key expected by the project:
+AlphaNet currently targets Patrick Riley's fork because it adds non-interactive `.env` model selection used by the relay compiler. At minimum, configure one LLM provider key, the model defaults, and the financial data key expected by AI Hedge Fund:
 
 ```bash
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 GROQ_API_KEY=
 DEEPSEEK_API_KEY=
+OPENROUTER_API_KEY=
+
+AI_HEDGE_FUND_LLM_PROVIDER=OpenRouter
+AI_HEDGE_FUND_LLM_MODEL=z-ai/glm-5.2
+
 FINANCIAL_DATASETS_API_KEY=
 ```
+
+The AI Hedge Fund adapter maps AlphaNet's engine request to the AI Hedge Fund CLI as:
+
+```text
+symbols[] -> --ticker
+date      -> --end-date
+analysts  -> --analysts
+```
+
+The compiler already derives symbols and dates from the strategy manifest/training window. Choose AI Hedge Fund analysts through the engine `config.analysts` array. If omitted, AlphaNet defaults AI Hedge Fund to `ben_graham` so adapter runs stay non-interactive.
 
 Test the adapter:
 
 ```bash
 cd rules-compiler
 
-echo '{"symbols":["QQQ"],"date":"2025-12-31"}' \
+echo '{"symbols":["QQQ"],"date":"2025-12-31","analysts":["ben_graham"]}' \
 | AI_HEDGE_FUND_HOME=~/Github/ai-hedge-fund \
   ALPHANET_AHF_DEBUG=1 \
   python3 scripts/ai_hedge_fund_adapter.py --dry-run
@@ -236,7 +268,7 @@ echo '{"symbols":["QQQ"],"date":"2025-12-31"}' \
 Real run with Poetry:
 
 ```bash
-echo '{"symbols":["QQQ"],"date":"2025-12-31"}' \
+echo '{"symbols":["QQQ"],"date":"2025-12-31","analysts":["ben_graham"]}' \
 | AI_HEDGE_FUND_HOME=~/Github/ai-hedge-fund \
   ALPHANET_AHF_DEBUG=1 \
   ALPHANET_AHF_USE_POETRY=1 \
@@ -247,11 +279,11 @@ Environment variables used by the relay compiler:
 
 | Variable | Purpose |
 | --- | --- |
-| `AI_HEDGE_FUND_HOME` | Path to local `virattt/ai-hedge-fund` clone. |
+| `AI_HEDGE_FUND_HOME` | Path to local `priley86/ai-hedge-fund` clone. |
 | `ALPHANET_AHF_PYTHON` | Optional explicit Python path. Defaults to local venv Python when present, otherwise `python3`. |
 | `ALPHANET_AHF_DEBUG` | Print adapter and engine debug logs. |
 | `ALPHANET_AHF_MAX_SYMBOLS` | Limit symbols during local testing. |
-| `ALPHANET_AHF_USE_POETRY` | Run `poetry run python src/main.py` from the AI Hedge Fund repo. |
+| `ALPHANET_AHF_USE_POETRY` | Run `poetry run python -m src.main` from the AI Hedge Fund repo. |
 | `ALPHANET_AHF_OLLAMA` | Adds `--ollama` to the AI Hedge Fund CLI. |
 
 ## Configuring Engines in manifest.json
@@ -277,7 +309,7 @@ Example engine config:
         }
       },
       {
-        "name": "virattt/ai-hedge-fund",
+        "name": "priley86/ai-hedge-fund",
         "version": "2026.6.17",
         "weight": 0.5,
         "role": "fundamental_sentiment_portfolio_reasoning",
@@ -285,6 +317,7 @@ Example engine config:
         "config": {
           "ahf_path": "~/Github/ai-hedge-fund",
           "adapter_script": "scripts/ai_hedge_fund_adapter.py",
+          "analysts": ["ben_graham"],
           "max_symbols": 1
         }
       }
@@ -303,17 +336,25 @@ go build -a -o alphanet-compile ./cmd/alphanet-compile
 TRADINGAGENTS_HOME=~/Github/TradingAgents \
 ALPHANET_TA_DEBUG=1 \
 ALPHANET_TA_MAX_SYMBOLS=1 \
-./alphanet-compile ../docs/examples/v0.1/oil-rates-growth-tech --mode single --verbose
+./alphanet-compile ../docs/examples/v0.1/oil-rates-growth-tech \
+  --mode single \
+  --engine TauricResearch/TradingAgents \
+  --verbose
 ```
 
-After AI Hedge Fund is configured:
+Run the example as defined by its manifest, using both configured engines:
 
 ```bash
 TRADINGAGENTS_HOME=~/Github/TradingAgents \
 AI_HEDGE_FUND_HOME=~/Github/ai-hedge-fund \
+ALPHANET_TA_DEBUG=1 \
+ALPHANET_AHF_DEBUG=1 \
 ALPHANET_TA_MAX_SYMBOLS=1 \
 ALPHANET_AHF_MAX_SYMBOLS=1 \
-./alphanet-compile ../docs/examples/v0.1/oil-rates-growth-tech --mode ensemble --verbose
+ALPHANET_AHF_USE_POETRY=1 \
+./alphanet-compile ../docs/examples/v0.1/oil-rates-growth-tech \
+  --mode ensemble \
+  --verbose
 ```
 
 ## Outputs

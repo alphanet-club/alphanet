@@ -3,8 +3,8 @@
  "strategy_id": "oil-rates-growth-tech",
  "spec_version": "v0.1",
  "compiler_version": "v0.1.0",
- "generated_at": "2026-06-21T17:39:50Z",
- "compiler_mode": "single",
+ "generated_at": "2026-06-21T19:01:42Z",
+ "compiler_mode": "ensemble",
  "ensemble_method": "weighted_vote",
  "engines": [
   {
@@ -26,6 +26,27 @@
     ],
     "max_symbols": 1,
     "ta_path": "~/Github/TradingAgents"
+   }
+  },
+  {
+   "name": "priley86/ai-hedge-fund",
+   "version": "2026.6.17",
+   "weight": 0.5,
+   "role": "fundamental_sentiment_portfolio_reasoning",
+   "symbols": [
+    "QQQ",
+    "NVDA",
+    "AMD",
+    "TLT",
+    "USO"
+   ],
+   "config": {
+    "adapter_script": "scripts/ai_hedge_fund_adapter.py",
+    "ahf_path": "~/Github/ai-hedge-fund",
+    "analysts": [
+     "ben_graham"
+    ],
+    "max_symbols": 1
    }
   }
  ],
@@ -56,7 +77,7 @@
   "strategy.md"
  ],
  "source_hashes": {
-  "manifest.json": "sha256:6dd0180760dd1caa38fbdfe9d0a17f77736c8c085d9c6780434921fbe5f50814",
+  "manifest.json": "sha256:e0c6f28ab7c26a18f30547bc64736c273e8f9b83e01b845159f33bfc321f2b47",
   "rules.json": "sha256:01220bd2330607632c9608546e875ab1166993864711c28c5993781f04d0c14e",
   "signal_interests.json": "sha256:5f8edcea7b17d2ddaa493c2f6e96330698420466f3cd47228c6d7ae82dde5d19",
   "signals.json": "sha256:e5ad81d40dff05c8061760bcaad9493a9cf44b88efd399578e007b11bdfff5cb",
@@ -64,9 +85,9 @@
  },
  "outputs": {
   "reasoning.md": "sha256:example",
-  "strategy.ir.json": "sha256:0dfe613dc6b5b33de4f7384ebcfceca16877e79ab3d83746e6e6fffcb6153178",
+  "strategy.ir.json": "sha256:ccb5173ba208be29515944dbe3fab22850ebf81ce72798c689f7f1006b2cab6f",
   "validation-report.json": "sha256:example"
  },
- "ir_sha256": "sha256:0dfe613dc6b5b33de4f7384ebcfceca16877e79ab3d83746e6e6fffcb6153178",
- "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy"
+ "ir_sha256": "sha256:ccb5173ba208be29515944dbe3fab22850ebf81ce72798c689f7f1006b2cab6f",
+ "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy\n- priley86/ai-hedge-fund (v2026.6.17): AI Hedge Fund adapter completed\nDecision: Hold\n\nUsing .env model: OpenRouter - cohere/north-mini-code:free\n\n ✓ Ben Graham          [AMD] Done                                               \n ✓ Portfolio Manager   [AMD] Done                                               \n ✓ Risk Management     [AMD] Done                                               \nAnalysis for AMD\n==================================================\n\nAGENT ANALYSIS: [AMD]\n+------------+----------+--------------+-------------------------------------------------------------+\n| Agent      |  Signal  |   Confidence | Reasoning                                                   |\n+============+==========+==============+=============================================================+\n| Ben Graham | BEARISH  |        20.0% | The provided analysis shows insufficient data for earnings  |\n|            |          |              | stability, financial strength, and valuation, yielding a    |\n|            |          |              | score of 0 out of a possible 15 in each category. Without   |\n|            |          |              | concrete metrics on AMD's intrinsic value, current asset    |\n|            |          |              | base, debt levels, or earnings consistency, there is no     |\n|            |          |              | margin of safety as defined by Graham. The initial bearish  |\n|            |          |              | signal reflects this lack of supporting quantitative        |\n|            |          |              | evidence; therefore, a cautious bearish stance is warranted |\n|            |          |              | with low confidence until more comprehensive data becomes   |\n|            |          |              | available.                                                  |\n+------------+----------+--------------+-------------------------------------------------------------+\n\nTRADING DECISION: [AMD]\n+------------+--------------------------+\n| Action     | HOLD                     |\n+------------+--------------------------+\n| Quantity   | 0                        |\n+------------+--------------------------+\n| Confidence | 100.0%                   |\n+------------+--------------------------+\n| Reasoning  | No valid trade available |\n+------------+--------------------------+\n\nPORTFOLIO SUMMARY:\n+----------+----------+------------+--------------+-----------+-----------+-----------+\n| Ticker   |  Action  |   Quantity |   Confidence |  Bullish  |  Bearish  |  Neutral  |\n+==========+==========+============+==============+===========+===========+===========+\n| AMD      |   HOLD   |          0 |       100.0% |     0     |     1     |     0     |\n+----------+----------+------------+--------------+-----------+-----------+-----------+\n\nPortfolio Strategy:\nNo valid trade available"
 }

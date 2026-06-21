@@ -7,7 +7,7 @@
   "version": "0.1.0",
   "spec_version": "v0.1",
   "compiler_version": "v0.1.0",
-  "generated_at": "2026-06-21T17:39:50Z",
+  "generated_at": "2026-06-21T19:01:42Z",
   "tags": [
    "macro",
    "rates",
@@ -303,6 +303,19 @@
     "confidence": 0.7,
     "rationale": "Buy"
    }
+  },
+  {
+   "signal_id": "amd_ai_hedge_fund_decision",
+   "family": "agents",
+   "type": "trading_signal",
+   "description": "AI Hedge Fund decision for AMD on 2025-12-31: Hold",
+   "source": {
+    "name": "ai-hedge-fund"
+   },
+   "symbol": "AMD",
+   "transform": "level",
+   "frequency": "daily",
+   "unit": "signal"
   }
  ],
  "signal_interests": [
@@ -571,7 +584,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **10 EMA**: $213.89 (immediate support)"
+     "source_text": "**Medium-term Position**: The stock is currently **trading below the 50 SMA ($227.92)**, suggesting the stock is in a **short-term pullback** within the broader bullish trend. The 10 EMA ($213.89) sits just below current price, indicating recent consolidation."
     },
     {
      "interpretation_id": "close_10_ema_bearish",
@@ -585,7 +598,7 @@
      "action_bias": "trim_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **10 EMA**: $213.89 (immediate support)"
+     "source_text": "**Medium-term Position**: The stock is currently **trading below the 50 SMA ($227.92)**, suggesting the stock is in a **short-term pullback** within the broader bullish trend. The 10 EMA ($213.89) sits just below current price, indicating recent consolidation."
     }
    ]
   },
@@ -665,7 +678,7 @@
      "action_bias": "buy_or_increase",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **Current Price**: $214.16 (below 50 SMA, above 200 SMA)"
+     "source_text": "**Medium-term Position**: The stock is currently **trading below the 50 SMA ($227.92)**, suggesting the stock is in a **short-term pullback** within the broader bullish trend. The 10 EMA ($213.89) sits just below current price, indicating recent consolidation."
     },
     {
      "interpretation_id": "close_50_sma_bearish",
@@ -679,7 +692,7 @@
      "action_bias": "sell_or_underweight",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **Current Price**: $214.16 (below 50 SMA, above 200 SMA)"
+     "source_text": "**Medium-term Position**: The stock is currently **trading below the 50 SMA ($227.92)**, suggesting the stock is in a **short-term pullback** within the broader bullish trend. The 10 EMA ($213.89) sits just below current price, indicating recent consolidation."
     }
    ]
   },
@@ -759,7 +772,7 @@
      "action_bias": "allow_long_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **Current Price**: $214.16 (below 50 SMA, above 200 SMA)"
+     "source_text": "**Macro Trend**: AMD is in a **bullish long-term trend** with the current price ($214.16) trading significantly **above the 200 SMA ($162.63)**, indicating sustained upward momentum over the past year."
     },
     {
      "interpretation_id": "close_200_sma_bearish",
@@ -773,7 +786,7 @@
      "action_bias": "reduce_or_avoid",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **Current Price**: $214.16 (below 50 SMA, above 200 SMA)"
+     "source_text": "**Macro Trend**: AMD is in a **bullish long-term trend** with the current price ($214.16) trading significantly **above the 200 SMA ($162.63)**, indicating sustained upward momentum over the past year."
     }
    ]
   },
@@ -854,7 +867,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### RSI Analysis"
+     "source_text": "**RSI Analysis** (Current: 47.76)"
     },
     {
      "interpretation_id": "rsi_14d_bearish",
@@ -869,7 +882,7 @@
      "action_bias": "trim_or_watch",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### RSI Analysis"
+     "source_text": "**RSI Analysis** (Current: 47.76)"
     }
    ]
   },
@@ -957,7 +970,7 @@
      "action_bias": "buy_or_increase",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### MACD Analysis"
+     "source_text": "**MACD Analysis**"
     },
     {
      "interpretation_id": "macd_bearish",
@@ -971,7 +984,7 @@
      "action_bias": "trim_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### MACD Analysis"
+     "source_text": "**MACD Analysis**"
     }
    ]
   },
@@ -1059,7 +1072,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **MACD Histogram**: +1.04 (recently turned positive)"
+     "source_text": "- **Histogram**: +1.04 (turning positive from negative levels)"
     },
     {
      "interpretation_id": "macd_histogram_bearish",
@@ -1073,7 +1086,7 @@
      "action_bias": "trim_or_underweight",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **MACD Histogram**: +1.04 (recently turned positive)"
+     "source_text": "- **Histogram**: +1.04 (turning positive from negative levels)"
     }
    ]
   },
@@ -1159,7 +1172,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "## Bollinger Band Analysis"
+     "source_text": "**Bollinger Bands**"
     },
     {
      "interpretation_id": "bollinger_bands_20d_bearish",
@@ -1173,7 +1186,7 @@
      "action_bias": "trim_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "## Bollinger Band Analysis"
+     "source_text": "**Bollinger Bands**"
     }
    ]
   },
@@ -1258,7 +1271,7 @@
      "action_bias": "size_position",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "| **ATR** | $8.16 | Volatility Measure |"
+     "source_text": "**ATR**: $8.16 indicates **moderate daily volatility** - healthy for an actively traded stock"
     },
     {
      "interpretation_id": "atr_14d_bearish",
@@ -1271,7 +1284,7 @@
      "action_bias": "reduce_position_size",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "| **ATR** | $8.16 | Volatility Measure |"
+     "source_text": "**ATR**: $8.16 indicates **moderate daily volatility** - healthy for an actively traded stock"
     }
    ]
   },
@@ -1355,7 +1368,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **200 SMA**: $162.63 (key long-term support)"
+     "source_text": "### Volatility & Support Analysis"
     },
     {
      "interpretation_id": "support_level_bearish",
@@ -1369,7 +1382,7 @@
      "action_bias": "sell_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **200 SMA**: $162.63 (key long-term support)"
+     "source_text": "### Volatility & Support Analysis"
     }
    ]
   },
@@ -1453,7 +1466,7 @@
      "action_bias": "buy_or_increase",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **50 SMA**: $227.92 (significant resistance level)"
+     "source_text": "- **Upper Band**: $226.72 (resistance)"
     },
     {
      "interpretation_id": "resistance_level_bearish",
@@ -1467,7 +1480,7 @@
      "action_bias": "hold_or_underweight",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **50 SMA**: $227.92 (significant resistance level)"
+     "source_text": "- **Upper Band**: $226.72 (resistance)"
     }
    ]
   },
@@ -1545,7 +1558,7 @@
      "action_bias": "hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "3. **Volatility Consideration**: Wide Bollinger bands suggest using wider stop-losses"
+     "source_text": "**Stop Loss**: 200.0"
     },
     {
      "interpretation_id": "stop_loss_bearish",
@@ -1559,7 +1572,7 @@
      "action_bias": "sell_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "3. **Volatility Consideration**: Wide Bollinger bands suggest using wider stop-losses"
+     "source_text": "**Stop Loss**: 200.0"
     }
    ]
   },
@@ -1667,15 +1680,21 @@
   "soft_targets": [
    {
     "target": "growth_technology",
+    "target_kind": "theme",
     "weight": 0.25,
     "tolerance": 0.1,
-    "priority": 70
+    "priority": 70,
+    "rebalance_when_breached": true,
+    "description": "Keep growth technology meaningful, but allow the rules to de-risk during oil and rate stress."
    },
    {
     "target": "cash",
+    "target_kind": "asset_class",
     "weight": 0.15,
     "tolerance": 0.05,
-    "priority": 90
+    "priority": 90,
+    "rebalance_when_breached": true,
+    "description": "Preserve a liquidity buffer for defensive rotations."
    }
   ],
   "constraints": {
@@ -1690,18 +1709,29 @@
     "energy": 0.25,
     "technology": 0.4
    },
-   "max_leverage": 1
+   "max_leverage": 1,
+   "allow_shorting": false,
+   "allow_margin": false
   },
   "risk_budgets": {
    "max_portfolio_volatility": 0.22,
    "max_drawdown": 0.18,
    "max_daily_turnover": 0.12,
-   "max_trade_weight": 0.08
+   "max_trade_weight": 0.08,
+   "de_risking_policy": {
+    "enabled": true,
+    "trigger": "drawdown",
+    "action": "raise_cash",
+    "amount": 0.1,
+    "cooldown_days": 10
+   }
   },
   "rebalance": {
    "frequency": "daily",
    "threshold": 0.05,
-   "allow_partial_rebalance": true
+   "allow_partial_rebalance": true,
+   "min_trade_weight": 0.005,
+   "max_rebalance_turnover": 0.15
   },
   "initial_allocation": {
    "mode": "weights",
@@ -2012,8 +2042,8 @@
   "strategy_id": "oil-rates-growth-tech",
   "spec_version": "v0.1",
   "compiler_version": "v0.1.0",
-  "generated_at": "2026-06-21T17:39:50Z",
-  "compiler_mode": "single",
+  "generated_at": "2026-06-21T19:01:42Z",
+  "compiler_mode": "ensemble",
   "ensemble_method": "weighted_vote",
   "engines": [
    {
@@ -2035,6 +2065,27 @@
      ],
      "max_symbols": 1,
      "ta_path": "~/Github/TradingAgents"
+    }
+   },
+   {
+    "name": "priley86/ai-hedge-fund",
+    "version": "2026.6.17",
+    "weight": 0.5,
+    "role": "fundamental_sentiment_portfolio_reasoning",
+    "symbols": [
+     "QQQ",
+     "NVDA",
+     "AMD",
+     "TLT",
+     "USO"
+    ],
+    "config": {
+     "adapter_script": "scripts/ai_hedge_fund_adapter.py",
+     "ahf_path": "~/Github/ai-hedge-fund",
+     "analysts": [
+      "ben_graham"
+     ],
+     "max_symbols": 1
     }
    }
   ],
@@ -2065,7 +2116,7 @@
    "strategy.md"
   ],
   "source_hashes": {
-   "manifest.json": "sha256:6dd0180760dd1caa38fbdfe9d0a17f77736c8c085d9c6780434921fbe5f50814",
+   "manifest.json": "sha256:e0c6f28ab7c26a18f30547bc64736c273e8f9b83e01b845159f33bfc321f2b47",
    "rules.json": "sha256:01220bd2330607632c9608546e875ab1166993864711c28c5993781f04d0c14e",
    "signal_interests.json": "sha256:5f8edcea7b17d2ddaa493c2f6e96330698420466f3cd47228c6d7ae82dde5d19",
    "signals.json": "sha256:e5ad81d40dff05c8061760bcaad9493a9cf44b88efd399578e007b11bdfff5cb",
@@ -2073,11 +2124,11 @@
   },
   "outputs": {
    "reasoning.md": "sha256:example",
-   "strategy.ir.json": "sha256:0dfe613dc6b5b33de4f7384ebcfceca16877e79ab3d83746e6e6fffcb6153178",
+   "strategy.ir.json": "sha256:ccb5173ba208be29515944dbe3fab22850ebf81ce72798c689f7f1006b2cab6f",
    "validation-report.json": "sha256:example"
   },
-  "ir_sha256": "sha256:0dfe613dc6b5b33de4f7384ebcfceca16877e79ab3d83746e6e6fffcb6153178",
-  "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy"
+  "ir_sha256": "sha256:ccb5173ba208be29515944dbe3fab22850ebf81ce72798c689f7f1006b2cab6f",
+  "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy\n- priley86/ai-hedge-fund (v2026.6.17): AI Hedge Fund adapter completed\nDecision: Hold\n\nUsing .env model: OpenRouter - cohere/north-mini-code:free\n\n ✓ Ben Graham          [AMD] Done                                               \n ✓ Portfolio Manager   [AMD] Done                                               \n ✓ Risk Management     [AMD] Done                                               \nAnalysis for AMD\n==================================================\n\nAGENT ANALYSIS: [AMD]\n+------------+----------+--------------+-------------------------------------------------------------+\n| Agent      |  Signal  |   Confidence | Reasoning                                                   |\n+============+==========+==============+=============================================================+\n| Ben Graham | BEARISH  |        20.0% | The provided analysis shows insufficient data for earnings  |\n|            |          |              | stability, financial strength, and valuation, yielding a    |\n|            |          |              | score of 0 out of a possible 15 in each category. Without   |\n|            |          |              | concrete metrics on AMD's intrinsic value, current asset    |\n|            |          |              | base, debt levels, or earnings consistency, there is no     |\n|            |          |              | margin of safety as defined by Graham. The initial bearish  |\n|            |          |              | signal reflects this lack of supporting quantitative        |\n|            |          |              | evidence; therefore, a cautious bearish stance is warranted |\n|            |          |              | with low confidence until more comprehensive data becomes   |\n|            |          |              | available.                                                  |\n+------------+----------+--------------+-------------------------------------------------------------+\n\nTRADING DECISION: [AMD]\n+------------+--------------------------+\n| Action     | HOLD                     |\n+------------+--------------------------+\n| Quantity   | 0                        |\n+------------+--------------------------+\n| Confidence | 100.0%                   |\n+------------+--------------------------+\n| Reasoning  | No valid trade available |\n+------------+--------------------------+\n\nPORTFOLIO SUMMARY:\n+----------+----------+------------+--------------+-----------+-----------+-----------+\n| Ticker   |  Action  |   Quantity |   Confidence |  Bullish  |  Bearish  |  Neutral  |\n+==========+==========+============+==============+===========+===========+===========+\n| AMD      |   HOLD   |          0 |       100.0% |     0     |     1     |     0     |\n+----------+----------+------------+--------------+-----------+-----------+-----------+\n\nPortfolio Strategy:\nNo valid trade available"
  },
  "extensions": {
   "agent_reports": [
@@ -2087,7 +2138,15 @@
     "date": "2025-12-31",
     "format": "markdown",
     "path": "agent-reports/tradingagents-AMD-2025-12-31.md",
-    "sha256": "sha256:76c299c887d38978b5175852678a3fd1c49e37eca325a3e311a7ae6dd68102dc"
+    "sha256": "sha256:b582722817f9ebf278839e0b5f3d3b9a3139ecda1d8bdcb3a09048923555f3d5"
+   },
+   {
+    "engine": "ai-hedge-fund",
+    "symbol": "AMD",
+    "date": "2025-12-31",
+    "format": "markdown",
+    "path": "agent-reports/ai-hedge-fund-AMD-2025-12-31.md",
+    "sha256": "sha256:c83d26f00f196e77da954ab74f0496366e5b529ef5422acada99c507783889a7"
    }
   ]
  }

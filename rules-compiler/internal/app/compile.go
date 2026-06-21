@@ -23,6 +23,9 @@ func RunCompile(ctx context.Context, strategyDir string, opts compiler.Options) 
 		terminal.Info("  Strategy: %s", strategyDir)
 		terminal.Info("  Output: %s", outDir)
 		terminal.Info("  Requested mode: %s", resolveModeLabel(opts.ModeOverride))
+		if opts.EngineOverride != "" {
+			terminal.Info("  Requested engine: %s", opts.EngineOverride)
+		}
 	}
 
 	// Run compilation
@@ -34,6 +37,9 @@ func RunCompile(ctx context.Context, strategyDir string, opts compiler.Options) 
 	if opts.Verbose {
 		terminal.Step("Compilation summary")
 		terminal.Info("  Mode: %s", resolveModeLabel(opts.ModeOverride))
+		if opts.EngineOverride != "" {
+			terminal.Info("  Engine override: %s", opts.EngineOverride)
+		}
 		terminal.Info("  Strategy: %s", strategyDir)
 		terminal.Info("  Output: %s", outDir)
 		if result.ValidationReport.Status == "valid" {

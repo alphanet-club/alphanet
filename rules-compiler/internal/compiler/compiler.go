@@ -28,13 +28,14 @@ type CompileResult struct {
 
 // Options configures the compilation.
 type Options struct {
-	ModeOverride  string
-	SpecDir       string
-	OutDir        string
-	DryRun        bool
-	ValidateOnly  bool
-	Verbose       bool
-	EmitReasoning bool
+	ModeOverride   string
+	EngineOverride string
+	SpecDir        string
+	OutDir         string
+	DryRun         bool
+	ValidateOnly   bool
+	Verbose        bool
+	EmitReasoning  bool
 }
 
 // Compile runs the full compilation pipeline.

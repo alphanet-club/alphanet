@@ -16,6 +16,7 @@ func main() {
 	specDir := flag.String("spec", "specs/v0.1", "Path to specs directory")
 	outDir := flag.String("out", "", "Output directory (default: <strategy-dir>/compiled)")
 	mode := flag.String("mode", "", "Override compiler mode (none, manual, single, ensemble)")
+	engine := flag.String("engine", "", "Override engine name")
 	dryRun := flag.Bool("dry-run", false, "Validate and print without writing files")
 	validateOnly := flag.Bool("validate-only", false, "Run validation only, skip compilation")
 	verbose := flag.Bool("verbose", false, "Enable verbose logging")
@@ -53,12 +54,13 @@ func main() {
 	}
 
 	opts := compiler.Options{
-		ModeOverride: *mode,
-		SpecDir:      *specDir,
-		OutDir:       *outDir,
-		DryRun:       *dryRun,
-		ValidateOnly: *validateOnly,
-		Verbose:      *verbose,
+		ModeOverride:   *mode,
+		EngineOverride: *engine,
+		SpecDir:        *specDir,
+		OutDir:         *outDir,
+		DryRun:         *dryRun,
+		ValidateOnly:   *validateOnly,
+		Verbose:        *verbose,
 	}
 
 	ctx := context.Background()

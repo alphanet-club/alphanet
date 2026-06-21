@@ -1,7 +1,7 @@
 {
- "status": "warning",
+ "status": "valid",
  "spec_version": "v0.1",
- "validated_at": "2026-06-21T17:42:05Z",
+ "validated_at": "2026-06-21T19:03:28Z",
  "schemas": [
   "alphanet.schema.json",
   "manifest.schema.json",
@@ -78,12 +78,6 @@
   {
    "name": "source_file_contract_valid",
    "status": "pass"
-  }
- ],
- "warnings": [
-  {
-   "code": "COMPILER_WARNING",
-   "message": "mode single selected; using first enabled engine only: TauricResearch/TradingAgents"
   }
  ],
  "errors": null

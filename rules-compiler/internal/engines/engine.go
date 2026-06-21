@@ -152,7 +152,7 @@ func (c *pythonAdapterConfig) init(config air.EngineConfig) {
 		switch c.engineName {
 		case "TauricResearch/TradingAgents", "tradingagents":
 			c.home = stringConfig(config.Config, "ta_path")
-		case "virattt/ai-hedge-fund", "ai-hedge-fund":
+		case "virattt/ai-hedge-fund", "priley86/ai-hedge-fund", "ai-hedge-fund":
 			c.home = stringConfig(config.Config, "ahf_path")
 		}
 	}
@@ -207,7 +207,7 @@ func (c *pythonAdapterConfig) analyze(ctx context.Context, input EngineInput) (E
 		switch c.engineName {
 		case "TauricResearch/TradingAgents", "tradingagents":
 			args = append(args, "--ta-home", c.home)
-		case "virattt/ai-hedge-fund", "ai-hedge-fund":
+		case "virattt/ai-hedge-fund", "priley86/ai-hedge-fund", "ai-hedge-fund":
 			args = append(args, "--ahf-home", c.home)
 		default:
 			args = append(args, "--home", c.home)
@@ -297,11 +297,12 @@ func (e *AIHedgeFundEngine) Version() string { return e.adapter.engineVersion }
 
 func (e *AIHedgeFundEngine) Init(config air.EngineConfig) error {
 	e.adapter = pythonAdapterConfig{
-		homeEnv:       "AI_HEDGE_FUND_HOME",
-		pythonEnv:     "ALPHANET_AHF_PYTHON",
-		debugEnv:      "ALPHANET_AHF_DEBUG",
-		maxSymbolsEnv: "ALPHANET_AHF_MAX_SYMBOLS",
-		defaultScript: "scripts/ai_hedge_fund_adapter.py",
+		homeEnv:         "AI_HEDGE_FUND_HOME",
+		pythonEnv:       "ALPHANET_AHF_PYTHON",
+		debugEnv:        "ALPHANET_AHF_DEBUG",
+		maxSymbolsEnv:   "ALPHANET_AHF_MAX_SYMBOLS",
+		defaultScript:   "scripts/ai_hedge_fund_adapter.py",
+		defaultAnalysts: []string{"ben_graham"},
 	}
 	e.adapter.init(config)
 	return nil

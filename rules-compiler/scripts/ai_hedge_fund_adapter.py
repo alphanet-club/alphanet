@@ -55,7 +55,12 @@ def normalize_request(raw: str) -> dict[str, Any]:
     if not date:
         raise SystemExit("request.date is required")
 
-    return {"symbols": symbols, "date": date}
+    analysts = req.get("analysts") or []
+    if not isinstance(analysts, list):
+        raise SystemExit("request.analysts must be a list")
+    analysts = [str(a).strip() for a in analysts if str(a).strip()]
+
+    return {"symbols": symbols, "date": date, "analysts": analysts}
 
 
 def infer_decision(text: str) -> str:
@@ -89,6 +94,26 @@ def to_signal(symbol: str, date: str, decision: str, rationale: str) -> dict[str
     }
 
 
+def to_report(symbol: str, date: str, command: list[str], content: str) -> dict[str, Any]:
+    cmd_text = " ".join(command).strip()
+    body = content.strip() or "No AI Hedge Fund output captured."
+    return {
+        "engine": "ai-hedge-fund",
+        "symbol": symbol,
+        "date": date,
+        "format": "markdown",
+        "content": (
+            f"# AI Hedge Fund Report: {symbol}\n\n"
+            f"Date: `{date}`\n\n"
+            f"Command: `{cmd_text}`\n\n"
+            "## Raw Output\n\n"
+            "```text\n"
+            f"{body}\n"
+            "```\n"
+        ),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="AlphaNet AI Hedge Fund adapter")
     parser.add_argument("--ahf-home", default=os.environ.get("AI_HEDGE_FUND_HOME", ""))
@@ -109,6 +134,10 @@ def main() -> int:
                 to_signal(s, req["date"], "DRY_RUN", "AI Hedge Fund dry run")
                 for s in req["symbols"]
             ],
+            "reports": [
+                to_report(s, req["date"], [], "AI Hedge Fund dry run.")
+                for s in req["symbols"]
+            ],
             "notes": f"dry run for {len(req['symbols'])} symbols",
         }, indent=2))
         return 0
@@ -125,10 +154,12 @@ def main() -> int:
 
     tickers = ",".join(req["symbols"])
     if args.use_poetry:
-        cmd = ["poetry", "run", "python", "src/main.py"]
+        cmd = ["poetry", "run", "python", "-m", "src.main"]
     else:
         cmd = [sys.executable, "src/main.py"]
     cmd += ["--ticker", tickers, "--end-date", req["date"]]
+    if req["analysts"]:
+        cmd += ["--analysts", ",".join(req["analysts"])]
     if args.ollama:
         cmd.append("--ollama")
 
@@ -150,6 +181,10 @@ def main() -> int:
 
     print(json.dumps({
         "signals": signals,
+        "reports": [
+            to_report(symbol, req["date"], cmd, combined)
+            for symbol in req["symbols"]
+        ],
         "notes": "AI Hedge Fund adapter completed\n"
         + (f"Decision: {decision}\n" if decision else "No actionable decision found; no signal emitted.\n")
         + combined[-4000:],
