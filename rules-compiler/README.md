@@ -439,3 +439,67 @@ compiled/agent-reports/tradingagents-AMD-2025-12-31.md
 ```
 
 The report body is then available for a later extraction stage. The first deterministic extraction pass creates `signal_interests[]` from obvious report terms such as RSI, MACD, moving averages, Bollinger bands, ATR, support/resistance, stop-loss, and price targets. An extractor can enrich those interests into more precise rules and portfolio/trading constructs.
+
+## Lifecycle, recommendations, and signal interests
+
+AlphaNet distinguishes three related concepts:
+
+- `signals[]`: executable signal definitions, measured observations, or point-in-time recommendations. Agent decisions such as `Buy`, `Sell`, `Hold`, `Overweight`, or `Trim` remain in this existing structure using `signal_kind: "recommendation"` and a `recommendation` object.
+- `signal_interests[]`: research-derived feature requests that tell the backtester what data/features to capture and compute. They include `interpretations[]` so the rule generator/backtester knows whether a computed state implies buy, sell, reduce, hold, hedge, or watch bias.
+- `rules[]`: executable portfolio actions. Signal interests do not trade directly; rules consume computed signals/interests and produce portfolio actions.
+
+Agent-extracted artifacts should use lifecycle metadata:
+
+```json
+{
+  "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:close_50_sma:medium_term_trend",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+  }
+}
+```
+
+Backtester as-of logic:
+
+```text
+For backtest date D:
+  keep artifacts where effective_date <= D
+  drop artifacts where expires_date exists and D > expires_date
+  group by category_key
+  keep latest effective_date per category_key
+  evaluate rules against resolved signals
+```
+
+User-authored strategic rules normally omit `expires_date`. Agent-extracted rules, signals, and signal interests default to a 90-day `expires_date` unless the user edits or removes it.
+
+Default agent sampling should be conservative because engines can be slow:
+
+```json
+{
+  "training_window": {
+    "lookback_days": 60,
+    "sampling": {
+      "frequency": "monthly"
+    }
+  }
+}
+```
+
+This gives roughly two research snapshots per symbol by default, while still allowing users to opt into denser or longer agent runs.
+
+Example flow:
+
+```text
+signal_interest:
+  AMD close below 50 SMA means medium-term bearish pressure / underweight bias
+
+rule:
+  if amd_close_vs_50_sma < 0 then reduce AMD weight
+
+backtester:
+  compute close and 50 SMA from OHLCV, evaluate the rule as-of each backtest date
+```

@@ -7,7 +7,7 @@
   "version": "0.1.0",
   "spec_version": "v0.1",
   "compiler_version": "v0.1.0",
-  "generated_at": "2026-06-21T05:31:14Z",
+  "generated_at": "2026-06-21T07:19:27Z",
   "tags": [
    "macro",
    "rates",
@@ -296,7 +296,13 @@
    "date": "2025-12-31",
    "value": "buy",
    "confidence": 0.7,
-   "rationale": "Buy"
+   "rationale": "Buy",
+   "recommendation": {
+    "action": "buy",
+    "rating": "buy",
+    "confidence": 0.7,
+    "rationale": "Buy"
+   }
   }
  ],
  "signal_interests": [
@@ -305,21 +311,93 @@
    "family": "technical",
    "type": "moving_average",
    "name": "AMD 10 EMA",
-   "description": "Short-term exponential moving average watched by the agent report.",
+   "description": "Track price versus the 10-day EMA because the agent report used it as an immediate momentum/support filter.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
+   "field": "close",
    "transform": "ema_10d",
+   "transform_spec": {
+    "name": "ema",
+    "inputs": [
+     "close"
+    ],
+    "window": "10d"
+   },
+   "window": "10d",
    "frequency": "daily",
    "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:close_10_ema:short_term_momentum",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "10d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "close_10_ema_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "close_10_ema"
+     },
+     "meaning": "price above the 10-day EMA indicates short-term momentum remains constructive",
+     "recommendation_bias": "buy_or_hold",
+     "action_bias": "buy_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **10 EMA ($213.89)**: Positioned just below current price ($214.16), indicating short-term bullish momentum"
+    },
+    {
+     "interpretation_id": "close_10_ema_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "close_10_ema"
+     },
+     "meaning": "price below the 10-day EMA indicates immediate momentum weakening",
+     "recommendation_bias": "trim_or_reduce",
+     "action_bias": "trim_or_reduce",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **10 EMA ($213.89)**: Positioned just below current price ($214.16), indicating short-term bullish momentum"
+    }
    ]
   },
   {
@@ -327,21 +405,93 @@
    "family": "technical",
    "type": "moving_average",
    "name": "AMD 50 SMA",
-   "description": "Medium-term simple moving average watched by the agent report.",
+   "description": "Track price versus the 50-day SMA because the agent report used it as medium-term trend support/resistance.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
+   "field": "close",
    "transform": "sma_50d",
+   "transform_spec": {
+    "name": "sma",
+    "inputs": [
+     "close"
+    ],
+    "window": "50d"
+   },
+   "window": "50d",
    "frequency": "daily",
    "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:close_50_sma:medium_term_trend",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "50d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "close_50_sma_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "close_50_sma"
+     },
+     "meaning": "price above the 50-day SMA indicates medium-term trend support or resistance breakout",
+     "recommendation_bias": "buy_or_increase",
+     "action_bias": "buy_or_increase",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **50 SMA ($227.92)**: Significantly above current price, suggesting medium-term pullback"
+    },
+    {
+     "interpretation_id": "close_50_sma_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "close_50_sma"
+     },
+     "meaning": "price below the 50-day SMA indicates medium-term bearish pressure or failed resistance",
+     "recommendation_bias": "sell_or_underweight",
+     "action_bias": "sell_or_underweight",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **50 SMA ($227.92)**: Significantly above current price, suggesting medium-term pullback"
+    }
    ]
   },
   {
@@ -349,43 +499,189 @@
    "family": "technical",
    "type": "moving_average",
    "name": "AMD 200 SMA",
-   "description": "Long-term simple moving average watched by the agent report.",
+   "description": "Track price versus the 200-day SMA because the agent report used it as the long-term trend anchor.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
+   "field": "close",
    "transform": "sma_200d",
+   "transform_spec": {
+    "name": "sma",
+    "inputs": [
+     "close"
+    ],
+    "window": "200d"
+   },
+   "window": "200d",
    "frequency": "daily",
    "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:close_200_sma:long_term_trend",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "200d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "close_200_sma_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "close_200_sma"
+     },
+     "meaning": "price above the 200-day SMA indicates long-term trend remains positive",
+     "recommendation_bias": "allow_long_or_hold",
+     "action_bias": "allow_long_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **200 SMA ($162.63)**: Well below current levels, confirming long-term uptrend structure"
+    },
+    {
+     "interpretation_id": "close_200_sma_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "close_200_sma"
+     },
+     "meaning": "price below the 200-day SMA indicates long-term trend breakdown",
+     "recommendation_bias": "reduce_or_avoid",
+     "action_bias": "reduce_or_avoid",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **200 SMA ($162.63)**: Well below current levels, confirming long-term uptrend structure"
+    }
    ]
   },
   {
-   "signal_id": "amd_rsi",
+   "signal_id": "amd_rsi_14d",
    "family": "technical",
    "type": "momentum",
-   "name": "AMD RSI",
-   "description": "Relative strength index watched by the agent report.",
+   "name": "AMD RSI 14D",
+   "description": "Track 14-day RSI because the agent report used RSI as a momentum and overbought/oversold gauge.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
-   "transform": "rsi",
+   "field": "close",
+   "transform": "rsi_14d",
+   "transform_spec": {
+    "name": "rsi",
+    "inputs": [
+     "close"
+    ],
+    "window": "14d"
+   },
+   "window": "14d",
    "frequency": "daily",
    "unit": "score",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:rsi_14d:momentum_state",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "14d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "rsi_14d_bullish",
+     "condition": {
+      "left": "rsi_14d",
+      "operator": ">",
+      "value": 50,
+      "unit": "score"
+     },
+     "meaning": "RSI above neutral with room below overbought indicates constructive momentum",
+     "recommendation_bias": "buy_or_hold",
+     "action_bias": "buy_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### **3. RSI - Momentum Gauge**"
+    },
+    {
+     "interpretation_id": "rsi_14d_bearish",
+     "condition": {
+      "left": "rsi_14d",
+      "operator": "<",
+      "value": 50,
+      "unit": "score"
+     },
+     "meaning": "RSI deterioration or overbought reversal indicates weakening momentum",
+     "recommendation_bias": "trim_or_watch",
+     "action_bias": "trim_or_watch",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### **3. RSI - Momentum Gauge**"
+    }
    ]
   },
   {
@@ -393,43 +689,101 @@
    "family": "technical",
    "type": "momentum",
    "name": "AMD MACD",
-   "description": "MACD trend/momentum indicator watched by the agent report.",
+   "description": "Track MACD because the agent report used MACD trend/momentum and divergence as decision evidence.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
-   "transform": "macd",
-   "frequency": "daily",
-   "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
-   "extracted_from": "TradingAgents",
-   "confidence": 0.55,
-   "tags": [
-    "agent_extracted",
-    "deterministic_v0"
-   ]
-  },
-  {
-   "signal_id": "amd_macd_signal",
-   "family": "technical",
-   "type": "momentum",
-   "name": "AMD MACD signal",
-   "description": "MACD signal line watched by the agent report.",
-   "source": {
-    "name": "agent_report",
-    "adapter": "TradingAgents"
+   "field": "close",
+   "transform": "macd_12_26_9",
+   "transform_spec": {
+    "name": "macd",
+    "inputs": [
+     "close"
+    ],
+    "parameters": {
+     "fast_window": "12d",
+     "signal_window": "9d",
+     "slow_window": "26d"
+    }
    },
-   "symbol": "AMD",
-   "transform": "macd_signal",
    "frequency": "daily",
    "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:macd:trend_momentum",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "35d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "parameters": {
+    "fast_window": "12d",
+    "signal_window": "9d",
+    "slow_window": "26d"
+   },
+   "interpretations": [
+    {
+     "interpretation_id": "macd_bullish",
+     "condition": {
+      "left": "macd",
+      "operator": ">",
+      "right": "macd_signal"
+     },
+     "meaning": "MACD confirmation indicates positive trend momentum",
+     "recommendation_bias": "buy_or_increase",
+     "action_bias": "buy_or_increase",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### **2. MACD Analysis - Momentum Signals**"
+    },
+    {
+     "interpretation_id": "macd_bearish",
+     "condition": {
+      "left": "macd",
+      "operator": "<",
+      "right": "macd_signal"
+     },
+     "meaning": "MACD deterioration or negative crossover indicates weakening trend momentum",
+     "recommendation_bias": "trim_or_reduce",
+     "action_bias": "trim_or_reduce",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### **2. MACD Analysis - Momentum Signals**"
+    }
    ]
   },
   {
@@ -437,131 +791,299 @@
    "family": "technical",
    "type": "momentum",
    "name": "AMD MACD histogram",
-   "description": "MACD histogram / momentum divergence watched by the agent report.",
+   "description": "Track MACD histogram because the agent report used histogram divergence/acceleration as a warning signal.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
-   "transform": "macd_histogram",
+   "field": "close",
+   "transform": "macd_histogram_12_26_9",
+   "transform_spec": {
+    "name": "macd_histogram",
+    "inputs": [
+     "close"
+    ],
+    "parameters": {
+     "fast_window": "12d",
+     "signal_window": "9d",
+     "slow_window": "26d"
+    }
+   },
    "frequency": "daily",
    "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:macd_histogram:momentum_divergence",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "35d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "parameters": {
+    "fast_window": "12d",
+    "signal_window": "9d",
+    "slow_window": "26d"
+   },
+   "interpretations": [
+    {
+     "interpretation_id": "macd_histogram_bullish",
+     "condition": {
+      "left": "macd_histogram",
+      "operator": ">",
+      "value": 0
+     },
+     "meaning": "improving MACD histogram indicates momentum acceleration",
+     "recommendation_bias": "buy_or_hold",
+     "action_bias": "buy_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **MACD Histogram (+1.04)**: Positive and improving, suggesting momentum is stabilizing"
+    },
+    {
+     "interpretation_id": "macd_histogram_bearish",
+     "condition": {
+      "left": "macd_histogram",
+      "operator": "<",
+      "value": 0
+     },
+     "meaning": "negative or deteriorating MACD histogram indicates momentum deceleration",
+     "recommendation_bias": "trim_or_underweight",
+     "action_bias": "trim_or_underweight",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **MACD Histogram (+1.04)**: Positive and improving, suggesting momentum is stabilizing"
+    }
    ]
   },
   {
-   "signal_id": "amd_bollinger_mid",
+   "signal_id": "amd_bollinger_bands_20d",
    "family": "technical",
    "type": "volatility",
-   "name": "AMD Bollinger middle band",
-   "description": "Bollinger-band centerline watched by the agent report.",
+   "name": "AMD Bollinger Bands 20D",
+   "description": "Track 20-day Bollinger bands because the agent report used upper/lower bands as support, resistance, and volatility context.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
-   "transform": "bollinger_mid",
-   "frequency": "daily",
-   "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
-   "extracted_from": "TradingAgents",
-   "confidence": 0.55,
-   "tags": [
-    "agent_extracted",
-    "deterministic_v0"
-   ]
-  },
-  {
-   "signal_id": "amd_bollinger_upper",
-   "family": "technical",
-   "type": "volatility",
-   "name": "AMD Bollinger upper band",
-   "description": "Bollinger upper-band resistance watched by the agent report.",
-   "source": {
-    "name": "agent_report",
-    "adapter": "TradingAgents"
+   "field": "close",
+   "transform": "bollinger_bands_20d",
+   "transform_spec": {
+    "name": "bollinger_bands",
+    "inputs": [
+     "close"
+    ],
+    "window": "20d",
+    "parameters": {
+     "stddev": 2
+    }
    },
-   "symbol": "AMD",
-   "transform": "bollinger_upper",
+   "window": "20d",
    "frequency": "daily",
    "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
-   ]
-  },
-  {
-   "signal_id": "amd_bollinger_lower",
-   "family": "technical",
-   "type": "volatility",
-   "name": "AMD Bollinger lower band",
-   "description": "Bollinger lower-band support watched by the agent report.",
-   "source": {
-    "name": "agent_report",
-    "adapter": "TradingAgents"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:bollinger_bands_20d:volatility_support_resistance",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
    },
-   "symbol": "AMD",
-   "transform": "bollinger_lower",
-   "frequency": "daily",
-   "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
-   "extracted_from": "TradingAgents",
-   "confidence": 0.55,
-   "tags": [
-    "agent_extracted",
-    "deterministic_v0"
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "20d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "parameters": {
+    "stddev": 2
+   },
+   "interpretations": [
+    {
+     "interpretation_id": "bollinger_bands_20d_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "bollinger_mid"
+     },
+     "meaning": "price holding above the middle band or bouncing from lower band indicates constructive support",
+     "recommendation_bias": "buy_or_hold",
+     "action_bias": "buy_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### **4. Bollinger Bands - Volatility Assessment**"
+    },
+    {
+     "interpretation_id": "bollinger_bands_20d_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "bollinger_lower"
+     },
+     "meaning": "price rejecting at the upper band or breaking below the lower band indicates downside risk",
+     "recommendation_bias": "trim_or_reduce",
+     "action_bias": "trim_or_reduce",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### **4. Bollinger Bands - Volatility Assessment**"
+    }
    ]
   },
   {
-   "signal_id": "amd_atr",
+   "signal_id": "amd_atr_14d",
    "family": "risk",
    "type": "volatility",
-   "name": "AMD ATR",
-   "description": "Average true range used for stop/risk sizing in the agent report.",
+   "name": "AMD ATR 14D",
+   "description": "Track 14-day ATR because the agent report used ATR for stop placement, volatility context, and position sizing.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
-   "transform": "atr",
+   "field": "high",
+   "transform": "atr_14d",
+   "transform_spec": {
+    "name": "atr",
+    "inputs": [
+     "high",
+     "low",
+     "close"
+    ],
+    "window": "14d"
+   },
+   "window": "14d",
    "frequency": "daily",
    "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
-   ]
-  },
-  {
-   "signal_id": "amd_volume",
-   "family": "technical",
-   "type": "volume",
-   "name": "AMD Volume",
-   "description": "Volume / participation watched by the agent report.",
-   "source": {
-    "name": "agent_report",
-    "adapter": "TradingAgents"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:atr_14d:risk_sizing",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
    },
-   "symbol": "AMD",
-   "transform": "volume",
-   "frequency": "daily",
-   "unit": "shares",
-   "reason": "Extracted from raw agent report artifact.",
-   "extracted_from": "TradingAgents",
-   "confidence": 0.55,
-   "tags": [
-    "agent_extracted",
-    "deterministic_v0"
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "high",
+      "low",
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "14d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "high",
+    "low",
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "atr_14d_bullish",
+     "condition": {
+      "left": "atr_14d",
+      "operator": "is_available"
+     },
+     "meaning": "ATR provides risk sizing and stop distance context, not a standalone directional signal",
+     "recommendation_bias": "size_position",
+     "action_bias": "size_position",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **ATR (8.16)**: Moderate volatility, suggesting price swings of around $8 per day on average"
+    },
+    {
+     "interpretation_id": "atr_14d_bearish",
+     "condition": {
+      "left": "atr_14d",
+      "operator": "rising"
+     },
+     "meaning": "rising ATR may require smaller position sizes or wider stops",
+     "recommendation_bias": "reduce_position_size",
+     "action_bias": "reduce_position_size",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "- **ATR (8.16)**: Moderate volatility, suggesting price swings of around $8 per day on average"
+    }
    ]
   },
   {
@@ -569,21 +1091,97 @@
    "family": "technical",
    "type": "support_resistance",
    "name": "AMD Support level",
-   "description": "Support levels referenced by the agent report.",
+   "description": "Track support levels because the agent report referenced support zones for entries, stops, and failure conditions.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
+   "field": "high",
    "transform": "support_level",
+   "transform_spec": {
+    "name": "support_level",
+    "inputs": [
+     "high",
+     "low",
+     "close"
+    ]
+   },
    "frequency": "daily",
    "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:support_level:support_failure",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "high",
+      "low",
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "252d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "high",
+    "low",
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "support_level_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "support_level"
+     },
+     "meaning": "price holding above support supports long exposure",
+     "recommendation_bias": "buy_or_hold",
+     "action_bias": "buy_or_hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### **Support & Resistance Zones**"
+    },
+    {
+     "interpretation_id": "support_level_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "support_level"
+     },
+     "meaning": "price breaking below support implies downside risk or stop trigger",
+     "recommendation_bias": "sell_or_reduce",
+     "action_bias": "sell_or_reduce",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### **Support & Resistance Zones**"
+    }
    ]
   },
   {
@@ -591,43 +1189,97 @@
    "family": "technical",
    "type": "support_resistance",
    "name": "AMD Resistance level",
-   "description": "Resistance levels referenced by the agent report.",
+   "description": "Track resistance levels because the agent report referenced resistance zones for breakouts and profit targets.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
+   "field": "high",
    "transform": "resistance_level",
-   "frequency": "daily",
-   "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
-   "extracted_from": "TradingAgents",
-   "confidence": 0.55,
-   "tags": [
-    "agent_extracted",
-    "deterministic_v0"
-   ]
-  },
-  {
-   "signal_id": "amd_price_target",
-   "family": "portfolio",
-   "type": "target",
-   "name": "AMD Price target",
-   "description": "Price target referenced by the agent report.",
-   "source": {
-    "name": "agent_report",
-    "adapter": "TradingAgents"
+   "transform_spec": {
+    "name": "resistance_level",
+    "inputs": [
+     "high",
+     "low",
+     "close"
+    ]
    },
-   "symbol": "AMD",
-   "transform": "price_target",
    "frequency": "daily",
    "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:resistance_level:resistance_breakout",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "high",
+      "low",
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "252d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "high",
+    "low",
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "resistance_level_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "resistance_level"
+     },
+     "meaning": "price breaking above resistance supports buy/increase bias",
+     "recommendation_bias": "buy_or_increase",
+     "action_bias": "buy_or_increase",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### **Support & Resistance Zones**"
+    },
+    {
+     "interpretation_id": "resistance_level_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "resistance_level"
+     },
+     "meaning": "price failing below resistance supports caution or underweight bias",
+     "recommendation_bias": "hold_or_underweight",
+     "action_bias": "hold_or_underweight",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "### **Support & Resistance Zones**"
+    }
    ]
   },
   {
@@ -635,21 +1287,183 @@
    "family": "risk",
    "type": "risk_control",
    "name": "AMD Stop loss",
-   "description": "Stop-loss level referenced by the agent report.",
+   "description": "Track agent-described stop-loss levels as forward-looking risk-control interests.",
    "source": {
     "name": "agent_report",
     "adapter": "TradingAgents"
    },
    "symbol": "AMD",
-   "transform": "stop_loss",
+   "field": "close",
+   "transform": "agent_report_level",
+   "transform_spec": {
+    "name": "agent_report_level",
+    "inputs": [
+     "close"
+    ]
+   },
    "frequency": "daily",
    "unit": "price",
-   "reason": "Extracted from raw agent report artifact.",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
    "extracted_from": "TradingAgents",
-   "confidence": 0.55,
+   "confidence": 0.6,
    "tags": [
     "agent_extracted",
-    "deterministic_v0"
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:stop_loss:risk_control",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "252d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "stop_loss_bullish",
+     "condition": {
+      "left": "close",
+      "operator": ">",
+      "right": "stop_loss"
+     },
+     "meaning": "price above stop keeps thesis active",
+     "recommendation_bias": "hold",
+     "action_bias": "hold",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Stop Loss**: 206.0"
+    },
+    {
+     "interpretation_id": "stop_loss_bearish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "stop_loss"
+     },
+     "meaning": "price below stop invalidates thesis and should reduce exposure",
+     "recommendation_bias": "sell_or_reduce",
+     "action_bias": "sell_or_reduce",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Stop Loss**: 206.0"
+    }
+   ]
+  },
+  {
+   "signal_id": "amd_price_target",
+   "family": "portfolio",
+   "type": "target",
+   "name": "AMD Price target",
+   "description": "Track agent-described price targets as forward-looking portfolio/trading interests.",
+   "source": {
+    "name": "agent_report",
+    "adapter": "TradingAgents"
+   },
+   "symbol": "AMD",
+   "field": "close",
+   "transform": "agent_report_level",
+   "transform_spec": {
+    "name": "agent_report_level",
+    "inputs": [
+     "close"
+    ]
+   },
+   "frequency": "daily",
+   "unit": "price",
+   "reason": "Extracted from raw agent report artifact to tell the backtester what market data/features matter and how to interpret them.",
+   "extracted_from": "TradingAgents",
+   "confidence": 0.6,
+   "tags": [
+    "agent_extracted",
+    "deterministic_v1"
+   ],
+   "status": "candidate",
+   "lifecycle": {
+    "source_type": "agent_extracted",
+    "effective_date": "2025-12-31",
+    "expires_date": "2026-03-31",
+    "category_key": "AMD:price_target:target_tracking",
+    "supersedes_policy": "latest_effective_date_wins",
+    "source_report_ref": "agent-reports/tradingagents-AMD-2025-12-31.md"
+   },
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "requires_ohlcv": true,
+    "notes": "Backtester should resolve this interest against its transform registry before promoting it to an executable signal."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "AMD",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "252d",
+     "price_adjustment": "adjusted",
+     "requires_ohlcv": true,
+     "notes": "Derived from agent report signal interest."
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "price_target_bullish",
+     "condition": {
+      "left": "close",
+      "operator": "<",
+      "right": "price_target"
+     },
+     "meaning": "price below target leaves upside potential",
+     "recommendation_bias": "hold_or_increase",
+     "action_bias": "hold_or_increase",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Price Target**: 235.0"
+    },
+    {
+     "interpretation_id": "price_target_bearish",
+     "condition": {
+      "left": "close",
+      "operator": ">=",
+      "right": "price_target"
+     },
+     "meaning": "price reaching or exceeding target suggests taking profit or reassessing",
+     "recommendation_bias": "trim_or_take_profit",
+     "action_bias": "trim_or_take_profit",
+     "applies_to": "rules",
+     "confidence": 0.55,
+     "source_text": "**Price Target**: 235.0"
+    }
    ]
   }
  ],
@@ -969,7 +1783,7 @@
   "strategy_id": "oil-rates-growth-tech",
   "spec_version": "v0.1",
   "compiler_version": "v0.1.0",
-  "generated_at": "2026-06-21T05:31:14Z",
+  "generated_at": "2026-06-21T07:19:27Z",
   "compiler_mode": "ensemble",
   "ensemble_method": "weighted_vote",
   "engines": [
@@ -1044,10 +1858,10 @@
   },
   "outputs": {
    "reasoning.md": "sha256:example",
-   "strategy.ir.json": "sha256:566fe0a211a8988255d366e83a7c307d1e7d4d20e4bfb2155dd2a3ce33d9cf1f",
+   "strategy.ir.json": "sha256:9f9f953a0d8ab9fc5a144b5af11c89daf8f603707b7062b8e1ec42a70da37a2b",
    "validation-report.json": "sha256:example"
   },
-  "ir_sha256": "sha256:566fe0a211a8988255d366e83a7c307d1e7d4d20e4bfb2155dd2a3ce33d9cf1f",
+  "ir_sha256": "sha256:9f9f953a0d8ab9fc5a144b5af11c89daf8f603707b7062b8e1ec42a70da37a2b",
   "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy"
  },
  "extensions": {
@@ -1058,7 +1872,7 @@
     "date": "2025-12-31",
     "format": "markdown",
     "path": "agent-reports/tradingagents-AMD-2025-12-31.md",
-    "sha256": "sha256:1a109c4131652dd7bb7d83fe5ed9f1fafb02894bd2bef085495ae676fd40a1e8"
+    "sha256": "sha256:147dd89256c7f5e73e177586d6b0f5b0fe6f4d321eb2ae79dbf3d621c4dcabad"
    }
   ]
  }

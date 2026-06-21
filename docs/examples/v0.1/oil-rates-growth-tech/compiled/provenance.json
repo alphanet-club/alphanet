@@ -3,7 +3,7 @@
  "strategy_id": "oil-rates-growth-tech",
  "spec_version": "v0.1",
  "compiler_version": "v0.1.0",
- "generated_at": "2026-06-21T05:31:14Z",
+ "generated_at": "2026-06-21T07:19:27Z",
  "compiler_mode": "ensemble",
  "ensemble_method": "weighted_vote",
  "engines": [
@@ -78,9 +78,9 @@
  },
  "outputs": {
   "reasoning.md": "sha256:example",
-  "strategy.ir.json": "sha256:566fe0a211a8988255d366e83a7c307d1e7d4d20e4bfb2155dd2a3ce33d9cf1f",
+  "strategy.ir.json": "sha256:9f9f953a0d8ab9fc5a144b5af11c89daf8f603707b7062b8e1ec42a70da37a2b",
   "validation-report.json": "sha256:example"
  },
- "ir_sha256": "sha256:566fe0a211a8988255d366e83a7c307d1e7d4d20e4bfb2155dd2a3ce33d9cf1f",
+ "ir_sha256": "sha256:9f9f953a0d8ab9fc5a144b5af11c89daf8f603707b7062b8e1ec42a70da37a2b",
  "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy"
 }

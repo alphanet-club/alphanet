@@ -61,49 +61,147 @@ type Theme struct {
 
 // Signal defines a named observation, derived metric, or point-in-time value.
 type Signal struct {
-	SignalID    string       `json:"signal_id"`
-	Family      string       `json:"family"`
-	Type        string       `json:"type,omitempty"`
-	Name        string       `json:"name,omitempty"`
-	Description string       `json:"description,omitempty"`
-	Source      SignalSource `json:"source,omitempty"`
-	Instrument  string       `json:"instrument,omitempty"`
-	Symbol      string       `json:"symbol,omitempty"`
-	Field       string       `json:"field,omitempty"`
-	Transform   string       `json:"transform,omitempty"`
-	Window      string       `json:"window,omitempty"`
-	Frequency   string       `json:"frequency,omitempty"`
-	Unit        string       `json:"unit,omitempty"`
-	Date        string       `json:"date,omitempty"`
-	Value       any          `json:"value,omitempty"`
-	Confidence  float64      `json:"confidence,omitempty"`
-	Rationale   string       `json:"rationale,omitempty"`
-	ValueRange  []float64    `json:"value_range,omitempty"`
+	SignalID         string            `json:"signal_id"`
+	SignalKind       string            `json:"signal_kind,omitempty"`
+	Family           string            `json:"family"`
+	Type             string            `json:"type,omitempty"`
+	Name             string            `json:"name,omitempty"`
+	Description      string            `json:"description,omitempty"`
+	Source           SignalSource      `json:"source,omitempty"`
+	Instrument       string            `json:"instrument,omitempty"`
+	Symbol           string            `json:"symbol,omitempty"`
+	Field            string            `json:"field,omitempty"`
+	Transform        string            `json:"transform,omitempty"`
+	TransformSpec    *TransformSpec    `json:"transform_spec,omitempty"`
+	Window           string            `json:"window,omitempty"`
+	Frequency        string            `json:"frequency,omitempty"`
+	Unit             string            `json:"unit,omitempty"`
+	Date             string            `json:"date,omitempty"`
+	Value            any               `json:"value,omitempty"`
+	Confidence       float64           `json:"confidence,omitempty"`
+	Rationale        string            `json:"rationale,omitempty"`
+	Recommendation   *Recommendation   `json:"recommendation,omitempty"`
+	Lifecycle        *Lifecycle        `json:"lifecycle,omitempty"`
+	DataRequirements []DataRequirement `json:"data_requirements,omitempty"`
+	RequiredFields   []string          `json:"required_fields,omitempty"`
+	InputPrice       string            `json:"input_price,omitempty"`
+	Parameters       map[string]any    `json:"parameters,omitempty"`
+	ValueRange       []float64         `json:"value_range,omitempty"`
 }
 
 // SignalInterest defines a signal the backtester should compute or watch over time.
 type SignalInterest struct {
-	SignalID      string                    `json:"signal_id"`
-	Family        string                    `json:"family"`
-	Type          string                    `json:"type,omitempty"`
-	Name          string                    `json:"name,omitempty"`
-	Description   string                    `json:"description,omitempty"`
-	Source        SignalSource              `json:"source,omitempty"`
-	Instrument    string                    `json:"instrument,omitempty"`
-	Symbol        string                    `json:"symbol,omitempty"`
-	Field         string                    `json:"field,omitempty"`
-	Transform     string                    `json:"transform,omitempty"`
-	Window        string                    `json:"window,omitempty"`
-	Frequency     string                    `json:"frequency,omitempty"`
-	Unit          string                    `json:"unit,omitempty"`
-	Reason        string                    `json:"reason,omitempty"`
-	ExtractedFrom string                    `json:"extracted_from,omitempty"`
-	Confidence    float64                   `json:"confidence,omitempty"`
-	Tags          []string                  `json:"tags,omitempty"`
-	Thresholds    []SignalInterestThreshold `json:"thresholds,omitempty"`
+	SignalID         string                         `json:"signal_id"`
+	Family           string                         `json:"family"`
+	Type             string                         `json:"type,omitempty"`
+	Name             string                         `json:"name,omitempty"`
+	Description      string                         `json:"description,omitempty"`
+	Source           SignalSource                   `json:"source,omitempty"`
+	Instrument       string                         `json:"instrument,omitempty"`
+	Symbol           string                         `json:"symbol,omitempty"`
+	Field            string                         `json:"field,omitempty"`
+	Transform        string                         `json:"transform,omitempty"`
+	TransformSpec    *TransformSpec                 `json:"transform_spec,omitempty"`
+	Window           string                         `json:"window,omitempty"`
+	Frequency        string                         `json:"frequency,omitempty"`
+	Unit             string                         `json:"unit,omitempty"`
+	Reason           string                         `json:"reason,omitempty"`
+	ExtractedFrom    string                         `json:"extracted_from,omitempty"`
+	Confidence       float64                        `json:"confidence,omitempty"`
+	Tags             []string                       `json:"tags,omitempty"`
+	Status           string                         `json:"status,omitempty"`
+	Lifecycle        *Lifecycle                     `json:"lifecycle,omitempty"`
+	Resolution       *SignalInterestResolution      `json:"resolution,omitempty"`
+	DataRequirements []DataRequirement              `json:"data_requirements,omitempty"`
+	RequiredFields   []string                       `json:"required_fields,omitempty"`
+	InputPrice       string                         `json:"input_price,omitempty"`
+	Parameters       map[string]any                 `json:"parameters,omitempty"`
+	Thresholds       []SignalInterestThreshold      `json:"thresholds,omitempty"`
+	Interpretations  []SignalInterestInterpretation `json:"interpretations,omitempty"`
 }
 
 // SignalInterestThreshold captures a watched threshold extracted from strategy text or an agent report.
+// Lifecycle captures effective dating, expiration, and supersession behavior for time-versioned artifacts.
+type Lifecycle struct {
+	SourceType       string `json:"source_type,omitempty"`
+	EffectiveDate    string `json:"effective_date,omitempty"`
+	ExpiresDate      string `json:"expires_date,omitempty"`
+	CategoryKey      string `json:"category_key,omitempty"`
+	SupersedesPolicy string `json:"supersedes_policy,omitempty"`
+	SourceReportRef  string `json:"source_report_ref,omitempty"`
+	Notes            string `json:"notes,omitempty"`
+}
+
+// DataRequirement tells the backtester what raw data it must fetch before computing a signal or signal interest.
+type DataRequirement struct {
+	Dataset         string   `json:"dataset,omitempty"`
+	Provider        string   `json:"provider,omitempty"`
+	Symbol          string   `json:"symbol,omitempty"`
+	RequiredFields  []string `json:"required_fields,omitempty"`
+	Frequency       string   `json:"frequency,omitempty"`
+	Lookback        string   `json:"lookback,omitempty"`
+	PriceAdjustment string   `json:"price_adjustment,omitempty"`
+	RequiresOHLCV   bool     `json:"requires_ohlcv,omitempty"`
+	Notes           string   `json:"notes,omitempty"`
+}
+
+// TransformSpec describes how a derived feature should be computed from raw data.
+type TransformSpec struct {
+	Name       string         `json:"name"`
+	Inputs     []string       `json:"inputs,omitempty"`
+	Window     string         `json:"window,omitempty"`
+	Parameters map[string]any `json:"parameters,omitempty"`
+}
+
+// Recommendation captures buy/sell/hold-style intent inside the existing signals[] model.
+type Recommendation struct {
+	Action         string  `json:"action,omitempty"`
+	Rating         string  `json:"rating,omitempty"`
+	Direction      string  `json:"direction,omitempty"`
+	EntryPrice     float64 `json:"entry_price,omitempty"`
+	TargetPrice    float64 `json:"target_price,omitempty"`
+	StopLoss       float64 `json:"stop_loss,omitempty"`
+	TimeHorizon    string  `json:"time_horizon,omitempty"`
+	HorizonDays    int     `json:"horizon_days,omitempty"`
+	PositionSizing string  `json:"position_sizing,omitempty"`
+	AllocationPct  float64 `json:"allocation_pct,omitempty"`
+	Confidence     float64 `json:"confidence,omitempty"`
+	Rationale      string  `json:"rationale,omitempty"`
+}
+
+// SignalInterestResolution captures whether the compiler/backtester can currently compute a signal interest.
+type SignalInterestResolution struct {
+	Status              string   `json:"status,omitempty"`
+	DataProvider        string   `json:"data_provider,omitempty"`
+	BacktesterSupported bool     `json:"backtester_supported,omitempty"`
+	RequiresOHLCV       bool     `json:"requires_ohlcv,omitempty"`
+	MissingFields       []string `json:"missing_fields,omitempty"`
+	Notes               string   `json:"notes,omitempty"`
+}
+
+// SignalInterestInterpretation describes intent: when a computed feature is in a state, what bias should be inferred.
+type SignalInterestInterpretation struct {
+	InterpretationID   string                    `json:"interpretation_id,omitempty"`
+	Condition          *SignalInterestCondition  `json:"condition,omitempty"`
+	Meaning            string                    `json:"meaning,omitempty"`
+	RecommendationBias string                    `json:"recommendation_bias,omitempty"`
+	ActionBias         string                    `json:"action_bias,omitempty"`
+	AppliesTo          string                    `json:"applies_to,omitempty"`
+	Confidence         float64                   `json:"confidence,omitempty"`
+	SourceText         string                    `json:"source_text,omitempty"`
+	Thresholds         []SignalInterestThreshold `json:"thresholds,omitempty"`
+	Metadata           map[string]any            `json:"metadata,omitempty"`
+}
+
+// SignalInterestCondition is a simple expression used to describe signal-interest intent.
+type SignalInterestCondition struct {
+	Left     string `json:"left,omitempty"`
+	Operator string `json:"operator,omitempty"`
+	Right    string `json:"right,omitempty"`
+	Value    any    `json:"value,omitempty"`
+	Unit     string `json:"unit,omitempty"`
+}
+
 type SignalInterestThreshold struct {
 	Label      string `json:"label,omitempty"`
 	Operator   string `json:"operator,omitempty"`
@@ -157,6 +255,7 @@ type Regime struct {
 	Description  string        `json:"description,omitempty"`
 	Conditions   *Condition    `json:"conditions"`
 	Confidence   float64       `json:"confidence,omitempty"`
+	Lifecycle    *Lifecycle    `json:"lifecycle,omitempty"`
 	StateMode    string        `json:"state_mode"`
 	Implications []Implication `json:"implications,omitempty"`
 }
@@ -192,6 +291,7 @@ type Rule struct {
 	Layer       string      `json:"layer"`
 	Priority    int         `json:"priority"`
 	Confidence  float64     `json:"confidence,omitempty"`
+	Lifecycle   *Lifecycle  `json:"lifecycle,omitempty"`
 	When        Condition   `json:"when"`
 	Then        []Action    `json:"then"`
 	Else        []Action    `json:"else,omitempty"`

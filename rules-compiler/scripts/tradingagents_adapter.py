@@ -70,7 +70,7 @@ def to_signal(symbol: str, date: str, decision: Any) -> dict[str, Any]:
             "frequency": "point_in_time",
             "unit": "decision",
             "confidence": 0.7,
-            "rationale": decision_text,
+            "rationale": decision_text, "recommendation": {"action": decision_text.lower(), "rating": decision_text.lower(), "confidence": 0.7, "rationale": decision_text},
         },
         "confidence": 0.7,
         "rationale": decision_text,
