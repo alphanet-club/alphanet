@@ -10,7 +10,7 @@ The compiler converted the user-provided strategy description and seed rules int
 
 The core compiled belief is:
 
-> Rising oil and rising long-term rates can pressure growth technology assets, especially during tight liquidity or elevated volatility regimes.
+> This strategy reduces growth technology exposure when oil prices and long-term interest rates rise together.
 
 ## Inputs Reviewed
 
@@ -80,6 +80,32 @@ compiled/strategy.ir.json
 
 This is the only file required by the backtester.
 
+## Warnings
+
+- Engine 'TauricResearch/TradingAgents' error: run: exit status 1 (stderr: Traceback (most recent call last):
+  File "/Users/patrick/Github/alphanet/rules-compiler/scripts/tradingagents_wrapper.py", line 208, in <module>
+    main()
+    ~~~~^^
+  File "/Users/patrick/Github/alphanet/rules-compiler/scripts/tradingagents_wrapper.py", line 175, in main
+    proc = subprocess.run(
+        [venv_python, __file__, "--input-file", tmpfile],
+        capture_output=True, text=True, timeout=20, env=ta_env,
+    )
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 557, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1221, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 2154, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1268, in _check_timeout
+    raise TimeoutExpired(
+    ...<2 lines>...
+            stderr=b''.join(stderr_seq) if stderr_seq else None)
+subprocess.TimeoutExpired: Command '['/Users/patrick/Github/TradingAgents/venv/bin/python3', '/Users/patrick/Github/alphanet/rules-compiler/scripts/tradingagents_wrapper.py', '--input-file', '/var/folders/sn/24s5h_hs4szdzynxj_9g08cc0000gn/T/tmp00nwl_30.json']' timed out after 20 seconds
+)
 
 ## Portfolio Initialization Update
 
@@ -104,19 +130,9 @@ The compiler added candidate baskets for:
 
 A basket rotation rule was added so oil/rates pressure can reduce growth technology exposure and rotate into defensive equities when appropriate.
 
-
 ## Source File Contract
 
 The source strategy keeps portfolio configuration in `manifest.json`, human strategy intent in `strategy.md`, and user-authored seed rules in `rules.json`.
 
 The compiler normalizes those inputs into `compiled/strategy.ir.json`, which is the only strategy artifact required by the backtester.
 
----
-
-## Sampling Decisions
-
-This example uses different sampling policies for compilation and backtesting.
-
-The compiler training window uses monthly sampling anchored to month-end. This lets the compiler inspect a broad historical range without requiring daily agent analysis.
-
-The backtest uses weekly decision sampling anchored to Friday, while portfolio valuation remains daily. This means the strategy can trade weekly but still measure daily drawdown and risk.

@@ -2,12 +2,12 @@
   "metadata": {
     "strategy_name": "Oil Rates Growth Tech",
     "strategy_id": "oil-rates-growth-tech",
-    "description": "Compiled AIR for reducing growth technology exposure when oil and rates rise together during tight liquidity.",
+    "description": "Reduce growth technology exposure when oil and long rates rise together, especially during tight liquidity regimes.",
     "author": "AlphaNet Example",
     "version": "0.1.0",
     "spec_version": "v0.1",
     "compiler_version": "v0.1.0",
-    "generated_at": "2026-06-19T00:00:00Z",
+    "generated_at": "2026-06-21T01:35:29Z",
     "tags": [
       "macro",
       "rates",
@@ -19,8 +19,88 @@
   "universe": {
     "assets": [
       {
-        "symbol": "QQQ",
-        "name": "Invesco QQQ Trust",
+        "symbol": "AAPL",
+        "name": "Apple Inc.",
+        "asset_class": "equities",
+        "sector": "technology",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "AGG",
+        "name": "iShares Core U.S. Aggregate Bond ETF",
+        "asset_class": "bonds",
+        "sector": "duration",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "AMD",
+        "name": "Advanced Micro Devices, Inc.",
+        "asset_class": "equities",
+        "sector": "technology",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "AVGO",
+        "name": "Broadcom Inc.",
+        "asset_class": "equities",
+        "sector": "technology",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "CVX",
+        "name": "Chevron Corporation",
+        "asset_class": "equities",
+        "sector": "energy",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "DBC",
+        "name": "Invesco DB Commodity Index Tracking Fund",
+        "asset_class": "commodities",
+        "sector": "commodities",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "IEF",
+        "name": "iShares 7-10 Year Treasury Bond ETF",
+        "asset_class": "bonds",
+        "sector": "duration",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "IWM",
+        "name": "iShares Russell 2000 ETF",
+        "asset_class": "equities",
+        "sector": "broad_market",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "JNJ",
+        "name": "Johnson & Johnson",
+        "asset_class": "equities",
+        "sector": "healthcare",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "KO",
+        "name": "Coca-Cola Company",
+        "asset_class": "equities",
+        "sector": "consumer_staples",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "MSFT",
+        "name": "Microsoft Corporation",
         "asset_class": "equities",
         "sector": "technology",
         "currency": "USD",
@@ -35,10 +115,42 @@
         "tradable": true
       },
       {
-        "symbol": "AMD",
-        "name": "Advanced Micro Devices, Inc.",
+        "symbol": "PG",
+        "name": "Procter & Gamble Co.",
+        "asset_class": "equities",
+        "sector": "consumer_staples",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "QQQ",
+        "name": "Invesco QQQ Trust",
         "asset_class": "equities",
         "sector": "technology",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "SHY",
+        "name": "iShares 1-3 Year Treasury Bond ETF",
+        "asset_class": "bonds",
+        "sector": "duration",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "SMH",
+        "name": "VanEck Semiconductor ETF",
+        "asset_class": "equities",
+        "sector": "technology",
+        "currency": "USD",
+        "tradable": true
+      },
+      {
+        "symbol": "SPY",
+        "name": "SPDR S&P 500 ETF Trust",
+        "asset_class": "equities",
+        "sector": "broad_market",
         "currency": "USD",
         "tradable": true
       },
@@ -59,58 +171,10 @@
         "tradable": true
       },
       {
-        "symbol": "SPY",
-        "name": "SPDR S&P 500 ETF Trust",
-        "asset_class": "equities",
-        "sector": "broad_market",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "MSFT",
-        "name": "Microsoft Corporation",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "AAPL",
-        "name": "Apple Inc.",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "AVGO",
-        "name": "Broadcom Inc.",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "SMH",
-        "name": "VanEck Semiconductor ETF",
-        "asset_class": "equities",
-        "sector": "technology",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "SHY",
-        "name": "iShares 1-3 Year Treasury Bond ETF",
-        "asset_class": "bonds",
-        "sector": "duration",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "IEF",
-        "name": "iShares 7-10 Year Treasury Bond ETF",
-        "asset_class": "bonds",
-        "sector": "duration",
+        "symbol": "XAUUSD",
+        "name": "Gold Spot Price USD",
+        "asset_class": "commodities",
+        "sector": "commodities",
         "currency": "USD",
         "tradable": true
       },
@@ -123,18 +187,10 @@
         "tradable": true
       },
       {
-        "symbol": "XOM",
-        "name": "Exxon Mobil Corporation",
+        "symbol": "XLP",
+        "name": "Consumer Staples Select Sector SPDR Fund",
         "asset_class": "equities",
-        "sector": "energy",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "CVX",
-        "name": "Chevron Corporation",
-        "asset_class": "equities",
-        "sector": "energy",
+        "sector": "consumer_staples",
         "currency": "USD",
         "tradable": true
       },
@@ -147,14 +203,6 @@
         "tradable": true
       },
       {
-        "symbol": "XLP",
-        "name": "Consumer Staples Select Sector SPDR Fund",
-        "asset_class": "equities",
-        "sector": "consumer_staples",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
         "symbol": "XLV",
         "name": "Health Care Select Sector SPDR Fund",
         "asset_class": "equities",
@@ -163,41 +211,29 @@
         "tradable": true
       },
       {
-        "symbol": "JNJ",
-        "name": "Johnson & Johnson",
+        "symbol": "XOM",
+        "name": "Exxon Mobil Corporation",
         "asset_class": "equities",
-        "sector": "healthcare",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "PG",
-        "name": "Procter & Gamble Co.",
-        "asset_class": "equities",
-        "sector": "consumer_staples",
-        "currency": "USD",
-        "tradable": true
-      },
-      {
-        "symbol": "KO",
-        "name": "Coca-Cola Company",
-        "asset_class": "equities",
-        "sector": "consumer_staples",
+        "sector": "energy",
         "currency": "USD",
         "tradable": true
       }
     ],
     "asset_classes": [
-      "cash",
-      "equities",
       "bonds",
-      "commodities"
+      "cash",
+      "commodities",
+      "equities"
     ],
     "sectors": [
-      "technology",
+      "broad_market",
+      "commodities",
+      "consumer_staples",
       "duration",
       "energy",
-      "broad_market"
+      "healthcare",
+      "technology",
+      "utilities"
     ],
     "themes": [
       {
@@ -216,257 +252,40 @@
         "members": [
           "XLU",
           "XLP",
-          "XLV",
-          "JNJ",
-          "PG",
-          "KO"
+          "XLV"
         ],
         "description": "Defensive equity candidates for risk-off rotation."
+      },
+      {
+        "theme_id": "commodities_energy",
+        "name": "Commodities / Energy",
+        "members": [
+          "USO",
+          "XLE",
+          "XOM"
+        ],
+        "description": "Energy and commodity exposure."
+      },
+      {
+        "theme_id": "duration",
+        "name": "Duration",
+        "members": [
+          "SHY",
+          "IEF",
+          "TLT"
+        ],
+        "description": "Treasury duration instruments."
       }
     ],
     "benchmark": "SPY"
   },
-  "signals": [
-    {
-      "signal_id": "wti_change_20d",
-      "family": "macro",
-      "type": "percent_change",
-      "description": "20-day percent change in WTI crude oil.",
-      "source": {
-        "name": "fred",
-        "series_id": "DCOILWTICO"
-      },
-      "instrument": "WTI",
-      "field": "close",
-      "transform": "percent_change",
-      "window": "20d",
-      "frequency": "daily",
-      "unit": "percent"
-    },
-    {
-      "signal_id": "ust10y_change_20d",
-      "family": "macro",
-      "type": "rate_change",
-      "description": "20-day change in the U.S. 10-year Treasury yield.",
-      "source": {
-        "name": "fred",
-        "series_id": "DGS10"
-      },
-      "instrument": "UST10Y",
-      "field": "yield",
-      "transform": "change",
-      "window": "20d",
-      "frequency": "daily",
-      "unit": "basis_points"
-    },
-    {
-      "signal_id": "dxy_change_60d",
-      "family": "macro",
-      "type": "percent_change",
-      "description": "60-day percent change in broad dollar index.",
-      "source": {
-        "name": "fred"
-      },
-      "instrument": "DXY_BROAD",
-      "field": "level",
-      "transform": "percent_change",
-      "window": "60d",
-      "frequency": "daily",
-      "unit": "percent"
-    },
-    {
-      "signal_id": "vix_level",
-      "family": "volatility",
-      "type": "level",
-      "description": "VIX level.",
-      "source": {
-        "name": "market_data"
-      },
-      "instrument": "VIX",
-      "field": "close",
-      "transform": "level",
-      "frequency": "daily",
-      "unit": "index_level"
-    },
-    {
-      "signal_id": "nvda_news_sentiment_7d",
-      "family": "sentiment",
-      "type": "sentiment_score",
-      "description": "7-day aggregate news sentiment score for NVDA.",
-      "source": {
-        "name": "news_api",
-        "adapter": "news_sentiment"
-      },
-      "symbol": "NVDA",
-      "transform": "sentiment_score",
-      "window": "7d",
-      "frequency": "daily",
-      "unit": "score",
-      "value_range": [
-        -1,
-        1
-      ]
-    }
-  ],
-  "relations": [
-    {
-      "relation_id": "oil_rates_negative_for_growth_tech",
-      "description": "Oil and long rates rising together create negative pressure on growth technology exposure.",
-      "drivers": [
-        "wti_change_20d",
-        "ust10y_change_20d"
-      ],
-      "targets": [
-        "QQQ",
-        "NVDA",
-        "AMD",
-        "growth_technology"
-      ],
-      "effect": "negative",
-      "conditions": {
-        "all": [
-          {
-            "signal": "wti_change_20d",
-            "operator": ">",
-            "value": 0.1,
-            "unit": "percent"
-          },
-          {
-            "signal": "ust10y_change_20d",
-            "operator": ">",
-            "value": 25,
-            "unit": "basis_points"
-          }
-        ]
-      },
-      "confidence": 0.72,
-      "strength": -0.65,
-      "window": "20d"
-    },
-    {
-      "relation_id": "high_volatility_supports_cash_raise",
-      "description": "Elevated volatility increases preference for cash and lower gross exposure.",
-      "drivers": [
-        "vix_level"
-      ],
-      "targets": [
-        "cash",
-        "portfolio"
-      ],
-      "effect": "risk_off",
-      "conditions": {
-        "signal": "vix_level",
-        "operator": ">",
-        "value": 24
-      },
-      "confidence": 0.68,
-      "strength": 0.5
-    }
-  ],
-  "regimes": [
-    {
-      "regime_id": "tight_liquidity",
-      "name": "Tight Liquidity",
-      "description": "Tight-liquidity regime driven by rising long rates and/or dollar pressure.",
-      "conditions": {
-        "any": [
-          {
-            "signal": "ust10y_change_20d",
-            "operator": ">",
-            "value": 25,
-            "unit": "basis_points"
-          },
-          {
-            "signal": "dxy_change_60d",
-            "operator": ">",
-            "value": 0.03,
-            "unit": "percent"
-          }
-        ]
-      },
-      "confidence": 0.8,
-      "state_mode": "active_inactive",
-      "implications": [
-        {
-          "target": "growth_technology",
-          "effect": "negative",
-          "confidence": 0.7
-        },
-        {
-          "target": "cash",
-          "effect": "increase_cash",
-          "confidence": 0.7
-        }
-      ]
-    },
-    {
-      "regime_id": "high_volatility",
-      "name": "High Volatility",
-      "description": "High-volatility regime when VIX is elevated.",
-      "conditions": {
-        "signal": "vix_level",
-        "operator": ">",
-        "value": 24
-      },
-      "confidence": 0.75,
-      "state_mode": "active_inactive",
-      "implications": [
-        {
-          "target": "portfolio",
-          "effect": "reduce_exposure",
-          "confidence": 0.7
-        }
-      ]
-    }
-  ],
+  "signals": [],
   "portfolio": {
     "base_currency": "USD",
     "starting_cash": 100000,
-    "targets": {
-      "cash": 0.25,
-      "equities": 0.5,
-      "bonds": 0.2,
-      "commodities": 0.05
-    },
-    "soft_targets": [
-      {
-        "target": "equities",
-        "weight": 0.5,
-        "tolerance": 0.1,
-        "priority": 60
-      },
-      {
-        "target": "cash",
-        "weight": 0.25,
-        "tolerance": 0.1,
-        "priority": 80
-      }
-    ],
-    "constraints": {
-      "cash_min": 0.1,
-      "max_single_position": 0.15,
-      "max_asset_class_weight": {
-        "equities": 0.65,
-        "bonds": 0.5,
-        "commodities": 0.25
-      },
-      "max_sector_weight": {
-        "technology": 0.35
-      },
-      "max_leverage": 1.0,
-      "allow_shorting": false,
-      "allow_margin": false
-    },
-    "risk_budgets": {
-      "max_portfolio_volatility": 0.2,
-      "max_drawdown": 0.15,
-      "max_daily_turnover": 0.1,
-      "max_trade_weight": 0.05
-    },
     "rebalance": {
       "frequency": "daily",
-      "threshold": 0.05,
-      "allow_partial_rebalance": true
+      "threshold": 0.05
     },
     "initial_allocation": {
       "mode": "weights",
@@ -495,7 +314,6 @@
         "description": "Growth technology and AI-related equities the strategy may buy or sell.",
         "asset_class": "equities",
         "sector": "technology",
-        "role": "risk_asset",
         "symbols": [
           "QQQ",
           "NVDA",
@@ -505,6 +323,7 @@
           "AVGO",
           "SMH"
         ],
+        "role": "risk_asset",
         "max_weight": 0.35,
         "min_position_weight": 0.02,
         "max_position_weight": 0.1
@@ -518,7 +337,6 @@
           "consumer_staples",
           "healthcare"
         ],
-        "role": "defensive_asset",
         "symbols": [
           "XLU",
           "XLP",
@@ -527,18 +345,19 @@
           "PG",
           "KO"
         ],
+        "role": "defensive_asset",
         "max_weight": 0.3
       },
       {
         "basket_id": "duration",
         "description": "Treasury duration instruments.",
         "asset_class": "bonds",
-        "role": "duration",
         "symbols": [
           "SHY",
           "IEF",
           "TLT"
         ],
+        "role": "duration",
         "max_weight": 0.5
       },
       {
@@ -546,13 +365,13 @@
         "description": "Energy and oil-related instruments.",
         "asset_class": "commodities",
         "sector": "energy",
-        "role": "commodity",
         "symbols": [
           "USO",
           "XLE",
           "XOM",
           "CVX"
         ],
+        "role": "commodity",
         "max_weight": 0.25
       }
     ],
@@ -633,13 +452,12 @@
   },
   "rules": [
     {
-      "rule_id": "reduce_growth_tech_when_oil_and_rates_rise",
-      "name": "Reduce growth tech when oil and rates rise",
-      "description": "Trim growth technology exposure and raise cash when oil and long rates rise together during tight liquidity.",
+      "rule_id": "seed_reduce_growth_tech_oil_rates",
+      "name": "Seed rule: reduce growth tech when oil and rates rise",
       "enabled": true,
       "layer": "strategy",
-      "priority": 70,
-      "confidence": 0.76,
+      "priority": 65,
+      "confidence": 0.65,
       "when": {
         "all": [
           {
@@ -653,11 +471,6 @@
             "operator": ">",
             "value": 25,
             "unit": "basis_points"
-          },
-          {
-            "regime": "tight_liquidity",
-            "operator": "active",
-            "confidence_min": 0.65
           }
         ]
       },
@@ -667,115 +480,52 @@
           "target": "QQQ",
           "amount": 0.05,
           "unit": "weight",
-          "reason": "Growth tech pressured by rising oil and long rates."
-        },
-        {
-          "action": "decrease_weight",
-          "target": "NVDA",
-          "amount": 0.03,
-          "unit": "weight",
-          "reason": "High-beta semiconductor exposure trimmed during macro pressure."
+          "reason": "Oil and long rates are rising together."
         },
         {
           "action": "increase_weight",
           "target": "cash",
-          "amount": 0.08,
+          "amount": 0.05,
           "unit": "weight",
-          "reason": "Raise cash during tight liquidity."
-        }
-      ],
-      "cooldown": {
-        "enabled": true,
-        "days": 5,
-        "scope": "rule"
-      },
-      "limits": {
-        "max_single_action_weight": 0.05,
-        "requires_portfolio_approval": true
-      }
-    },
-    {
-      "rule_id": "high_volatility_reduce_risk",
-      "name": "Reduce risk during high volatility",
-      "description": "Reduce total equity exposure when volatility is elevated.",
-      "enabled": true,
-      "layer": "risk_management",
-      "priority": 65,
-      "confidence": 0.72,
-      "when": {
-        "all": [
-          {
-            "regime": "high_volatility",
-            "operator": "active",
-            "confidence_min": 0.65
-          },
-          {
-            "portfolio_metric": "equities_weight",
-            "operator": ">",
-            "value": 0.55
-          }
-        ]
-      },
-      "then": [
-        {
-          "action": "reduce_risk",
-          "target": "portfolio",
-          "amount": 0.1,
-          "unit": "risk_fraction",
-          "reason": "Volatility elevated while equities exceed target."
-        }
-      ]
-    },
-    {
-      "rule_id": "block_cash_below_minimum",
-      "name": "Block trades that violate minimum cash",
-      "description": "Portfolio safety rule blocking actions that would push cash below the minimum.",
-      "enabled": true,
-      "layer": "portfolio_safety",
-      "priority": 100,
-      "confidence": 1.0,
-      "when": {
-        "portfolio_metric": "cash_weight",
-        "operator": "<",
-        "value": 0.1
-      },
-      "then": [
-        {
-          "action": "block_trade",
-          "target": "portfolio",
-          "reason": "Cash weight below required minimum."
+          "reason": "Raise cash during macro pressure."
         }
       ]
     },
     {
       "rule_id": "rotate_growth_to_defensive_when_oil_rates_pressure_active",
       "name": "Rotate growth technology to defensive equities when oil/rates pressure is active",
-      "description": "Move part of the growth technology allocation into defensive equity candidates when oil and rates pressure is active.",
       "enabled": true,
       "layer": "cross_asset_relations",
       "priority": 72,
       "confidence": 0.7,
       "when": {
-        "relation": "oil_rates_negative_for_growth_tech",
-        "operator": "active",
-        "confidence_min": 0.65
+        "all": [
+          {
+            "signal": "wti_change_20d",
+            "operator": ">",
+            "value": 0.1,
+            "unit": "percent"
+          },
+          {
+            "signal": "ust10y_change_20d",
+            "operator": ">",
+            "value": 25,
+            "unit": "basis_points"
+          }
+        ]
       },
       "then": [
         {
           "action": "rotate",
-          "from": "growth_technology",
-          "to": "defensive_equities",
           "target": "portfolio",
           "target_type": "portfolio",
+          "from": "growth_technology",
+          "to": "defensive_equities",
           "amount": 0.1,
           "unit": "weight",
           "reason": "Rotate from rate-sensitive growth technology into defensive equities."
         }
-      ],
-      "limits": {
-        "max_single_action_weight": 0.1,
-        "requires_portfolio_approval": true
-      }
+      ]
     }
   ],
   "execution": {
@@ -842,18 +592,39 @@
     ]
   },
   "provenance": {
+    "strategy_name": "Oil Rates Growth Tech",
+    "strategy_id": "oil-rates-growth-tech",
+    "spec_version": "v0.1",
     "compiler_version": "v0.1.0",
-    "generated_at": "2026-06-19T00:00:00Z",
+    "generated_at": "2026-06-21T01:35:29Z",
+    "compiler_mode": "ensemble",
+    "ensemble_method": "weighted_vote",
     "engines": [
       {
         "name": "TauricResearch/TradingAgents",
         "version": "0.2.5",
-        "weight": 0.5
+        "weight": 0.5,
+        "role": "market_and_technical_reasoning",
+        "symbols": [
+          "QQQ",
+          "NVDA",
+          "AMD",
+          "TLT",
+          "USO"
+        ]
       },
       {
         "name": "virattt/ai-hedge-fund",
         "version": "2026.6.17",
-        "weight": 0.5
+        "weight": 0.5,
+        "role": "fundamental_sentiment_portfolio_reasoning",
+        "symbols": [
+          "QQQ",
+          "NVDA",
+          "AMD",
+          "TLT",
+          "USO"
+        ]
       }
     ],
     "training_window": {
@@ -866,13 +637,31 @@
         "include_start": true,
         "include_end": true,
         "timezone": "America/New_York"
-      }
+      },
+      "include_ranges": [
+        {
+          "start": "2018-01-01",
+          "end": "2025-12-31",
+          "label": "primary_training_range"
+        }
+      ]
     },
+    "source_files": [
+      "manifest.json",
+      "rules.json",
+      "strategy.md"
+    ],
     "source_hashes": {
-      "manifest.json": "sha256:example",
-      "strategy.md": "sha256:example",
-      "rules.json": "sha256:example"
+      "manifest.json": "sha256:f164e1d601158284c181f2876d366c4c94eabefa60e5644b01fc5e7138ab0bc0",
+      "rules.json": "sha256:01220bd2330607632c9608546e875ab1166993864711c28c5993781f04d0c14e",
+      "strategy.md": "sha256:fd7c8373f74998639e5a703177562d091a8581662b7e2a9aa627daf224dae5b4"
     },
-    "ir_sha256": "sha256:example"
+    "outputs": {
+      "reasoning.md": "sha256:example",
+      "strategy.ir.json": "sha256:643280c2edc4f7e75d1c76054d3d45ce19e29ab80ffe78f6c6aa37115d4b1d1e",
+      "validation-report.json": "sha256:example"
+    },
+    "ir_sha256": "sha256:643280c2edc4f7e75d1c76054d3d45ce19e29ab80ffe78f6c6aa37115d4b1d1e",
+    "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json."
   }
 }

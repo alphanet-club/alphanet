@@ -1,7 +1,7 @@
 {
-  "status": "valid",
+  "status": "warning",
   "spec_version": "v0.1",
-  "validated_at": "2026-06-19T00:00:00Z",
+  "validated_at": "2026-06-21T01:35:49Z",
   "schemas": [
     "alphanet.schema.json",
     "manifest.schema.json",
@@ -24,7 +24,7 @@
       "status": "pass"
     },
     {
-      "name": "unique_signal_ids",
+      "name": "signal_references_resolved",
       "status": "pass"
     },
     {
@@ -36,8 +36,17 @@
       "status": "pass"
     },
     {
-      "name": "signal_references_resolved",
+      "name": "unique_relation_ids",
       "status": "pass"
+    },
+    {
+      "name": "candidate_baskets_valid",
+      "status": "pass"
+    },
+    {
+      "name": "signal_references_resolved",
+      "status": "pass",
+      "detail": "No signal catalog defined; signal references will be resolved by engines in ensemble mode."
     },
     {
       "name": "regime_references_resolved",
@@ -74,9 +83,9 @@
   ],
   "warnings": [
     {
-      "code": "PLACEHOLDER_HASHES",
-      "message": "Example strategy uses placeholder SHA-256 hashes."
+      "code": "COMPILER_WARNING",
+      "message": "Engine 'TauricResearch/TradingAgents' error: run: exit status 1 (stderr: Traceback (most recent call last):\n  File \"/Users/patrick/Github/alphanet/rules-compiler/scripts/tradingagents_wrapper.py\", line 208, in <module>\n    main()\n    ~~~~^^\n  File \"/Users/patrick/Github/alphanet/rules-compiler/scripts/tradingagents_wrapper.py\", line 175, in main\n    proc = subprocess.run(\n        [venv_python, __file__, \"--input-file\", tmpfile],\n        capture_output=True, text=True, timeout=20, env=ta_env,\n    )\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 557, in run\n    stdout, stderr = process.communicate(input, timeout=timeout)\n                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 1221, in communicate\n    stdout, stderr = self._communicate(input, endtime, timeout)\n                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 2154, in _communicate\n    self._check_timeout(endtime, orig_timeout, stdout, stderr)\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 1268, in _check_timeout\n    raise TimeoutExpired(\n    ...<2 lines>...\n            stderr=b''.join(stderr_seq) if stderr_seq else None)\nsubprocess.TimeoutExpired: Command '['/Users/patrick/Github/TradingAgents/venv/bin/python3', '/Users/patrick/Github/alphanet/rules-compiler/scripts/tradingagents_wrapper.py', '--input-file', '/var/folders/sn/24s5h_hs4szdzynxj_9g08cc0000gn/T/tmp00nwl_30.json']' timed out after 20 seconds\n)"
     }
   ],
-  "errors": []
+  "errors": null
 }
