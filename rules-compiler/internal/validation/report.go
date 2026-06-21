@@ -2,6 +2,7 @@ package validation
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/alphanet/rules-compiler/internal/air"
@@ -64,7 +65,7 @@ func runSemanticChecks(airData *air.AIR) []air.ValidationCheck {
 	checks = append(checks, air.ValidationCheck{Name: "rules_schema", Status: "pass"})
 	checks = append(checks, air.ValidationCheck{Name: "air_schema", Status: "pass"})
 
-	checks = append(checks, checkUniqueSignalIDs(airData.Signals)...)
+	checks = append(checks, checkUniqueSignalIDs(airData.Signals, airData.SignalInterests)...)
 	checks = append(checks, checkUniqueRuleIDs(airData.Rules)...)
 	checks = append(checks, checkUniqueRegimeIDs(airData.Regimes)...)
 	checks = append(checks, checkUniqueRelationIDs(airData.Relations)...)
@@ -82,19 +83,29 @@ func runSemanticChecks(airData *air.AIR) []air.ValidationCheck {
 	return checks
 }
 
-func checkUniqueSignalIDs(signals []air.Signal) []air.ValidationCheck {
+func checkUniqueSignalIDs(signals []air.Signal, interests []air.SignalInterest) []air.ValidationCheck {
 	seen := make(map[string]bool)
 	for _, s := range signals {
 		if seen[s.SignalID] {
 			return []air.ValidationCheck{{
-				Name:   "signal_references_resolved",
+				Name:   "unique_signal_ids",
 				Status: "fail",
 				Detail: fmt.Sprintf("duplicate signal_id: %s", s.SignalID),
 			}}
 		}
 		seen[s.SignalID] = true
 	}
-	return []air.ValidationCheck{{Name: "signal_references_resolved", Status: "pass"}}
+	for _, s := range interests {
+		if seen[s.SignalID] {
+			return []air.ValidationCheck{{
+				Name:   "unique_signal_ids",
+				Status: "fail",
+				Detail: fmt.Sprintf("duplicate signal_id: %s", s.SignalID),
+			}}
+		}
+		seen[s.SignalID] = true
+	}
+	return []air.ValidationCheck{{Name: "unique_signal_ids", Status: "pass"}}
 }
 
 func checkUniqueRuleIDs(rules []air.Rule) []air.ValidationCheck {
@@ -161,7 +172,7 @@ func checkSignalReferences(airData *air.AIR) []air.ValidationCheck {
 	// For manual mode without signals, signal references in rules can't be resolved.
 	// This is expected — engines would add signal definitions in ensemble mode.
 	// Report as warning-style pass for manual mode.
-	if len(airData.Signals) == 0 && len(airData.Rules) > 0 {
+	if len(airData.Signals) == 0 && len(airData.SignalInterests) == 0 && len(airData.Rules) > 0 {
 		hasSignalRefs := false
 		for _, rule := range airData.Rules {
 			if hasSignalInCond(&rule.When) {
@@ -182,6 +193,9 @@ func checkSignalReferences(airData *air.AIR) []air.ValidationCheck {
 	for _, s := range airData.Signals {
 		signalIDs[s.SignalID] = true
 	}
+	for _, s := range airData.SignalInterests {
+		signalIDs[s.SignalID] = true
+	}
 
 	var missing []string
 	for _, rule := range airData.Rules {
@@ -197,7 +211,17 @@ func checkSignalReferences(airData *air.AIR) []air.ValidationCheck {
 			collectMissingSignals(relation.Conditions, signalIDs, &missing)
 		}
 	}
+	if airData.Portfolio.SelectionPolicy != nil {
+		for _, basket := range airData.Portfolio.SelectionPolicy.Baskets {
+			for _, ranking := range basket.Ranking {
+				if ranking.Signal != "" && !signalIDs[ranking.Signal] {
+					missing = append(missing, ranking.Signal)
+				}
+			}
+		}
+	}
 
+	missing = uniqueStrings(missing)
 	if len(missing) > 0 {
 		return []air.ValidationCheck{{
 			Name:   "signal_references_resolved",
@@ -206,6 +230,20 @@ func checkSignalReferences(airData *air.AIR) []air.ValidationCheck {
 		}}
 	}
 	return []air.ValidationCheck{{Name: "signal_references_resolved", Status: "pass"}}
+}
+
+func uniqueStrings(values []string) []string {
+	seen := make(map[string]bool)
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		if seen[value] {
+			continue
+		}
+		seen[value] = true
+		out = append(out, value)
+	}
+	sort.Strings(out)
+	return out
 }
 
 func hasSignalInCond(cond *air.Condition) bool {

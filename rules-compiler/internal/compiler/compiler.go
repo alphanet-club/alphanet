@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -109,20 +110,71 @@ func loadSources(dir string) (*air.SourceContext, error) {
 		rulesRaw = []byte{}
 	}
 
+	signalsList, signalsRaw, err := loadSignals(dir)
+	if err != nil {
+		return nil, err
+	}
+	if signalsList == nil {
+		signalsList = []air.Signal{}
+	}
+
+	signalInterestsList, signalInterestsRaw, err := loadSignalInterests(dir)
+	if err != nil {
+		return nil, err
+	}
+	if signalInterestsList == nil {
+		signalInterestsList = []air.SignalInterest{}
+	}
+
 	now := time.Now().UTC().Format(time.RFC3339)
 
 	return &air.SourceContext{
-		Manifest:    m,
-		StrategyMD:  stratMD,
-		Rules:       rulesList,
-		Signals:     []air.Signal{},
-		Relations:   []air.Relation{},
-		Regimes:     []air.Regime{},
-		GeneratedAt: now,
-		ManifestRaw: manifestRaw,
-		StrategyRaw: strategyRaw,
-		RulesRaw:    rulesRaw,
+		Manifest:           m,
+		StrategyMD:         stratMD,
+		Rules:              rulesList,
+		Signals:            signalsList,
+		SignalInterests:    signalInterestsList,
+		Relations:          []air.Relation{},
+		Regimes:            []air.Regime{},
+		GeneratedAt:        now,
+		ManifestRaw:        manifestRaw,
+		StrategyRaw:        strategyRaw,
+		RulesRaw:           rulesRaw,
+		SignalsRaw:         signalsRaw,
+		SignalInterestsRaw: signalInterestsRaw,
 	}, nil
+}
+
+func loadSignals(dir string) ([]air.Signal, []byte, error) {
+	raw, err := os.ReadFile(dir + "/signals.json")
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil, nil
+		}
+		return nil, nil, fmt.Errorf("reading signals.json: %w", err)
+	}
+
+	var file air.SignalsFile
+	if err := json.Unmarshal(raw, &file); err != nil {
+		return nil, nil, fmt.Errorf("parsing signals.json: %w", err)
+	}
+	return file.Signals, raw, nil
+}
+
+func loadSignalInterests(dir string) ([]air.SignalInterest, []byte, error) {
+	raw, err := os.ReadFile(dir + "/signal_interests.json")
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil, nil
+		}
+		return nil, nil, fmt.Errorf("reading signal_interests.json: %w", err)
+	}
+
+	var file air.SignalInterestsFile
+	if err := json.Unmarshal(raw, &file); err != nil {
+		return nil, nil, fmt.Errorf("parsing signal_interests.json: %w", err)
+	}
+	return file.SignalInterests, raw, nil
 }
 
 func normalizeRules(rulesList []air.Rule) ([]air.Rule, []string, error) {

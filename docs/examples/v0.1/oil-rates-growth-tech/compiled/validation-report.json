@@ -1,7 +1,7 @@
 {
- "status": "invalid",
+ "status": "warning",
  "spec_version": "v0.1",
- "validated_at": "2026-06-21T07:21:36Z",
+ "validated_at": "2026-06-21T17:14:24Z",
  "schemas": [
   "alphanet.schema.json",
   "manifest.schema.json",
@@ -24,7 +24,7 @@
    "status": "pass"
   },
   {
-   "name": "signal_references_resolved",
+   "name": "unique_signal_ids",
    "status": "pass"
   },
   {
@@ -45,8 +45,7 @@
   },
   {
    "name": "signal_references_resolved",
-   "status": "fail",
-   "detail": "unresolved signal references: [wti_change_20d ust10y_change_20d wti_change_20d ust10y_change_20d]"
+   "status": "pass"
   },
   {
    "name": "regime_references_resolved",
@@ -84,10 +83,8 @@
  "warnings": [
   {
    "code": "COMPILER_WARNING",
-   "message": "Engine \"virattt/ai-hedge-fund\" error: virattt/ai-hedge-fund adapter failed: exit status 1; stderr=AI Hedge Fund home not found: /Users/patrick/Github/ai-hedge-fund\n; stdout="
+   "message": "mode single selected; using first enabled engine only: TauricResearch/TradingAgents"
   }
  ],
- "errors": [
-  "unresolved signal references: [wti_change_20d ust10y_change_20d wti_change_20d ust10y_change_20d]"
- ]
+ "errors": null
 }

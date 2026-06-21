@@ -23,6 +23,7 @@ func BuildAIR(src SourceContext, normPortfolio *AIRPortfolio, normRules []Rule, 
 		},
 		Universe:          buildUniverse(src),
 		Signals:           src.Signals,
+		SignalInterests:   src.SignalInterests,
 		Relations:         src.Relations,
 		Regimes:           src.Regimes,
 		Portfolio:         *normPortfolio,
@@ -296,18 +297,21 @@ func EnrichExecutionConfig(exec ExecutionConfig, bt BacktestConfig) ExecutionCon
 
 // SourceContext holds all data needed to build AIR.
 type SourceContext struct {
-	Manifest    *Manifest
-	StrategyMD  string
-	Rules       []Rule
-	Signals     []Signal
-	Relations   []Relation
-	Regimes     []Regime
-	GeneratedAt string
+	Manifest        *Manifest
+	StrategyMD      string
+	Rules           []Rule
+	Signals         []Signal
+	SignalInterests []SignalInterest
+	Relations       []Relation
+	Regimes         []Regime
+	GeneratedAt     string
 
 	// Raw bytes for hashing
-	ManifestRaw []byte
-	StrategyRaw []byte
-	RulesRaw    []byte
+	ManifestRaw        []byte
+	StrategyRaw        []byte
+	RulesRaw           []byte
+	SignalsRaw         []byte
+	SignalInterestsRaw []byte
 }
 
 // CanonicalJSON serializes a value to deterministic JSON with sorted keys.
@@ -378,16 +382,22 @@ func HashBytes(data []byte) string {
 }
 
 // HashSource computes SHA-256 hashes for source file bytes.
-func HashSource(manifestRaw, strategyRaw, rulesRaw []byte) map[string]string {
+func HashSource(src *SourceContext) map[string]string {
 	hashes := make(map[string]string)
-	if manifestRaw != nil {
-		hashes["manifest.json"] = HashBytes(manifestRaw)
+	if src.ManifestRaw != nil {
+		hashes["manifest.json"] = HashBytes(src.ManifestRaw)
 	}
-	if strategyRaw != nil {
-		hashes["strategy.md"] = HashBytes(strategyRaw)
+	if src.StrategyRaw != nil {
+		hashes["strategy.md"] = HashBytes(src.StrategyRaw)
 	}
-	if rulesRaw != nil {
-		hashes["rules.json"] = HashBytes(rulesRaw)
+	if src.RulesRaw != nil {
+		hashes["rules.json"] = HashBytes(src.RulesRaw)
+	}
+	if src.SignalsRaw != nil {
+		hashes["signals.json"] = HashBytes(src.SignalsRaw)
+	}
+	if src.SignalInterestsRaw != nil {
+		hashes["signal_interests.json"] = HashBytes(src.SignalInterestsRaw)
 	}
 	return hashes
 }

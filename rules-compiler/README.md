@@ -1,6 +1,6 @@
 # AlphaNet Rules Compiler
 
-The `rules-compiler` converts AlphaNet strategy source files into a compiled **AlphaNet Intermediate Representation (AIR)** artifact. It reads human-authored strategy inputs (`manifest.json`, `strategy.md`, `rules.json`, and optional source files such as `signals.json`) and emits deterministic artifacts consumed by the backtester.
+The `rules-compiler` converts AlphaNet strategy source files into a compiled **AlphaNet Intermediate Representation (AIR)** artifact. It reads human-authored strategy inputs (`manifest.json`, `strategy.md`, `rules.json`, and optional source files such as `signals.json` and `signal_interests.json`) and emits deterministic artifacts consumed by the backtester.
 
 ## Table of Contents
 
@@ -29,7 +29,8 @@ strategy/
 ├── manifest.json
 ├── strategy.md
 ├── rules.json
-└── signals.json        # optional but recommended when rules reference seed signals
+├── signals.json             # optional concrete/user-starting signals
+└── signal_interests.json    # optional tracked features to compute/watch
 ```
 
 and writes outputs to `strategy/compiled/`:
@@ -130,10 +131,17 @@ strategy/
 ├── manifest.json
 ├── strategy.md
 ├── rules.json
+├── signals.json             # optional concrete/user-starting signals
+├── signal_interests.json    # optional user-authored tracked features
 └── compiled/
 ```
 
-Optional source files can define reusable inputs. For this branch, `signals.json` is recommended when `rules.json` references seed signals.
+Optional source files can define reusable inputs:
+
+- `signals.json` defines user-authored concrete signals: executable definitions, measured observations, point-in-time values, or recommendations that should appear in compiled `signals[]`.
+- `signal_interests.json` defines user-authored signal interests: features the backtester should track or compute over time. These appear in compiled `signal_interests[]` alongside interests extracted from agent reports.
+
+Rules may reference a signal id that is supplied by either `signals.json` or `signal_interests.json`. Use `signal_interests.json` when the rule depends on a feature to compute, not on an already materialized signal value.
 
 ## Agent Engine Setup
 
@@ -363,14 +371,17 @@ Messages like `structured-output invocation failed ... retrying once as free tex
 
 ### Unresolved signal references
 
-If validation reports unresolved signal references, add the signal definitions to the strategy source, usually `signals.json`, then regenerate `compiled/`.
+If validation reports unresolved signal references, add the referenced id to the strategy source, then regenerate `compiled/`.
+
+- Use `signal_interests.json` for tracked features such as `wti_change_20d`, `ust10y_change_20d`, RSI, MACD, volatility, sentiment, or ranked-basket inputs that the backtester should compute.
+- Use `signals.json` for concrete starting signals, observed values, executable signal definitions, or point-in-time recommendations that should be present in compiled `signals[]`.
 
 ## Agent report preservation and later extraction
 
 Agent engines produce two kinds of useful output:
 
 1. **Raw research reports**: rich markdown/text artifacts from the engine run.
-2. **Compiled schema objects**: `signals`, future `signal_interests`, rules, and portfolio/trading constructs.
+2. **Compiled schema objects**: `signals`, `signal_interests`, rules, and portfolio/trading constructs.
 
 The compiler preserves raw reports in:
 
@@ -395,8 +406,8 @@ This is intentionally separate from schema extraction. A later relay extraction 
 ```text
 agent report markdown
   -> deterministic extractor runs on agent reports & observations
-  -> signals[]
-  -> signal_interests[]
+  -> signals[]           # agent decisions/recommendations and other concrete values
+  -> signal_interests[]  # tracked features extracted from report text
   -> rules[]
   -> portfolio/trading constructs
 ```
@@ -445,7 +456,7 @@ The report body is then available for a later extraction stage. The first determ
 AlphaNet distinguishes three related concepts:
 
 - `signals[]`: executable signal definitions, measured observations, or point-in-time recommendations. Agent decisions such as `Buy`, `Sell`, `Hold`, `Overweight`, or `Trim` remain in this existing structure using `signal_kind: "recommendation"` and a `recommendation` object.
-- `signal_interests[]`: research-derived feature requests that tell the backtester what data/features to capture and compute. They include `interpretations[]` so the rule generator/backtester knows whether a computed state implies buy, sell, reduce, hold, hedge, or watch bias.
+- `signal_interests[]`: user-authored or research-derived feature requests that tell the backtester what data/features to capture and compute. They include `interpretations[]` so the rule generator/backtester knows whether a computed state implies buy, sell, reduce, hold, hedge, or watch bias.
 - `rules[]`: executable portfolio actions. Signal interests do not trade directly; rules consume computed signals/interests and produce portfolio actions.
 
 Agent-extracted artifacts should use lifecycle metadata:

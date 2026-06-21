@@ -74,6 +74,20 @@ type RulesFile struct {
 	Rules       []Rule `json:"rules"`
 }
 
+// SignalsFile is the top-level structure for user-authored concrete signals.
+type SignalsFile struct {
+	SpecVersion string   `json:"spec_version,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Signals     []Signal `json:"signals"`
+}
+
+// SignalInterestsFile is the top-level structure for user-authored signal interests.
+type SignalInterestsFile struct {
+	SpecVersion     string           `json:"spec_version,omitempty"`
+	Description     string           `json:"description,omitempty"`
+	SignalInterests []SignalInterest `json:"signal_interests"`
+}
+
 // UnmarshalJSON implements json.Unmarshaler for Manifest.
 func (m *Manifest) UnmarshalJSON(data []byte) error {
 	type alias Manifest
@@ -93,5 +107,27 @@ func (rf *RulesFile) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*rf = RulesFile(a)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler for SignalsFile.
+func (sf *SignalsFile) UnmarshalJSON(data []byte) error {
+	type alias SignalsFile
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
+		return err
+	}
+	*sf = SignalsFile(a)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler for SignalInterestsFile.
+func (sif *SignalInterestsFile) UnmarshalJSON(data []byte) error {
+	type alias SignalInterestsFile
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
+		return err
+	}
+	*sif = SignalInterestsFile(a)
 	return nil
 }

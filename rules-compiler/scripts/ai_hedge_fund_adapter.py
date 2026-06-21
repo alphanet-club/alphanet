@@ -11,9 +11,19 @@ from pathlib import Path
 from typing import Any
 
 
+CYAN = "\033[36m"
+RESET = "\033[0m"
+
+
+def colorize(message: str) -> str:
+    if os.environ.get("NO_COLOR") or os.environ.get("TERM") == "dumb":
+        return message
+    return f"{CYAN}{message}{RESET}"
+
+
 def log(message: str) -> None:
     if os.environ.get("ALPHANET_AHF_DEBUG") or os.environ.get("ALPHANET_ENGINE_DEBUG"):
-        print(f"[ai_hedge_fund_adapter] {message}", file=sys.stderr, flush=True)
+        print(colorize(f"[ai_hedge_fund_adapter] {message}"), file=sys.stderr, flush=True)
 
 
 def load_dotenv(root: Path) -> None:
@@ -53,9 +63,11 @@ def infer_decision(text: str) -> str:
     for word in ("buy", "sell", "short", "hold", "neutral"):
         if re.search(rf"\b{word}\b", lowered):
             return word.capitalize()
-    if text.strip():
-        return "Analysis completed"
-    return "No output"
+    return ""
+
+
+def is_actionable_decision(decision: str) -> bool:
+    return decision.strip().lower() in {"buy", "sell", "short", "hold", "neutral"}
 
 
 def to_signal(symbol: str, date: str, decision: str, rationale: str) -> dict[str, Any]:
@@ -130,11 +142,17 @@ def main() -> int:
         raise SystemExit(f"AI Hedge Fund exited {proc.returncode}:\n{combined[-4000:]}")
 
     decision = infer_decision(combined)
-    signals = [to_signal(symbol, req["date"], decision, combined) for symbol in req["symbols"]]
+    signals = []
+    if is_actionable_decision(decision):
+        signals = [to_signal(symbol, req["date"], decision, combined) for symbol in req["symbols"]]
+    else:
+        log("skipped signals: no actionable decision found")
 
     print(json.dumps({
         "signals": signals,
-        "notes": "AI Hedge Fund adapter completed\n" + combined[-4000:],
+        "notes": "AI Hedge Fund adapter completed\n"
+        + (f"Decision: {decision}\n" if decision else "No actionable decision found; no signal emitted.\n")
+        + combined[-4000:],
     }, indent=2))
     return 0
 

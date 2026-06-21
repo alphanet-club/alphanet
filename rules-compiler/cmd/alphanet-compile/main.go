@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/alphanet/rules-compiler/internal/app"
 	"github.com/alphanet/rules-compiler/internal/compiler"
@@ -28,7 +29,10 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	flag.Parse()
+	if err := flag.CommandLine.Parse(reorderArgs(os.Args[1:])); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: parsing flags: %v\n", err)
+		os.Exit(2)
+	}
 
 	// Validate position arg
 	if flag.NArg() < 1 {
@@ -62,4 +66,33 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func reorderArgs(args []string) []string {
+	var flags []string
+	var positionals []string
+
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if !strings.HasPrefix(arg, "-") {
+			positionals = append(positionals, arg)
+			continue
+		}
+
+		flags = append(flags, arg)
+		if strings.Contains(arg, "=") || isBoolFlag(arg) {
+			continue
+		}
+		if i+1 < len(args) {
+			i++
+			flags = append(flags, args[i])
+		}
+	}
+
+	return append(flags, positionals...)
+}
+
+func isBoolFlag(arg string) bool {
+	name := strings.TrimLeft(arg, "-")
+	return name == "dry-run" || name == "validate-only" || name == "verbose"
 }

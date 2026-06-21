@@ -6,6 +6,7 @@ import (
 
 	"github.com/alphanet/rules-compiler/internal/air"
 	"github.com/alphanet/rules-compiler/internal/compiler"
+	"github.com/alphanet/rules-compiler/internal/terminal"
 )
 
 // RunCompile orchestrates the full compilation workflow from a strategy directory.
@@ -17,6 +18,13 @@ func RunCompile(ctx context.Context, strategyDir string, opts compiler.Options) 
 		outDir = strategyDir + "/compiled"
 	}
 
+	if opts.Verbose {
+		terminal.Step("Starting AlphaNet compile")
+		terminal.Info("  Strategy: %s", strategyDir)
+		terminal.Info("  Output: %s", outDir)
+		terminal.Info("  Requested mode: %s", resolveModeLabel(opts.ModeOverride))
+	}
+
 	// Run compilation
 	result, err := compiler.Compile(ctx, strategyDir, opts)
 	if err != nil {
@@ -24,14 +32,21 @@ func RunCompile(ctx context.Context, strategyDir string, opts compiler.Options) 
 	}
 
 	if opts.Verbose {
-		fmt.Printf("Compilation mode: %s\n", resolveModeLabel(opts.ModeOverride))
-		fmt.Printf("Strategy: %s\n", strategyDir)
-		fmt.Printf("Output: %s\n", outDir)
-		fmt.Printf("Validation status: %s\n", result.ValidationReport.Status)
+		terminal.Step("Compilation summary")
+		terminal.Info("  Mode: %s", resolveModeLabel(opts.ModeOverride))
+		terminal.Info("  Strategy: %s", strategyDir)
+		terminal.Info("  Output: %s", outDir)
+		if result.ValidationReport.Status == "valid" {
+			terminal.Success("  Validation status: %s", result.ValidationReport.Status)
+		} else if result.ValidationReport.Status == "warning" {
+			terminal.Warn("  Validation status: %s", result.ValidationReport.Status)
+		} else {
+			terminal.Error("  Validation status: %s", result.ValidationReport.Status)
+		}
 		if len(result.Warnings) > 0 {
-			fmt.Printf("Warnings (%d):\n", len(result.Warnings))
+			terminal.Warn("  Warnings (%d):", len(result.Warnings))
 			for _, w := range result.Warnings {
-				fmt.Printf("  - %s\n", w)
+				terminal.Warn("    - %s", w)
 			}
 		}
 	}
@@ -63,9 +78,9 @@ func RunCompile(ctx context.Context, strategyDir string, opts compiler.Options) 
 	}
 
 	if opts.DryRun {
-		fmt.Printf("Dry-run complete. Would write to: %s\n", outDir)
+		terminal.Success("Dry-run complete. Would write to: %s", outDir)
 	} else {
-		fmt.Printf("Compilation complete. Output written to: %s\n", outDir)
+		terminal.Success("Compilation complete. Output written to: %s", outDir)
 	}
 
 	return nil

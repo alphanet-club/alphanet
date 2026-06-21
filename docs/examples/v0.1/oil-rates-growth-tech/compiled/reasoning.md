@@ -82,8 +82,7 @@ This is the only file required by the backtester.
 
 ## Warnings
 
-- Engine "virattt/ai-hedge-fund" error: virattt/ai-hedge-fund adapter failed: exit status 1; stderr=AI Hedge Fund home not found: /Users/patrick/Github/ai-hedge-fund
-; stdout=
+- mode single selected; using first enabled engine only: TauricResearch/TradingAgents
 
 ## Portfolio Initialization Update
 

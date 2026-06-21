@@ -16,8 +16,8 @@ func Build(src *air.SourceContext, mode string, engines []air.EngineConfig, irHa
 		GeneratedAt:     src.GeneratedAt,
 		CompilerMode:    mode,
 		EnsembleMethod:  src.Manifest.Compiler.EnsembleMethod,
-		SourceFiles:     []string{"manifest.json", "strategy.md", "rules.json"},
-		SourceHashes:    air.HashSource(src.ManifestRaw, src.StrategyRaw, src.RulesRaw),
+		SourceFiles:     sourceFiles(src),
+		SourceHashes:    air.HashSource(src),
 		Outputs:         outputHashes,
 		IRSHA256:        irHash,
 		Notes:           src.Manifest.Compiler.Notes,
@@ -42,4 +42,15 @@ func Build(src *air.SourceContext, mode string, engines []air.EngineConfig, irHa
 	}
 
 	return prov
+}
+
+func sourceFiles(src *air.SourceContext) []string {
+	files := []string{"manifest.json", "strategy.md", "rules.json"}
+	if src.SignalsRaw != nil {
+		files = append(files, "signals.json")
+	}
+	if src.SignalInterestsRaw != nil {
+		files = append(files, "signal_interests.json")
+	}
+	return files
 }

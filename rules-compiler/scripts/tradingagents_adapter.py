@@ -10,9 +10,19 @@ from pathlib import Path
 from typing import Any
 
 
+CYAN = "\033[36m"
+RESET = "\033[0m"
+
+
+def colorize(message: str) -> str:
+    if os.environ.get("NO_COLOR") or os.environ.get("TERM") == "dumb":
+        return message
+    return f"{CYAN}{message}{RESET}"
+
+
 def log(message: str) -> None:
     if os.environ.get("ALPHANET_TA_DEBUG") or os.environ.get("ALPHANET_ENGINE_DEBUG"):
-        print(f"[tradingagents_adapter] {message}", file=sys.stderr, flush=True)
+        print(colorize(f"[tradingagents_adapter] {message}"), file=sys.stderr, flush=True)
 
 
 def load_dotenv(root: Path) -> None:
@@ -52,8 +62,35 @@ def normalize_decision(decision: Any) -> str:
     return text or "unknown"
 
 
+def normalized_action(decision: Any) -> str:
+    text = normalize_decision(decision).lower()
+    aliases = {
+        "long": "buy",
+        "cover": "buy",
+        "exit": "sell",
+    }
+    return aliases.get(text, text)
+
+
+def is_actionable_decision(decision: Any) -> bool:
+    return normalized_action(decision) in {
+        "buy",
+        "sell",
+        "hold",
+        "short",
+        "neutral",
+        "overweight",
+        "underweight",
+        "trim",
+        "reduce",
+        "add",
+        "dry_run",
+    }
+
+
 def to_signal(symbol: str, date: str, decision: Any) -> dict[str, Any]:
     decision_text = normalize_decision(decision)
+    action = normalized_action(decision)
     return {
         "action": "add",
         "signal": {
@@ -65,12 +102,18 @@ def to_signal(symbol: str, date: str, decision: Any) -> dict[str, Any]:
             "source": {"name": "TradingAgents"},
             "symbol": symbol,
             "date": date,
-            "value": decision_text.lower(),
+            "value": action,
             "transform": "level",
             "frequency": "point_in_time",
             "unit": "decision",
             "confidence": 0.7,
-            "rationale": decision_text, "recommendation": {"action": decision_text.lower(), "rating": decision_text.lower(), "confidence": 0.7, "rationale": decision_text},
+            "rationale": decision_text,
+            "recommendation": {
+                "action": action,
+                "rating": action,
+                "confidence": 0.7,
+                "rationale": decision_text,
+            },
         },
         "confidence": 0.7,
         "rationale": decision_text,
@@ -300,7 +343,10 @@ def main() -> int:
             decision = f"ERROR {type(exc).__name__}: {exc}"
             log(f"error symbol={symbol}: {decision}")
 
-        signals.append(to_signal(symbol, req["date"], decision))
+        if is_actionable_decision(decision):
+            signals.append(to_signal(symbol, req["date"], decision))
+        else:
+            log(f"skipped signal symbol={symbol}: non-actionable decision {normalize_decision(decision)!r}")
         reports.append({
             "engine": "TradingAgents",
             "symbol": symbol,
@@ -308,7 +354,10 @@ def main() -> int:
             "format": "markdown",
             "content": extract_report_markdown(symbol, req["date"], state, decision),
         })
-        notes.append(f"{symbol}: {normalize_decision(decision)}")
+        if is_actionable_decision(decision):
+            notes.append(f"{symbol}: {normalize_decision(decision)}")
+        else:
+            notes.append(f"{symbol}: no signal emitted ({normalize_decision(decision)})")
 
     print(json.dumps({
         "signals": signals,

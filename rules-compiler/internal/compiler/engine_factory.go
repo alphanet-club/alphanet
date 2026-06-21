@@ -9,6 +9,7 @@ import (
 	"github.com/alphanet/rules-compiler/internal/engines"
 	"github.com/alphanet/rules-compiler/internal/provenance"
 	"github.com/alphanet/rules-compiler/internal/reasoning"
+	"github.com/alphanet/rules-compiler/internal/terminal"
 	"github.com/alphanet/rules-compiler/internal/validation"
 )
 
@@ -103,13 +104,26 @@ func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules [
 	var engineReports []engines.EngineReport
 
 	for _, engine := range engineList {
+		if opts.Verbose {
+			terminal.Step("Running engine %s", engine.Name())
+		}
 		output, err := engine.Analyze(ctx, engineInput)
 		if err != nil {
 			warnings = append(warnings, fmt.Sprintf("Engine %q error: %v", engine.Name(), err))
+			if opts.Verbose {
+				terminal.Warn("Engine %s failed; continuing with remaining compiler inputs", engine.Name())
+			}
 			continue
+		}
+		if opts.Verbose {
+			terminal.Info("Engine %s returned %d signal(s), %d report(s)", engine.Name(), len(output.Signals), len(output.Reports))
 		}
 		for _, sig := range output.Signals {
 			if sig.Action == "" || sig.Action == "add" {
+				if !isUsableEngineSignal(sig.Signal) {
+					warnings = append(warnings, fmt.Sprintf("Engine %q emitted unusable signal %q; skipped", engine.Name(), sig.Signal.SignalID))
+					continue
+				}
 				engineSignals = append(engineSignals, sig.Signal)
 			}
 		}
@@ -168,6 +182,29 @@ func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules [
 		ValidationReport: vr,
 		Warnings:         warnings,
 	}, nil
+}
+
+func isUsableEngineSignal(sig air.Signal) bool {
+	if strings.TrimSpace(sig.SignalID) == "" {
+		return false
+	}
+	action := ""
+	if sig.Recommendation != nil {
+		action = sig.Recommendation.Action
+	}
+	if action == "" {
+		action = fmt.Sprint(sig.Value)
+	}
+	action = strings.TrimSpace(strings.ToLower(action))
+	if action == "" || strings.HasPrefix(action, "error") || action == "unknown" || action == "no output" {
+		return false
+	}
+	switch action {
+	case "buy", "sell", "hold", "short", "neutral", "overweight", "underweight", "trim", "reduce", "add":
+		return true
+	default:
+		return sig.SignalKind != "recommendation" && sig.Recommendation == nil
+	}
 }
 
 func activeEngineConfigs(configs []air.EngineConfig) []air.EngineConfig {

@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/alphanet/rules-compiler/internal/air"
+	"github.com/alphanet/rules-compiler/internal/terminal"
 )
 
 type Engine interface {
@@ -214,7 +215,7 @@ func (c *pythonAdapterConfig) analyze(ctx context.Context, input EngineInput) (E
 	}
 
 	if os.Getenv(c.debugEnv) != "" || os.Getenv("ALPHANET_ENGINE_DEBUG") != "" {
-		fmt.Fprintf(os.Stderr, "[%s] python=%s adapter=%s symbols=%v date=%s\n", c.engineName, c.python, c.adapterScript, symbols, req.Date)
+		terminal.Info("[%s] python=%s adapter=%s symbols=%v date=%s", c.engineName, c.python, c.adapterScript, symbols, req.Date)
 	}
 
 	cmd := exec.CommandContext(ctx, c.python, args...)
@@ -233,7 +234,7 @@ func (c *pythonAdapterConfig) analyze(ctx context.Context, input EngineInput) (E
 	}
 
 	if stderr.Len() > 0 && (os.Getenv(c.debugEnv) != "" || os.Getenv("ALPHANET_ENGINE_DEBUG") != "") {
-		fmt.Fprintf(os.Stderr, "%s", stderr.String())
+		fmt.Fprint(os.Stderr, terminal.ColorizeLogLine(stderr.String()))
 	}
 
 	raw := strings.TrimSpace(stdout.String())

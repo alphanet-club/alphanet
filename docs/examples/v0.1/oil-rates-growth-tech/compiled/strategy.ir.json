@@ -7,7 +7,7 @@
   "version": "0.1.0",
   "spec_version": "v0.1",
   "compiler_version": "v0.1.0",
-  "generated_at": "2026-06-21T07:19:27Z",
+  "generated_at": "2026-06-21T17:12:15Z",
   "tags": [
    "macro",
    "rates",
@@ -285,7 +285,7 @@
    "family": "agents",
    "type": "trading_signal",
    "name": "TradingAgents decision for AMD",
-   "description": "TradingAgents decision for AMD on 2025-12-31: Buy",
+   "description": "TradingAgents decision for AMD on 2025-12-31: Hold",
    "source": {
     "name": "TradingAgents"
    },
@@ -294,18 +294,207 @@
    "frequency": "point_in_time",
    "unit": "decision",
    "date": "2025-12-31",
-   "value": "buy",
+   "value": "hold",
    "confidence": 0.7,
-   "rationale": "Buy",
+   "rationale": "Hold",
    "recommendation": {
-    "action": "buy",
-    "rating": "buy",
+    "action": "hold",
+    "rating": "hold",
     "confidence": 0.7,
-    "rationale": "Buy"
+    "rationale": "Hold"
    }
   }
  ],
  "signal_interests": [
+  {
+   "signal_id": "wti_change_20d",
+   "family": "macro",
+   "type": "price_change",
+   "description": "Twenty trading day percentage change in WTI crude oil proxy using USO.",
+   "source": {
+    "name": "AlphaNet sample data",
+    "dataset": "market_prices"
+   },
+   "symbol": "USO",
+   "field": "close",
+   "transform": "pct_change_20d",
+   "transform_spec": {
+    "name": "pct_change",
+    "inputs": [
+     "close"
+    ],
+    "window": "20d"
+   },
+   "window": "20d",
+   "frequency": "daily",
+   "unit": "percent",
+   "reason": "Rules reduce growth technology exposure when oil rises quickly.",
+   "status": "candidate",
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "market_prices",
+    "backtester_supported": true,
+    "notes": "Backtester should compute this from adjusted USO close prices."
+   },
+   "data_requirements": [
+    {
+     "dataset": "market_prices",
+     "symbol": "USO",
+     "required_fields": [
+      "close"
+     ],
+     "frequency": "daily",
+     "lookback": "20d",
+     "price_adjustment": "adjusted"
+    }
+   ],
+   "required_fields": [
+    "close"
+   ],
+   "input_price": "close",
+   "interpretations": [
+    {
+     "interpretation_id": "wti_20d_rising",
+     "condition": {
+      "left": "wti_change_20d",
+      "operator": ">",
+      "value": 0.1,
+      "unit": "percent"
+     },
+     "meaning": "oil has risen quickly over the last twenty trading days",
+     "action_bias": "reduce_growth_technology"
+    }
+   ]
+  },
+  {
+   "signal_id": "ust10y_change_20d",
+   "family": "macro",
+   "type": "yield_change",
+   "description": "Twenty trading day change in the 10-year Treasury yield proxy.",
+   "source": {
+    "name": "AlphaNet sample data",
+    "dataset": "rates"
+   },
+   "symbol": "UST10Y",
+   "field": "yield",
+   "transform": "change_20d",
+   "transform_spec": {
+    "name": "change",
+    "inputs": [
+     "yield"
+    ],
+    "window": "20d"
+   },
+   "window": "20d",
+   "frequency": "daily",
+   "unit": "basis_points",
+   "reason": "Rules reduce growth technology exposure when long rates rise quickly.",
+   "status": "candidate",
+   "resolution": {
+    "status": "candidate",
+    "data_provider": "rates",
+    "backtester_supported": true,
+    "notes": "Backtester should compute this from the configured 10-year Treasury yield series."
+   },
+   "data_requirements": [
+    {
+     "dataset": "rates",
+     "symbol": "UST10Y",
+     "required_fields": [
+      "yield"
+     ],
+     "frequency": "daily",
+     "lookback": "20d"
+    }
+   ],
+   "required_fields": [
+    "yield"
+   ],
+   "interpretations": [
+    {
+     "interpretation_id": "ust10y_20d_rising",
+     "condition": {
+      "left": "ust10y_change_20d",
+      "operator": ">",
+      "value": 25,
+      "unit": "basis_points"
+     },
+     "meaning": "long rates have risen quickly over the last twenty trading days",
+     "action_bias": "reduce_growth_technology"
+    }
+   ]
+  },
+  {
+   "signal_id": "relative_strength_60d",
+   "family": "technical",
+   "type": "relative_strength",
+   "description": "Sixty trading day relative strength score used for ranked basket selection.",
+   "source": {
+    "name": "AlphaNet sample data",
+    "dataset": "market_prices"
+   },
+   "field": "close",
+   "transform": "relative_strength_60d",
+   "transform_spec": {
+    "name": "relative_strength",
+    "inputs": [
+     "close"
+    ],
+    "window": "60d"
+   },
+   "window": "60d",
+   "frequency": "daily",
+   "unit": "score",
+   "reason": "Portfolio selection policy ranks candidate basket members by medium-term relative strength.",
+   "status": "candidate"
+  },
+  {
+   "signal_id": "news_sentiment_7d",
+   "family": "sentiment",
+   "type": "news_sentiment",
+   "description": "Seven day news sentiment score used for ranked basket selection.",
+   "source": {
+    "name": "AlphaNet sample data",
+    "dataset": "news"
+   },
+   "transform": "rolling_mean_7d",
+   "transform_spec": {
+    "name": "rolling_mean",
+    "inputs": [
+     "sentiment_score"
+    ],
+    "window": "7d"
+   },
+   "window": "7d",
+   "frequency": "daily",
+   "unit": "score",
+   "reason": "Portfolio selection policy ranks candidate basket members by short-term news sentiment.",
+   "status": "candidate"
+  },
+  {
+   "signal_id": "realized_volatility_20d",
+   "family": "risk",
+   "type": "realized_volatility",
+   "description": "Twenty trading day realized volatility used for ranked basket selection.",
+   "source": {
+    "name": "AlphaNet sample data",
+    "dataset": "market_prices"
+   },
+   "field": "close",
+   "transform": "realized_volatility_20d",
+   "transform_spec": {
+    "name": "realized_volatility",
+    "inputs": [
+     "close"
+    ],
+    "window": "20d"
+   },
+   "window": "20d",
+   "frequency": "daily",
+   "unit": "annualized_volatility",
+   "reason": "Portfolio selection policy penalizes high-volatility candidate basket members.",
+   "status": "candidate"
+  },
   {
    "signal_id": "amd_close_10_ema",
    "family": "technical",
@@ -382,7 +571,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **10 EMA ($213.89)**: Positioned just below current price ($214.16), indicating short-term bullish momentum"
+     "source_text": "- **10 EMA: $213.89** - Near-current price, suggesting short-term consolidation"
     },
     {
      "interpretation_id": "close_10_ema_bearish",
@@ -396,7 +585,7 @@
      "action_bias": "trim_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **10 EMA ($213.89)**: Positioned just below current price ($214.16), indicating short-term bullish momentum"
+     "source_text": "- **10 EMA: $213.89** - Near-current price, suggesting short-term consolidation"
     }
    ]
   },
@@ -476,7 +665,7 @@
      "action_bias": "buy_or_increase",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **50 SMA ($227.92)**: Significantly above current price, suggesting medium-term pullback"
+     "source_text": "- **50 SMA: $227.92** - Resistive medium-term level, price currently trading ~4.3% below this key benchmark"
     },
     {
      "interpretation_id": "close_50_sma_bearish",
@@ -490,7 +679,7 @@
      "action_bias": "sell_or_underweight",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **50 SMA ($227.92)**: Significantly above current price, suggesting medium-term pullback"
+     "source_text": "- **50 SMA: $227.92** - Resistive medium-term level, price currently trading ~4.3% below this key benchmark"
     }
    ]
   },
@@ -570,7 +759,7 @@
      "action_bias": "allow_long_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **200 SMA ($162.63)**: Well below current levels, confirming long-term uptrend structure"
+     "source_text": "- **200 SMA: $162.63** - Strong long-term support, indicating overall bullish structure remains intact"
     },
     {
      "interpretation_id": "close_200_sma_bearish",
@@ -584,7 +773,7 @@
      "action_bias": "reduce_or_avoid",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **200 SMA ($162.63)**: Well below current levels, confirming long-term uptrend structure"
+     "source_text": "- **200 SMA: $162.63** - Strong long-term support, indicating overall bullish structure remains intact"
     }
    ]
   },
@@ -665,7 +854,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### **3. RSI - Momentum Gauge**"
+     "source_text": "- **RSI: 47.76** - Neutral territory, none of overbought/oversold extremes"
     },
     {
      "interpretation_id": "rsi_14d_bearish",
@@ -680,7 +869,7 @@
      "action_bias": "trim_or_watch",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### **3. RSI - Momentum Gauge**"
+     "source_text": "- **RSI: 47.76** - Neutral territory, none of overbought/oversold extremes"
     }
    ]
   },
@@ -768,7 +957,7 @@
      "action_bias": "buy_or_increase",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### **2. MACD Analysis - Momentum Signals**"
+     "source_text": "- **MACD: -2.20** with Signal at -3.24 - Both indicators negative, suggesting downward momentum"
     },
     {
      "interpretation_id": "macd_bearish",
@@ -782,7 +971,7 @@
      "action_bias": "trim_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### **2. MACD Analysis - Momentum Signals**"
+     "source_text": "- **MACD: -2.20** with Signal at -3.24 - Both indicators negative, suggesting downward momentum"
     }
    ]
   },
@@ -870,7 +1059,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **MACD Histogram (+1.04)**: Positive and improving, suggesting momentum is stabilizing"
+     "source_text": "- **MACD Histogram: 1.04** - Positive divergence between MACD line and signal, potential reversal signal"
     },
     {
      "interpretation_id": "macd_histogram_bearish",
@@ -884,7 +1073,7 @@
      "action_bias": "trim_or_underweight",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **MACD Histogram (+1.04)**: Positive and improving, suggesting momentum is stabilizing"
+     "source_text": "- **MACD Histogram: 1.04** - Positive divergence between MACD line and signal, potential reversal signal"
     }
    ]
   },
@@ -970,7 +1159,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### **4. Bollinger Bands - Volatility Assessment**"
+     "source_text": "- **Bollinger Bands: Middle $214.11, Upper $226.72, Lower $201.51** - Price sitting near middle band"
     },
     {
      "interpretation_id": "bollinger_bands_20d_bearish",
@@ -984,7 +1173,7 @@
      "action_bias": "trim_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### **4. Bollinger Bands - Volatility Assessment**"
+     "source_text": "- **Bollinger Bands: Middle $214.11, Upper $226.72, Lower $201.51** - Price sitting near middle band"
     }
    ]
   },
@@ -1069,7 +1258,7 @@
      "action_bias": "size_position",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **ATR (8.16)**: Moderate volatility, suggesting price swings of around $8 per day on average"
+     "source_text": "- **ATR: $8.16** - Moderate volatility, suggesting healthy price movement without excessive swings"
     },
     {
      "interpretation_id": "atr_14d_bearish",
@@ -1082,7 +1271,7 @@
      "action_bias": "reduce_position_size",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **ATR (8.16)**: Moderate volatility, suggesting price swings of around $8 per day on average"
+     "source_text": "- **ATR: $8.16** - Moderate volatility, suggesting healthy price movement without excessive swings"
     }
    ]
   },
@@ -1166,7 +1355,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### **Support & Resistance Zones**"
+     "source_text": "AMD is currently trading at $214.16, showing a consolidation pattern after significant volatility. The stock has found equilibrium between medium-term resistance and long-term support, creating a nuanced trading scenario."
     },
     {
      "interpretation_id": "support_level_bearish",
@@ -1180,7 +1369,7 @@
      "action_bias": "sell_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### **Support & Resistance Zones**"
+     "source_text": "AMD is currently trading at $214.16, showing a consolidation pattern after significant volatility. The stock has found equilibrium between medium-term resistance and long-term support, creating a nuanced trading scenario."
     }
    ]
   },
@@ -1264,7 +1453,7 @@
      "action_bias": "buy_or_increase",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### **Support & Resistance Zones**"
+     "source_text": "AMD is currently trading at $214.16, showing a consolidation pattern after significant volatility. The stock has found equilibrium between medium-term resistance and long-term support, creating a nuanced trading scenario."
     },
     {
      "interpretation_id": "resistance_level_bearish",
@@ -1278,7 +1467,7 @@
      "action_bias": "hold_or_underweight",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "### **Support & Resistance Zones**"
+     "source_text": "AMD is currently trading at $214.16, showing a consolidation pattern after significant volatility. The stock has found equilibrium between medium-term resistance and long-term support, creating a nuanced trading scenario."
     }
    ]
   },
@@ -1356,7 +1545,7 @@
      "action_bias": "hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "**Stop Loss**: 206.0"
+     "source_text": "3. **Position Management**: Keep existing exposure but avoid scaling up until directional bias clarifies. Consider small incremental positions if breakout occurs, with tight stop-losses below recent support levels."
     },
     {
      "interpretation_id": "stop_loss_bearish",
@@ -1370,7 +1559,7 @@
      "action_bias": "sell_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "**Stop Loss**: 206.0"
+     "source_text": "3. **Position Management**: Keep existing exposure but avoid scaling up until directional bias clarifies. Consider small incremental positions if breakout occurs, with tight stop-losses below recent support levels."
     }
    ]
   },
@@ -1783,8 +1972,8 @@
   "strategy_id": "oil-rates-growth-tech",
   "spec_version": "v0.1",
   "compiler_version": "v0.1.0",
-  "generated_at": "2026-06-21T07:19:27Z",
-  "compiler_mode": "ensemble",
+  "generated_at": "2026-06-21T17:12:15Z",
+  "compiler_mode": "single",
   "ensemble_method": "weighted_vote",
   "engines": [
    {
@@ -1806,24 +1995,6 @@
      ],
      "max_symbols": 1,
      "ta_path": "~/Github/TradingAgents"
-    }
-   },
-   {
-    "name": "virattt/ai-hedge-fund",
-    "version": "2026.6.17",
-    "weight": 0.5,
-    "role": "fundamental_sentiment_portfolio_reasoning",
-    "symbols": [
-     "QQQ",
-     "NVDA",
-     "AMD",
-     "TLT",
-     "USO"
-    ],
-    "config": {
-     "adapter_script": "scripts/ai_hedge_fund_adapter.py",
-     "ahf_path": "~/Github/ai-hedge-fund",
-     "max_symbols": 1
     }
    }
   ],
@@ -1849,20 +2020,24 @@
   "source_files": [
    "manifest.json",
    "rules.json",
+   "signal_interests.json",
+   "signals.json",
    "strategy.md"
   ],
   "source_hashes": {
    "manifest.json": "sha256:dd38dfc989472c4a944c853c9b2e17f81b9c2183a1670d5d88386737e14af85c",
    "rules.json": "sha256:01220bd2330607632c9608546e875ab1166993864711c28c5993781f04d0c14e",
+   "signal_interests.json": "sha256:5f8edcea7b17d2ddaa493c2f6e96330698420466f3cd47228c6d7ae82dde5d19",
+   "signals.json": "sha256:e5ad81d40dff05c8061760bcaad9493a9cf44b88efd399578e007b11bdfff5cb",
    "strategy.md": "sha256:fd7c8373f74998639e5a703177562d091a8581662b7e2a9aa627daf224dae5b4"
   },
   "outputs": {
    "reasoning.md": "sha256:example",
-   "strategy.ir.json": "sha256:9f9f953a0d8ab9fc5a144b5af11c89daf8f603707b7062b8e1ec42a70da37a2b",
+   "strategy.ir.json": "sha256:2edef27da79f8d90f61ff3158f86d7bbd9a13ffc554eeb70cd04a7abcfb7ea05",
    "validation-report.json": "sha256:example"
   },
-  "ir_sha256": "sha256:9f9f953a0d8ab9fc5a144b5af11c89daf8f603707b7062b8e1ec42a70da37a2b",
-  "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy"
+  "ir_sha256": "sha256:2edef27da79f8d90f61ff3158f86d7bbd9a13ffc554eeb70cd04a7abcfb7ea05",
+  "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Hold"
  },
  "extensions": {
   "agent_reports": [
@@ -1872,7 +2047,7 @@
     "date": "2025-12-31",
     "format": "markdown",
     "path": "agent-reports/tradingagents-AMD-2025-12-31.md",
-    "sha256": "sha256:147dd89256c7f5e73e177586d6b0f5b0fe6f4d321eb2ae79dbf3d621c4dcabad"
+    "sha256": "sha256:6486a49d14dfa546423cdee88d8918ccd9b74e11a54cf99c818e5a1588b683a9"
    }
   ]
  }
