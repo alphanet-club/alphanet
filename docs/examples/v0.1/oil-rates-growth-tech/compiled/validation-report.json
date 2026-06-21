@@ -1,7 +1,7 @@
 {
  "status": "warning",
  "spec_version": "v0.1",
- "validated_at": "2026-06-21T17:14:24Z",
+ "validated_at": "2026-06-21T17:42:05Z",
  "schemas": [
   "alphanet.schema.json",
   "manifest.schema.json",

@@ -7,7 +7,7 @@
   "version": "0.1.0",
   "spec_version": "v0.1",
   "compiler_version": "v0.1.0",
-  "generated_at": "2026-06-21T17:12:15Z",
+  "generated_at": "2026-06-21T17:39:50Z",
   "tags": [
    "macro",
    "rates",
@@ -285,7 +285,7 @@
    "family": "agents",
    "type": "trading_signal",
    "name": "TradingAgents decision for AMD",
-   "description": "TradingAgents decision for AMD on 2025-12-31: Hold",
+   "description": "TradingAgents decision for AMD on 2025-12-31: Buy",
    "source": {
     "name": "TradingAgents"
    },
@@ -294,14 +294,14 @@
    "frequency": "point_in_time",
    "unit": "decision",
    "date": "2025-12-31",
-   "value": "hold",
+   "value": "buy",
    "confidence": 0.7,
-   "rationale": "Hold",
+   "rationale": "Buy",
    "recommendation": {
-    "action": "hold",
-    "rating": "hold",
+    "action": "buy",
+    "rating": "buy",
     "confidence": 0.7,
-    "rationale": "Hold"
+    "rationale": "Buy"
    }
   }
  ],
@@ -571,7 +571,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **10 EMA: $213.89** - Near-current price, suggesting short-term consolidation"
+     "source_text": "- **10 EMA**: $213.89 (immediate support)"
     },
     {
      "interpretation_id": "close_10_ema_bearish",
@@ -585,7 +585,7 @@
      "action_bias": "trim_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **10 EMA: $213.89** - Near-current price, suggesting short-term consolidation"
+     "source_text": "- **10 EMA**: $213.89 (immediate support)"
     }
    ]
   },
@@ -665,7 +665,7 @@
      "action_bias": "buy_or_increase",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **50 SMA: $227.92** - Resistive medium-term level, price currently trading ~4.3% below this key benchmark"
+     "source_text": "- **Current Price**: $214.16 (below 50 SMA, above 200 SMA)"
     },
     {
      "interpretation_id": "close_50_sma_bearish",
@@ -679,7 +679,7 @@
      "action_bias": "sell_or_underweight",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **50 SMA: $227.92** - Resistive medium-term level, price currently trading ~4.3% below this key benchmark"
+     "source_text": "- **Current Price**: $214.16 (below 50 SMA, above 200 SMA)"
     }
    ]
   },
@@ -759,7 +759,7 @@
      "action_bias": "allow_long_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **200 SMA: $162.63** - Strong long-term support, indicating overall bullish structure remains intact"
+     "source_text": "- **Current Price**: $214.16 (below 50 SMA, above 200 SMA)"
     },
     {
      "interpretation_id": "close_200_sma_bearish",
@@ -773,7 +773,7 @@
      "action_bias": "reduce_or_avoid",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **200 SMA: $162.63** - Strong long-term support, indicating overall bullish structure remains intact"
+     "source_text": "- **Current Price**: $214.16 (below 50 SMA, above 200 SMA)"
     }
    ]
   },
@@ -854,7 +854,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **RSI: 47.76** - Neutral territory, none of overbought/oversold extremes"
+     "source_text": "### RSI Analysis"
     },
     {
      "interpretation_id": "rsi_14d_bearish",
@@ -869,7 +869,7 @@
      "action_bias": "trim_or_watch",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **RSI: 47.76** - Neutral territory, none of overbought/oversold extremes"
+     "source_text": "### RSI Analysis"
     }
    ]
   },
@@ -957,7 +957,7 @@
      "action_bias": "buy_or_increase",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **MACD: -2.20** with Signal at -3.24 - Both indicators negative, suggesting downward momentum"
+     "source_text": "### MACD Analysis"
     },
     {
      "interpretation_id": "macd_bearish",
@@ -971,7 +971,7 @@
      "action_bias": "trim_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **MACD: -2.20** with Signal at -3.24 - Both indicators negative, suggesting downward momentum"
+     "source_text": "### MACD Analysis"
     }
    ]
   },
@@ -1059,7 +1059,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **MACD Histogram: 1.04** - Positive divergence between MACD line and signal, potential reversal signal"
+     "source_text": "- **MACD Histogram**: +1.04 (recently turned positive)"
     },
     {
      "interpretation_id": "macd_histogram_bearish",
@@ -1073,7 +1073,7 @@
      "action_bias": "trim_or_underweight",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **MACD Histogram: 1.04** - Positive divergence between MACD line and signal, potential reversal signal"
+     "source_text": "- **MACD Histogram**: +1.04 (recently turned positive)"
     }
    ]
   },
@@ -1159,7 +1159,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **Bollinger Bands: Middle $214.11, Upper $226.72, Lower $201.51** - Price sitting near middle band"
+     "source_text": "## Bollinger Band Analysis"
     },
     {
      "interpretation_id": "bollinger_bands_20d_bearish",
@@ -1173,7 +1173,7 @@
      "action_bias": "trim_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **Bollinger Bands: Middle $214.11, Upper $226.72, Lower $201.51** - Price sitting near middle band"
+     "source_text": "## Bollinger Band Analysis"
     }
    ]
   },
@@ -1258,7 +1258,7 @@
      "action_bias": "size_position",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **ATR: $8.16** - Moderate volatility, suggesting healthy price movement without excessive swings"
+     "source_text": "| **ATR** | $8.16 | Volatility Measure |"
     },
     {
      "interpretation_id": "atr_14d_bearish",
@@ -1271,7 +1271,7 @@
      "action_bias": "reduce_position_size",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "- **ATR: $8.16** - Moderate volatility, suggesting healthy price movement without excessive swings"
+     "source_text": "| **ATR** | $8.16 | Volatility Measure |"
     }
    ]
   },
@@ -1355,7 +1355,7 @@
      "action_bias": "buy_or_hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "AMD is currently trading at $214.16, showing a consolidation pattern after significant volatility. The stock has found equilibrium between medium-term resistance and long-term support, creating a nuanced trading scenario."
+     "source_text": "- **200 SMA**: $162.63 (key long-term support)"
     },
     {
      "interpretation_id": "support_level_bearish",
@@ -1369,7 +1369,7 @@
      "action_bias": "sell_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "AMD is currently trading at $214.16, showing a consolidation pattern after significant volatility. The stock has found equilibrium between medium-term resistance and long-term support, creating a nuanced trading scenario."
+     "source_text": "- **200 SMA**: $162.63 (key long-term support)"
     }
    ]
   },
@@ -1453,7 +1453,7 @@
      "action_bias": "buy_or_increase",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "AMD is currently trading at $214.16, showing a consolidation pattern after significant volatility. The stock has found equilibrium between medium-term resistance and long-term support, creating a nuanced trading scenario."
+     "source_text": "- **50 SMA**: $227.92 (significant resistance level)"
     },
     {
      "interpretation_id": "resistance_level_bearish",
@@ -1467,7 +1467,7 @@
      "action_bias": "hold_or_underweight",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "AMD is currently trading at $214.16, showing a consolidation pattern after significant volatility. The stock has found equilibrium between medium-term resistance and long-term support, creating a nuanced trading scenario."
+     "source_text": "- **50 SMA**: $227.92 (significant resistance level)"
     }
    ]
   },
@@ -1545,7 +1545,7 @@
      "action_bias": "hold",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "3. **Position Management**: Keep existing exposure but avoid scaling up until directional bias clarifies. Consider small incremental positions if breakout occurs, with tight stop-losses below recent support levels."
+     "source_text": "3. **Volatility Consideration**: Wide Bollinger bands suggest using wider stop-losses"
     },
     {
      "interpretation_id": "stop_loss_bearish",
@@ -1559,7 +1559,7 @@
      "action_bias": "sell_or_reduce",
      "applies_to": "rules",
      "confidence": 0.55,
-     "source_text": "3. **Position Management**: Keep existing exposure but avoid scaling up until directional bias clarifies. Consider small incremental positions if breakout occurs, with tight stop-losses below recent support levels."
+     "source_text": "3. **Volatility Consideration**: Wide Bollinger bands suggest using wider stop-losses"
     }
    ]
   },
@@ -1659,9 +1659,49 @@
  "portfolio": {
   "base_currency": "USD",
   "starting_cash": 100000,
+  "targets": {
+   "bonds": 0.2,
+   "cash": 0.15,
+   "equities": 0.65
+  },
+  "soft_targets": [
+   {
+    "target": "growth_technology",
+    "weight": 0.25,
+    "tolerance": 0.1,
+    "priority": 70
+   },
+   {
+    "target": "cash",
+    "weight": 0.15,
+    "tolerance": 0.05,
+    "priority": 90
+   }
+  ],
+  "constraints": {
+   "cash_min": 0.1,
+   "max_single_position": 0.15,
+   "max_asset_class_weight": {
+    "bonds": 0.5,
+    "commodities": 0.25,
+    "equities": 0.75
+   },
+   "max_sector_weight": {
+    "energy": 0.25,
+    "technology": 0.4
+   },
+   "max_leverage": 1
+  },
+  "risk_budgets": {
+   "max_portfolio_volatility": 0.22,
+   "max_drawdown": 0.18,
+   "max_daily_turnover": 0.12,
+   "max_trade_weight": 0.08
+  },
   "rebalance": {
    "frequency": "daily",
-   "threshold": 0.05
+   "threshold": 0.05,
+   "allow_partial_rebalance": true
   },
   "initial_allocation": {
    "mode": "weights",
@@ -1972,7 +2012,7 @@
   "strategy_id": "oil-rates-growth-tech",
   "spec_version": "v0.1",
   "compiler_version": "v0.1.0",
-  "generated_at": "2026-06-21T17:12:15Z",
+  "generated_at": "2026-06-21T17:39:50Z",
   "compiler_mode": "single",
   "ensemble_method": "weighted_vote",
   "engines": [
@@ -2025,7 +2065,7 @@
    "strategy.md"
   ],
   "source_hashes": {
-   "manifest.json": "sha256:dd38dfc989472c4a944c853c9b2e17f81b9c2183a1670d5d88386737e14af85c",
+   "manifest.json": "sha256:6dd0180760dd1caa38fbdfe9d0a17f77736c8c085d9c6780434921fbe5f50814",
    "rules.json": "sha256:01220bd2330607632c9608546e875ab1166993864711c28c5993781f04d0c14e",
    "signal_interests.json": "sha256:5f8edcea7b17d2ddaa493c2f6e96330698420466f3cd47228c6d7ae82dde5d19",
    "signals.json": "sha256:e5ad81d40dff05c8061760bcaad9493a9cf44b88efd399578e007b11bdfff5cb",
@@ -2033,11 +2073,11 @@
   },
   "outputs": {
    "reasoning.md": "sha256:example",
-   "strategy.ir.json": "sha256:2edef27da79f8d90f61ff3158f86d7bbd9a13ffc554eeb70cd04a7abcfb7ea05",
+   "strategy.ir.json": "sha256:0dfe613dc6b5b33de4f7384ebcfceca16877e79ab3d83746e6e6fffcb6153178",
    "validation-report.json": "sha256:example"
   },
-  "ir_sha256": "sha256:2edef27da79f8d90f61ff3158f86d7bbd9a13ffc554eeb70cd04a7abcfb7ea05",
-  "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Hold"
+  "ir_sha256": "sha256:0dfe613dc6b5b33de4f7384ebcfceca16877e79ab3d83746e6e6fffcb6153178",
+  "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy"
  },
  "extensions": {
   "agent_reports": [
@@ -2047,7 +2087,7 @@
     "date": "2025-12-31",
     "format": "markdown",
     "path": "agent-reports/tradingagents-AMD-2025-12-31.md",
-    "sha256": "sha256:6486a49d14dfa546423cdee88d8918ccd9b74e11a54cf99c818e5a1588b683a9"
+    "sha256": "sha256:76c299c887d38978b5175852678a3fd1c49e37eca325a3e311a7ae6dd68102dc"
    }
   ]
  }

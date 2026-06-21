@@ -3,7 +3,7 @@
  "strategy_id": "oil-rates-growth-tech",
  "spec_version": "v0.1",
  "compiler_version": "v0.1.0",
- "generated_at": "2026-06-21T17:12:15Z",
+ "generated_at": "2026-06-21T17:39:50Z",
  "compiler_mode": "single",
  "ensemble_method": "weighted_vote",
  "engines": [
@@ -56,7 +56,7 @@
   "strategy.md"
  ],
  "source_hashes": {
-  "manifest.json": "sha256:dd38dfc989472c4a944c853c9b2e17f81b9c2183a1670d5d88386737e14af85c",
+  "manifest.json": "sha256:6dd0180760dd1caa38fbdfe9d0a17f77736c8c085d9c6780434921fbe5f50814",
   "rules.json": "sha256:01220bd2330607632c9608546e875ab1166993864711c28c5993781f04d0c14e",
   "signal_interests.json": "sha256:5f8edcea7b17d2ddaa493c2f6e96330698420466f3cd47228c6d7ae82dde5d19",
   "signals.json": "sha256:e5ad81d40dff05c8061760bcaad9493a9cf44b88efd399578e007b11bdfff5cb",
@@ -64,9 +64,9 @@
  },
  "outputs": {
   "reasoning.md": "sha256:example",
-  "strategy.ir.json": "sha256:2edef27da79f8d90f61ff3158f86d7bbd9a13ffc554eeb70cd04a7abcfb7ea05",
+  "strategy.ir.json": "sha256:0dfe613dc6b5b33de4f7384ebcfceca16877e79ab3d83746e6e6fffcb6153178",
   "validation-report.json": "sha256:example"
  },
- "ir_sha256": "sha256:2edef27da79f8d90f61ff3158f86d7bbd9a13ffc554eeb70cd04a7abcfb7ea05",
- "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Hold"
+ "ir_sha256": "sha256:0dfe613dc6b5b33de4f7384ebcfceca16877e79ab3d83746e6e6fffcb6153178",
+ "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy"
 }

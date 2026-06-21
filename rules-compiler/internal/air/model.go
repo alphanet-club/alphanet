@@ -341,35 +341,80 @@ type AIRPortfolio struct {
 // PortfolioConstraints defines hard limits that must never be violated.
 type PortfolioConstraints struct {
 	CashMin             *float64           `json:"cash_min,omitempty"`
+	CashMax             *float64           `json:"cash_max,omitempty"`
 	MaxSinglePosition   *float64           `json:"max_single_position,omitempty"`
+	MinSinglePosition   *float64           `json:"min_single_position,omitempty"`
+	MaxPositions        *int               `json:"max_positions,omitempty"`
+	MinPositions        *int               `json:"min_positions,omitempty"`
 	MaxAssetClassWeight map[string]float64 `json:"max_asset_class_weight,omitempty"`
+	MinAssetClassWeight map[string]float64 `json:"min_asset_class_weight,omitempty"`
 	MaxSectorWeight     map[string]float64 `json:"max_sector_weight,omitempty"`
+	MinSectorWeight     map[string]float64 `json:"min_sector_weight,omitempty"`
+	MaxThemeWeight      map[string]float64 `json:"max_theme_weight,omitempty"`
+	MaxFactorExposure   map[string]float64 `json:"max_factor_exposure,omitempty"`
+	MinFactorExposure   map[string]float64 `json:"min_factor_exposure,omitempty"`
 	MaxLeverage         *float64           `json:"max_leverage,omitempty"`
-	AllowShorting       bool               `json:"allow_shorting,omitempty"`
-	AllowMargin         bool               `json:"allow_margin,omitempty"`
+	AllowShorting       *bool              `json:"allow_shorting,omitempty"`
+	AllowMargin         *bool              `json:"allow_margin,omitempty"`
+	AllowedAssets       []string           `json:"allowed_assets,omitempty"`
+	BlockedAssets       []string           `json:"blocked_assets,omitempty"`
+	AllowedAssetClasses []string           `json:"allowed_asset_classes,omitempty"`
+	BlockedAssetClasses []string           `json:"blocked_asset_classes,omitempty"`
 }
 
 // RiskBudgets defines portfolio-level risk limits.
 type RiskBudgets struct {
-	MaxPortfolioVolatility *float64 `json:"max_portfolio_volatility,omitempty"`
-	MaxDrawdown            *float64 `json:"max_drawdown,omitempty"`
-	MaxDailyTurnover       *float64 `json:"max_daily_turnover,omitempty"`
-	MaxTradeWeight         *float64 `json:"max_trade_weight,omitempty"`
+	MaxPortfolioVolatility    *float64         `json:"max_portfolio_volatility,omitempty"`
+	TargetPortfolioVolatility *float64         `json:"target_portfolio_volatility,omitempty"`
+	MaxDrawdown               *float64         `json:"max_drawdown,omitempty"`
+	MaxBeta                   *float64         `json:"max_beta,omitempty"`
+	MinBeta                   *float64         `json:"min_beta,omitempty"`
+	MaxDailyTurnover          *float64         `json:"max_daily_turnover,omitempty"`
+	MaxMonthlyTurnover        *float64         `json:"max_monthly_turnover,omitempty"`
+	MaxTradeWeight            *float64         `json:"max_trade_weight,omitempty"`
+	MaxTradeNotional          *float64         `json:"max_trade_notional,omitempty"`
+	MaxDailyLoss              *float64         `json:"max_daily_loss,omitempty"`
+	MaxVaR                    *float64         `json:"max_var,omitempty"`
+	MaxCVaR                   *float64         `json:"max_cvar,omitempty"`
+	DeRiskingPolicy           *DeRiskingPolicy `json:"de_risking_policy,omitempty"`
+}
+
+// DeRiskingPolicy defines what to do after a risk-budget breach.
+type DeRiskingPolicy struct {
+	Enabled      *bool   `json:"enabled,omitempty"`
+	Trigger      string  `json:"trigger,omitempty"`
+	Action       string  `json:"action,omitempty"`
+	Amount       float64 `json:"amount,omitempty"`
+	CooldownDays int     `json:"cooldown_days,omitempty"`
 }
 
 // RebalancePolicy defines how and when the portfolio rebalances.
 type RebalancePolicy struct {
-	Frequency             string  `json:"frequency"`
-	Threshold             float64 `json:"threshold,omitempty"`
-	AllowPartialRebalance bool    `json:"allow_partial_rebalance,omitempty"`
+	Frequency             string          `json:"frequency"`
+	Threshold             float64         `json:"threshold,omitempty"`
+	AllowPartialRebalance bool            `json:"allow_partial_rebalance,omitempty"`
+	MinTradeWeight        float64         `json:"min_trade_weight,omitempty"`
+	MaxRebalanceTurnover  float64         `json:"max_rebalance_turnover,omitempty"`
+	Calendar              *CalendarConfig `json:"calendar,omitempty"`
+}
+
+// CalendarConfig defines calendar parameters for scheduled rebalances.
+type CalendarConfig struct {
+	DayOfWeek  string `json:"day_of_week,omitempty"`
+	DayOfMonth int    `json:"day_of_month,omitempty"`
 }
 
 // SoftTarget is an allocation target with a tolerance band.
 type SoftTarget struct {
-	Target    string  `json:"target"`
-	Weight    float64 `json:"weight"`
-	Tolerance float64 `json:"tolerance"`
-	Priority  int     `json:"priority,omitempty"`
+	Target                string   `json:"target"`
+	TargetKind            string   `json:"target_kind,omitempty"`
+	Weight                float64  `json:"weight"`
+	Tolerance             float64  `json:"tolerance"`
+	Min                   *float64 `json:"min,omitempty"`
+	Max                   *float64 `json:"max,omitempty"`
+	Priority              int      `json:"priority,omitempty"`
+	RebalanceWhenBreached *bool    `json:"rebalance_when_breached,omitempty"`
+	Description           string   `json:"description,omitempty"`
 }
 
 // InitialAllocation defines the starting portfolio state.
