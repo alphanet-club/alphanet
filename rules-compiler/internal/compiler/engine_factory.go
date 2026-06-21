@@ -3,6 +3,7 @@ package compiler
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/alphanet/rules-compiler/internal/air"
 	"github.com/alphanet/rules-compiler/internal/engines"
@@ -11,18 +12,13 @@ import (
 	"github.com/alphanet/rules-compiler/internal/validation"
 )
 
-// EngineFactory creates engine instances based on configuration.
 type EngineFactory struct {
 	registry map[string]func() (engines.Engine, error)
 }
 
-// NewEngineFactory creates a new engine factory with default engines registered.
 func NewEngineFactory() *EngineFactory {
-	factory := &EngineFactory{
-		registry: make(map[string]func() (engines.Engine, error)),
-	}
+	factory := &EngineFactory{registry: map[string]func() (engines.Engine, error){}}
 
-	// Register TradingAgents engine adapter (both short and full names)
 	factory.Register("tradingagents", func() (engines.Engine, error) {
 		return &engines.TradingAgentsEngine{}, nil
 	})
@@ -30,7 +26,6 @@ func NewEngineFactory() *EngineFactory {
 		return &engines.TradingAgentsEngine{}, nil
 	})
 
-	// Register AI Hedge Fund engine adapter (both short and full names)
 	factory.Register("ai-hedge-fund", func() (engines.Engine, error) {
 		return &engines.AIHedgeFundEngine{}, nil
 	})
@@ -41,24 +36,24 @@ func NewEngineFactory() *EngineFactory {
 	return factory
 }
 
-// Register adds an engine constructor to the factory.
 func (f *EngineFactory) Register(name string, constructor func() (engines.Engine, error)) {
 	f.registry[name] = constructor
 }
 
-// CreateEngine creates an engine instance by name.
 func (f *EngineFactory) CreateEngine(name string) (engines.Engine, error) {
-	constructor, exists := f.registry[name]
-	if !exists {
+	constructor, ok := f.registry[name]
+	if !ok {
 		return nil, fmt.Errorf("unknown engine: %s", name)
 	}
 	return constructor()
 }
 
-// CreateEngines creates multiple engine instances from configuration and initialises them.
 func (f *EngineFactory) CreateEngines(configs []air.EngineConfig) ([]engines.Engine, error) {
 	var result []engines.Engine
 	for _, cfg := range configs {
+		if cfg.Enabled != nil && !*cfg.Enabled {
+			continue
+		}
 		engine, err := f.CreateEngine(cfg.Name)
 		if err != nil {
 			return nil, fmt.Errorf("creating engine %s: %w", cfg.Name, err)
@@ -71,28 +66,25 @@ func (f *EngineFactory) CreateEngines(configs []air.EngineConfig) ([]engines.Eng
 	return result, nil
 }
 
-// compileWithEngines handles "single" and "ensemble" modes by calling agent engines
-// and merging their output into the AIR artifact.
 func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules []air.Rule, normPortfolio *air.AIRPortfolio, warnings []string, opts Options) (*CompileResult, error) {
-	// Determine the original compiler mode
 	compilerMode := resolveOriginalMode(src.Manifest, opts.ModeOverride)
+	engineConfigs := activeEngineConfigs(src.Manifest.Compiler.Engines)
 
-	// Create engine factory
+	if compilerMode == "single" && len(engineConfigs) > 1 {
+		warnings = append(warnings, fmt.Sprintf("mode single selected; using first enabled engine only: %s", engineConfigs[0].Name))
+		engineConfigs = engineConfigs[:1]
+	}
+
 	factory := NewEngineFactory()
-
-	// Attempt to create engines from manifest configuration
-	engineList, err := factory.CreateEngines(src.Manifest.Compiler.Engines)
+	engineList, err := factory.CreateEngines(engineConfigs)
 	if err != nil {
 		return nil, fmt.Errorf("creating engines: %w", err)
 	}
-
 	if len(engineList) == 0 {
-		allWarnings := warnings
-		allWarnings = append(allWarnings, fmt.Sprintf("Mode %q requires engine support but no engines configured.", compilerMode))
-		return compileManual(src, normRules, normPortfolio, allWarnings, opts)
+		warnings = append(warnings, fmt.Sprintf("mode %q requested but no enabled engines are configured", compilerMode))
+		return compileManual(src, normRules, normPortfolio, warnings, opts)
 	}
 
-	// Build engine input from source context
 	engineInput := engines.EngineInput{
 		Manifest:       *src.Manifest,
 		StrategyMD:     src.StrategyMD,
@@ -103,68 +95,51 @@ func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules [
 		TrainingWindow: src.Manifest.Compiler.TrainingWindow,
 		Portfolio:      src.Manifest.Portfolio,
 	}
-
-	// Collect symbols for engine analysis
 	for _, sym := range src.Manifest.Universe.Symbols {
-		if sym != "cash" && sym != "CASH" {
+		if !strings.EqualFold(sym, "cash") {
 			engineInput.Universe = append(engineInput.Universe, sym)
 		}
 	}
 
-	// Call each engine and merge results
-	var allSignals []air.Signal
-	var allNotes []string
-
+	var engineSignals []air.Signal
+	var engineNotes []string
 	for _, engine := range engineList {
 		output, err := engine.Analyze(ctx, engineInput)
 		if err != nil {
-			warnings = append(warnings, fmt.Sprintf("Engine '%s' error: %v", engine.Name(), err))
+			warnings = append(warnings, fmt.Sprintf("Engine %q error: %v", engine.Name(), err))
 			continue
 		}
-
-		// Merge signals from engine output
 		for _, sig := range output.Signals {
-			if sig.Action == "add" || sig.Action == "" {
-				allSignals = append(allSignals, sig.Signal)
+			if sig.Action == "" || sig.Action == "add" {
+				engineSignals = append(engineSignals, sig.Signal)
 			}
 		}
-
-		// Collect notes
-		if output.Notes != "" {
-			allNotes = append(allNotes, output.Notes)
+		if strings.TrimSpace(output.Notes) != "" {
+			engineNotes = append(engineNotes, output.Notes)
 		}
 	}
 
-	// Create enriched source context with engine-provided signals
 	enrichedSrc := *src
-	enrichedSrc.Signals = append(enrichedSrc.Signals, allSignals...)
+	enrichedSrc.Signals = append(enrichedSrc.Signals, engineSignals...)
 
-	// Build execution config enriched with backtest data
 	decisionHierarchy := air.DefaultDecisionHierarchy()
 	execConfig := air.EnrichExecutionConfig(air.DefaultExecutionConfig(), src.Manifest.Backtest)
-
-	// Build AI R with engine-enriched signals
 	airData := air.BuildAIR(enrichedSrc, normPortfolio, normRules, decisionHierarchy, execConfig, nil)
 
-	// Build provenance with engine metadata
-	prov := provenance.Build(&enrichedSrc, compilerMode, src.Manifest.Compiler.Engines, "", nil)
-
-	// Compute IR hash
+	prov := provenance.Build(&enrichedSrc, compilerMode, engineConfigs, "", nil)
 	canonical, err := air.CanonicalJSON(airData)
 	if err != nil {
 		return nil, fmt.Errorf("computing canonical AIR: %w", err)
 	}
 	irHash := air.HashBytes(canonical)
 	outputHashes := computeOutputHashes(airData, irHash)
-
-	// Rebuild provenance with hashes
-	prov = provenance.Build(&enrichedSrc, compilerMode, src.Manifest.Compiler.Engines, irHash, outputHashes)
+	prov = provenance.Build(&enrichedSrc, compilerMode, engineConfigs, irHash, outputHashes)
+	if len(engineNotes) > 0 {
+		prov.Notes = strings.TrimSpace(prov.Notes + "\n\nEngine notes:\n- " + strings.Join(engineNotes, "\n- "))
+	}
 	airData.Provenance = prov
 
-	// Build reasoning
 	reason := reasoning.Build(&enrichedSrc, compilerMode, normRules, warnings)
-
-	// Build validation report
 	vr := validation.BuildReport(airData, warnings, src.Manifest.SpecVersion)
 
 	if opts.ValidateOnly {
@@ -186,7 +161,17 @@ func compileWithEngines(ctx context.Context, src *air.SourceContext, normRules [
 	}, nil
 }
 
-// resolveOriginalMode returns the original compiler mode, accounting for overrides.
+func activeEngineConfigs(configs []air.EngineConfig) []air.EngineConfig {
+	out := make([]air.EngineConfig, 0, len(configs))
+	for _, cfg := range configs {
+		if cfg.Enabled != nil && !*cfg.Enabled {
+			continue
+		}
+		out = append(out, cfg)
+	}
+	return out
+}
+
 func resolveOriginalMode(m *air.Manifest, override string) string {
 	if override != "" {
 		return override

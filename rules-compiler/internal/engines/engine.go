@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"time"
+	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/alphanet/rules-compiler/internal/air"
 )
 
-// Engine defines the interface for agent engines that can analyze strategy sources
-// and provide suggestions during compilation.
 type Engine interface {
 	Name() string
 	Version() string
@@ -21,7 +22,6 @@ type Engine interface {
 	Init(config air.EngineConfig) error
 }
 
-// EngineInput contains all data an engine may need to analyze.
 type EngineInput struct {
 	Manifest       air.Manifest
 	StrategyMD     string
@@ -34,7 +34,6 @@ type EngineInput struct {
 	Portfolio      air.PortfolioConfig
 }
 
-// EngineOutput contains suggestions produced by an engine.
 type EngineOutput struct {
 	Signals          []SignalSuggestion          `json:"signals,omitempty"`
 	Relations        []RelationSuggestion        `json:"relations,omitempty"`
@@ -46,18 +45,6 @@ type EngineOutput struct {
 	Notes            string                      `json:"notes,omitempty"`
 }
 
-// wrapperOutput mirrors the JSON output from tradingagents_wrapper.py
-type wrapperOutput struct {
-	Signals []struct {
-		Action     string     `json:"action"`
-		Signal     air.Signal `json:"signal"`
-		Confidence float64    `json:"confidence"`
-		Rationale  string     `json:"rationale"`
-	} `json:"signals"`
-	Notes string `json:"notes"`
-}
-
-// SignalSuggestion wraps a signal with metadata.
 type SignalSuggestion struct {
 	Action     string     `json:"action"`
 	Signal     air.Signal `json:"signal"`
@@ -65,7 +52,6 @@ type SignalSuggestion struct {
 	Rationale  string     `json:"rationale,omitempty"`
 }
 
-// RelationSuggestion wraps a relation with metadata.
 type RelationSuggestion struct {
 	Action     string       `json:"action"`
 	Relation   air.Relation `json:"relation"`
@@ -73,7 +59,6 @@ type RelationSuggestion struct {
 	Rationale  string       `json:"rationale,omitempty"`
 }
 
-// RegimeSuggestion wraps a regime with metadata.
 type RegimeSuggestion struct {
 	Action     string     `json:"action"`
 	Regime     air.Regime `json:"regime"`
@@ -81,7 +66,6 @@ type RegimeSuggestion struct {
 	Rationale  string     `json:"rationale,omitempty"`
 }
 
-// RuleSuggestion wraps a rule with metadata.
 type RuleSuggestion struct {
 	Action     string   `json:"action"`
 	Rule       air.Rule `json:"rule"`
@@ -89,7 +73,6 @@ type RuleSuggestion struct {
 	Rationale  string   `json:"rationale,omitempty"`
 }
 
-// CandidateBasketSuggestion wraps a basket suggestion.
 type CandidateBasketSuggestion struct {
 	Action     string              `json:"action"`
 	Basket     air.CandidateBasket `json:"basket"`
@@ -97,14 +80,12 @@ type CandidateBasketSuggestion struct {
 	Rationale  string              `json:"rationale,omitempty"`
 }
 
-// SelectionPolicySuggestion wraps a selection policy suggestion.
 type SelectionPolicySuggestion struct {
 	SelectionPolicy air.SelectionPolicy `json:"selection_policy"`
 	Confidence      float64             `json:"confidence,omitempty"`
 	Rationale       string              `json:"rationale,omitempty"`
 }
 
-// PortfolioSuggestion wraps portfolio-level adjustments.
 type PortfolioSuggestion struct {
 	Targets     map[string]float64        `json:"targets,omitempty"`
 	Constraints *air.PortfolioConstraints `json:"constraints,omitempty"`
@@ -113,21 +94,26 @@ type PortfolioSuggestion struct {
 	Rationale   string                    `json:"rationale,omitempty"`
 }
 
-// wrapperInput is the input JSON we send to the TradingAgents wrapper script.
-type wrapperInput struct {
+type adapterInput struct {
 	Symbols  []string `json:"symbols"`
 	Date     string   `json:"date"`
-	Analysts []string `json:"analysts"`
+	Analysts []string `json:"analysts,omitempty"`
 }
 
-// TradingAgentsEngine implements the Engine interface for the TradingAgents framework.
-type TradingAgentsEngine struct {
-	name    string
-	version string
-	config  air.EngineConfig
+type adapterOutput struct {
+	Signals []SignalSuggestion `json:"signals,omitempty"`
+	Notes   string             `json:"notes,omitempty"`
+}
 
-	// wrapperScript is the path to tradingagents_wrapper.py.
-	wrapperScript string
+type TradingAgentsEngine struct {
+	name          string
+	version       string
+	config        air.EngineConfig
+	python        string
+	adapterScript string
+	taPath        string
+	analysts      []string
+	maxSymbols    int
 }
 
 func (e *TradingAgentsEngine) Name() string    { return e.name }
@@ -137,131 +123,127 @@ func (e *TradingAgentsEngine) Init(config air.EngineConfig) error {
 	e.name = config.Name
 	e.version = config.Version
 	e.config = config
-	if cfg, ok := config.Config["wrapper_script"]; ok {
-		if path, ok := cfg.(string); ok && path != "" {
-			e.wrapperScript = path
-		}
+
+	e.adapterScript = stringConfig(config.Config, "adapter_script")
+	if e.adapterScript == "" {
+		e.adapterScript = stringConfig(config.Config, "wrapper_script")
 	}
-	if e.wrapperScript == "" {
-		e.wrapperScript = "scripts/tradingagents_wrapper.py"
+	if e.adapterScript == "" {
+		e.adapterScript = "scripts/tradingagents_adapter.py"
 	}
+	e.adapterScript = absPath(e.adapterScript)
+
+	e.taPath = stringConfig(config.Config, "ta_path")
+	if e.taPath == "" {
+		e.taPath = os.Getenv("TRADINGAGENTS_HOME")
+	}
+	e.taPath = expandPath(e.taPath)
+
+	e.python = stringConfig(config.Config, "python")
+	if e.python == "" {
+		e.python = stringConfig(config.Config, "python_path")
+	}
+	if e.python == "" {
+		e.python = os.Getenv("ALPHANET_TA_PYTHON")
+	}
+	if e.python == "" && e.taPath != "" {
+		e.python = findTradingAgentsPython(e.taPath)
+	}
+	if e.python == "" {
+		e.python = "python3"
+	}
+	e.python = expandPath(e.python)
+
+	e.analysts = stringSliceConfig(config.Config, "analysts")
+	if len(e.analysts) == 0 {
+		e.analysts = []string{"market"}
+	}
+
+	e.maxSymbols = intConfig(config.Config, "max_symbols")
+	if e.maxSymbols <= 0 {
+		e.maxSymbols = intEnv("ALPHANET_TA_MAX_SYMBOLS")
+	}
+
 	return nil
 }
 
 func (e *TradingAgentsEngine) Analyze(ctx context.Context, input EngineInput) (EngineOutput, error) {
-	_ = os.Stderr
-	fmt.Fprintf(os.Stderr, "[TradingAgents] starting analysis...\n")
-
-	symbols := buildSymbolList(input)
-	date := resolveDate(input)
-	fmt.Fprintf(os.Stderr, "[TradingAgents] symbols=%v date=%s\n", symbols, date)
-
-	wi := wrapperInput{Symbols: symbols, Date: date, Analysts: []string{"market"}}
-	wiJSON, _ := json.Marshal(wi)
-	fmt.Fprintf(os.Stderr, "[TradingAgents] input JSON (%d bytes)\n", len(wiJSON))
-
-	wrapperArgs := []string{e.wrapperScript}
-	if cfg, ok := e.config.Config["ta_path"]; ok {
-		if path, ok := cfg.(string); ok && path != "" {
-			wrapperArgs = append(wrapperArgs, "--ta-path", path)
-		}
+	symbols := e.symbolsForEngine(input)
+	if e.maxSymbols > 0 && len(symbols) > e.maxSymbols {
+		symbols = symbols[:e.maxSymbols]
+	}
+	if len(symbols) == 0 {
+		return EngineOutput{Notes: fmt.Sprintf("%s: skipped; no symbols configured", e.name)}, nil
 	}
 
-	pythonCmd := "python3"
-	if _, err := exec.LookPath("python3"); err != nil {
-		pythonCmd = "python"
+	req := adapterInput{
+		Symbols:  symbols,
+		Date:     resolveDate(input),
+		Analysts: e.analysts,
 	}
-	fmt.Fprintf(os.Stderr, "[TradingAgents] running: %s %v\n", pythonCmd, wrapperArgs)
+	payload, err := json.Marshal(req)
+	if err != nil {
+		return EngineOutput{}, fmt.Errorf("marshal TradingAgents request: %w", err)
+	}
 
-	ctxT, cancel := context.WithTimeout(ctx, 600*time.Second)
-	defer cancel()
+	args := []string{e.adapterScript}
+	if e.taPath != "" {
+		args = append(args, "--ta-home", e.taPath)
+	}
 
-	cmd := exec.CommandContext(ctxT, pythonCmd, wrapperArgs...)
-	cmd.Stdin = bytes.NewReader(wiJSON)
+	if os.Getenv("ALPHANET_TA_DEBUG") != "" {
+		fmt.Fprintf(os.Stderr, "[TradingAgents] python=%s adapter=%s symbols=%v date=%s\n", e.python, e.adapterScript, symbols, req.Date)
+	}
+
+	cmd := exec.CommandContext(ctx, e.python, args...)
+	cmd.Stdin = bytes.NewReader(payload)
+	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
+	if e.taPath != "" {
+		cmd.Env = append(cmd.Env, "TRADINGAGENTS_HOME="+e.taPath)
+	}
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	fmt.Fprintf(os.Stderr, "[TradingAgents] starting subprocess...\n")
-	if err := cmd.Start(); err != nil {
-		return EngineOutput{}, fmt.Errorf("start: %w", err)
-	}
-	fmt.Fprintf(os.Stderr, "[TradingAgents] waiting for subprocess (PID=%d)...\n", cmd.Process.Pid)
-
-	if err := cmd.Wait(); err != nil {
-		if ctxT.Err() == context.DeadlineExceeded {
-			return EngineOutput{}, fmt.Errorf("timed out after 600s")
-		}
-		return EngineOutput{}, fmt.Errorf("run: %w (stderr: %s)", err, stderr.String())
+	if err := cmd.Run(); err != nil {
+		return EngineOutput{}, fmt.Errorf("TradingAgents adapter failed: %w; stderr=%s; stdout=%s", err, tail(stderr.String(), 4000), tail(stdout.String(), 2000))
 	}
 
-	fmt.Fprintf(os.Stderr, "[TradingAgents] subprocess done\n")
-
-	rawStdout := stdout.String()
-	if len(rawStdout) > 500 {
-		fmt.Fprintf(os.Stderr, "[TradingAgents] stdout (first 500): %s\n", rawStdout[:500])
-	} else {
-		fmt.Fprintf(os.Stderr, "[TradingAgents] stdout: %s\n", rawStdout)
-	}
-	if stderr.Len() > 0 {
-		fmt.Fprintf(os.Stderr, "[TradingAgents] stderr: %s\n", stderr.String())
+	if stderr.Len() > 0 && os.Getenv("ALPHANET_TA_DEBUG") != "" {
+		fmt.Fprintf(os.Stderr, "%s", stderr.String())
 	}
 
-	var wo wrapperOutput
-	if err := json.Unmarshal([]byte(rawStdout), &wo); err != nil {
-		return EngineOutput{}, fmt.Errorf("parse: %w (raw: %s)", err, rawStdout)
+	raw := strings.TrimSpace(stdout.String())
+	var out adapterOutput
+	if err := json.Unmarshal([]byte(raw), &out); err != nil {
+		return EngineOutput{}, fmt.Errorf("parse TradingAgents adapter JSON: %w; stdout=%s; stderr=%s", err, tail(raw, 4000), tail(stderr.String(), 2000))
 	}
 
-	out := EngineOutput{Notes: fmt.Sprintf("TradingAgents (v%s): %s", e.version, wo.Notes)}
-	for _, ws := range wo.Signals {
-		out.Signals = append(out.Signals, SignalSuggestion{
-			Action: ws.Action, Signal: ws.Signal,
-			Confidence: ws.Confidence, Rationale: ws.Rationale,
-		})
-	}
-	return out, nil
+	return EngineOutput{
+		Signals: out.Signals,
+		Notes:   fmt.Sprintf("%s (v%s): %s", e.name, e.version, out.Notes),
+	}, nil
 }
 
-func buildSymbolList(input EngineInput) []string {
-	symbolSet := make(map[string]bool)
-	for _, s := range input.Manifest.Universe.Symbols {
-		if s != "cash" && s != "CASH" {
-			symbolSet[s] = true
+func (e *TradingAgentsEngine) symbolsForEngine(input EngineInput) []string {
+	set := map[string]bool{}
+	for _, s := range e.config.Symbols {
+		addSymbol(set, s)
+	}
+	if len(set) == 0 {
+		for _, s := range input.Universe {
+			addSymbol(set, s)
 		}
 	}
-	for _, e := range input.Manifest.Compiler.Engines {
-		for _, sym := range e.Symbols {
-			if sym != "cash" && sym != "CASH" {
-				symbolSet[sym] = true
-			}
+	if len(set) == 0 {
+		for _, s := range input.Manifest.Universe.Symbols {
+			addSymbol(set, s)
 		}
 	}
-	syms := make([]string, 0, len(symbolSet))
-	for s := range symbolSet {
-		syms = append(syms, s)
-	}
-	for i := 0; i < len(syms); i++ {
-		for j := i + 1; j < len(syms); j++ {
-			if syms[i] > syms[j] {
-				syms[i], syms[j] = syms[j], syms[i]
-			}
-		}
-	}
-	return syms
+	return sortedSymbols(set)
 }
 
-func resolveDate(input EngineInput) string {
-	if input.Manifest.Backtest.End != "" {
-		return input.Manifest.Backtest.End
-	}
-	if input.TrainingWindow != nil && input.TrainingWindow.End != "" {
-		return input.TrainingWindow.End
-	}
-	return "2024-05-10"
-}
-
-// AIHedgeFundEngine implements the Engine interface for the AI Hedge Fund framework.
 type AIHedgeFundEngine struct {
 	name    string
 	version string
@@ -280,6 +262,156 @@ func (e *AIHedgeFundEngine) Init(config air.EngineConfig) error {
 
 func (e *AIHedgeFundEngine) Analyze(ctx context.Context, input EngineInput) (EngineOutput, error) {
 	return EngineOutput{
-		Notes: fmt.Sprintf("AI Hedge Fund (v%s): engine adapter not yet implemented.", e.version),
+		Notes: fmt.Sprintf("%s (v%s): adapter not implemented; no changes emitted", e.name, e.version),
 	}, nil
+}
+
+func resolveDate(input EngineInput) string {
+	if input.Manifest.Backtest.End != "" {
+		return input.Manifest.Backtest.End
+	}
+	if input.TrainingWindow != nil && input.TrainingWindow.End != "" {
+		return input.TrainingWindow.End
+	}
+	return "2024-05-10"
+}
+
+func addSymbol(set map[string]bool, s string) {
+	s = strings.TrimSpace(strings.ToUpper(s))
+	if s == "" || s == "CASH" {
+		return
+	}
+	set[s] = true
+}
+
+func sortedSymbols(set map[string]bool) []string {
+	out := make([]string, 0, len(set))
+	for s := range set {
+		out = append(out, s)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func stringConfig(m map[string]any, key string) string {
+	if m == nil {
+		return ""
+	}
+	v, ok := m[key]
+	if !ok || v == nil {
+		return ""
+	}
+	if s, ok := v.(string); ok {
+		return strings.TrimSpace(s)
+	}
+	return ""
+}
+
+func stringSliceConfig(m map[string]any, key string) []string {
+	if m == nil {
+		return nil
+	}
+	v, ok := m[key]
+	if !ok || v == nil {
+		return nil
+	}
+	switch x := v.(type) {
+	case []string:
+		return x
+	case []any:
+		out := make([]string, 0, len(x))
+		for _, item := range x {
+			if s, ok := item.(string); ok && strings.TrimSpace(s) != "" {
+				out = append(out, strings.TrimSpace(s))
+			}
+		}
+		return out
+	case string:
+		if strings.TrimSpace(x) == "" {
+			return nil
+		}
+		parts := strings.Split(x, ",")
+		out := make([]string, 0, len(parts))
+		for _, p := range parts {
+			if s := strings.TrimSpace(p); s != "" {
+				out = append(out, s)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func intConfig(m map[string]any, key string) int {
+	if m == nil {
+		return 0
+	}
+	v, ok := m[key]
+	if !ok || v == nil {
+		return 0
+	}
+	switch x := v.(type) {
+	case int:
+		return x
+	case float64:
+		return int(x)
+	case string:
+		n, _ := strconv.Atoi(strings.TrimSpace(x))
+		return n
+	default:
+		return 0
+	}
+}
+
+func intEnv(key string) int {
+	n, _ := strconv.Atoi(strings.TrimSpace(os.Getenv(key)))
+	return n
+}
+
+func findTradingAgentsPython(taPath string) string {
+	for _, rel := range []string{
+		"venv/bin/python3",
+		"venv/bin/python",
+		".venv/bin/python3",
+		".venv/bin/python",
+	} {
+		p := filepath.Join(taPath, rel)
+		if st, err := os.Stat(p); err == nil && !st.IsDir() {
+			return p
+		}
+	}
+	return ""
+}
+
+func absPath(path string) string {
+	path = expandPath(path)
+	if path == "" || filepath.IsAbs(path) {
+		return path
+	}
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return path
+	}
+	return abs
+}
+
+func expandPath(path string) string {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return ""
+	}
+	if strings.HasPrefix(path, "~/") {
+		if home, err := os.UserHomeDir(); err == nil {
+			return filepath.Join(home, path[2:])
+		}
+	}
+	return os.ExpandEnv(path)
+}
+
+func tail(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	return s[len(s)-max:]
 }

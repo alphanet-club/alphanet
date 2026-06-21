@@ -80,33 +80,6 @@ compiled/strategy.ir.json
 
 This is the only file required by the backtester.
 
-## Warnings
-
-- Engine 'TauricResearch/TradingAgents' error: run: exit status 1 (stderr: Traceback (most recent call last):
-  File "/Users/patrick/Github/alphanet/rules-compiler/scripts/tradingagents_wrapper.py", line 208, in <module>
-    main()
-    ~~~~^^
-  File "/Users/patrick/Github/alphanet/rules-compiler/scripts/tradingagents_wrapper.py", line 175, in main
-    proc = subprocess.run(
-        [venv_python, __file__, "--input-file", tmpfile],
-        capture_output=True, text=True, timeout=20, env=ta_env,
-    )
-  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 557, in run
-    stdout, stderr = process.communicate(input, timeout=timeout)
-                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1221, in communicate
-    stdout, stderr = self._communicate(input, endtime, timeout)
-                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 2154, in _communicate
-    self._check_timeout(endtime, orig_timeout, stdout, stderr)
-    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1268, in _check_timeout
-    raise TimeoutExpired(
-    ...<2 lines>...
-            stderr=b''.join(stderr_seq) if stderr_seq else None)
-subprocess.TimeoutExpired: Command '['/Users/patrick/Github/TradingAgents/venv/bin/python3', '/Users/patrick/Github/alphanet/rules-compiler/scripts/tradingagents_wrapper.py', '--input-file', '/var/folders/sn/24s5h_hs4szdzynxj_9g08cc0000gn/T/tmp00nwl_30.json']' timed out after 20 seconds
-)
-
 ## Portfolio Initialization Update
 
 The compiled AIR now explicitly separates:

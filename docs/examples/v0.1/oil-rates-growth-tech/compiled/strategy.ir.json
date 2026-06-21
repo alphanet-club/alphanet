@@ -7,7 +7,7 @@
     "version": "0.1.0",
     "spec_version": "v0.1",
     "compiler_version": "v0.1.0",
-    "generated_at": "2026-06-21T01:35:29Z",
+    "generated_at": "2026-06-21T02:06:19Z",
     "tags": [
       "macro",
       "rates",
@@ -279,7 +279,21 @@
     ],
     "benchmark": "SPY"
   },
-  "signals": [],
+  "signals": [
+    {
+      "signal_id": "amd_tradingagents_decision",
+      "family": "agents",
+      "type": "trading_signal",
+      "description": "TradingAgents decision for AMD on 2025-12-31: Buy",
+      "source": {
+        "name": "TradingAgents"
+      },
+      "symbol": "AMD",
+      "transform": "level",
+      "frequency": "daily",
+      "unit": "signal"
+    }
+  ],
   "portfolio": {
     "base_currency": "USD",
     "starting_cash": 100000,
@@ -596,7 +610,7 @@
     "strategy_id": "oil-rates-growth-tech",
     "spec_version": "v0.1",
     "compiler_version": "v0.1.0",
-    "generated_at": "2026-06-21T01:35:29Z",
+    "generated_at": "2026-06-21T02:06:19Z",
     "compiler_mode": "ensemble",
     "ensemble_method": "weighted_vote",
     "engines": [
@@ -658,10 +672,10 @@
     },
     "outputs": {
       "reasoning.md": "sha256:example",
-      "strategy.ir.json": "sha256:643280c2edc4f7e75d1c76054d3d45ce19e29ab80ffe78f6c6aa37115d4b1d1e",
+      "strategy.ir.json": "sha256:beefaa5457afe914f2328b772a043a575d351bdf034a336cc39aac8f12c1505c",
       "validation-report.json": "sha256:example"
     },
-    "ir_sha256": "sha256:643280c2edc4f7e75d1c76054d3d45ce19e29ab80ffe78f6c6aa37115d4b1d1e",
-    "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json."
+    "ir_sha256": "sha256:beefaa5457afe914f2328b772a043a575d351bdf034a336cc39aac8f12c1505c",
+    "notes": "Example strategy uses two agent engines during compilation, but the backtester consumes only compiled/strategy.ir.json.\n\nEngine notes:\n- TauricResearch/TradingAgents (v0.2.5): TradingAgents adapter completed\nAMD: Buy\n- virattt/ai-hedge-fund (v2026.6.17): adapter not implemented; no changes emitted"
   }
 }
