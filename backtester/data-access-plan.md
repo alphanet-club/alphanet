@@ -23,7 +23,7 @@ The `schema.sql` is a seed/maintainer schema for initially creating and seeding 
 
 | Source | DoltHub database | Folder |
 |---|---|---|
-| Stooq | `alphanet_stooq` | `backtester/data-providers/stooq/` |
+| Alpaca | `alphanet_alpaca` | `backtester/data-providers/alpaca/` |
 | FRED | `alphanet_fred` | `backtester/data-providers/fred/` |
 | Cboe | `alphanet_cboe` | `backtester/data-providers/cboe/` |
 | IMF PortWatch | `alphanet_imf_portwatch` | `backtester/data-providers/imf-portwatch/` |

@@ -1,70 +1,119 @@
 # FRED Provider
 
-    DoltHub database:
+DoltHub database:
 
-    ```text
-    alphanet_fred
-    ```
+```text
+alphanet_fred
+```
 
-    Local folder:
+Local folder:
 
-    ```text
-    backtester/data-providers/fred/
-    ```
+```text
+backtester/data-providers/fred/
+```
 
-    Schema sample:
+Schema sample:
 
-    ```text
-    backtester/data-providers/fred/schema.sql
-    ```
+```text
+backtester/data-providers/fred/schema.sql
+```
 
-    ## Important Usage Model
+## Important Usage Model
 
 Most users should not create these tables themselves.
 
-In normal local use, users should clone the public AlphaNet DoltHub database for this provider and point the backtester at that clone.
-
-The `schema.sql` file in this folder is primarily for:
-
-- AlphaNet maintainers creating the initial public DoltHub database
-- seeding a new public provider database
-- integration tests
-- local development of ingestion adapters
-- documenting the expected source-specific table shape
+In normal local use, users should clone the public AlphaNet DoltHub database
+for this provider and point the backtester at that clone.
 
 Typical user workflow:
 
 ```bash
-dolt clone alphanet-club/<provider_database>
+# From the root:
+dolt clone alphanet-club/alphanet_fred ./data/dolthub/alphanet_fred
 ```
 
-Then configure the backtester to use that local clone or choose remote/public access for that source.
+## Purpose
 
+Macro, rates, WTI, broad dollar, and fallback volatility representation.
 
-    ## Purpose
+## Source URLs
 
-    Macro, rates, WTI, broad dollar, fallback volatility, and XAUUSD representation.
-
-    ## Source URLs
-
-    - `https://fred.stlouisfed.org/docs/api/fred/`
+- `https://fred.stlouisfed.org/docs/api/fred/`
 - `https://fred.stlouisfed.org/docs/api/fred/series_observations.html`
 - `https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={api_key}&file_type=json`
 
-    ## Authentication
+## Authentication
 
-    Requires FRED_API_KEY for API ingestion.
+Requires a FRED API key:
 
-    ## Official Scoring Status
+```bash
+export FRED_API_KEY="..."
+```
 
-    Allowed for official scoring once ingested into the public AlphaNet Dolt database.
+## Importer
 
-    ## Adapter Notes
+Install provider importer dependencies from the repository root:
 
-    AlphaNet XAUUSD maps to FRED GOLDPMGBD228NLBM in v1.
+```bash
+cd backtester/data-providers
+poetry install
+```
 
-    ## Runtime Role
+View importer options:
 
-    The provider adapter should convert this source-specific schema into normalized runtime records used by the backtester.
+```bash
+cd backtester/data-providers
+poetry run python fred/importer.py --help
+```
 
-    Cross-provider normalization happens in Go code, not by joining all data into one shared database.
+Seed a local Dolt database:
+
+```bash
+cd backtester/data-providers
+poetry run python fred/importer.py \
+  --db ../../data/dolthub/alphanet_fred \
+  --remote alphanet-club/alphanet_fred \
+  --init-schema \
+  --start 2026-01-01 \
+  --end 2026-01-31
+```
+
+Commit and push to DoltHub explicitly:
+
+```bash
+cd backtester/data-providers
+poetry run python fred/importer.py \
+  --db ../../data/dolthub/alphanet_fred \
+  --remote alphanet-club/alphanet_fred \
+  --init-schema \
+  --start 2026-01-01 \
+  --end 2026-01-31 \
+  --commit \
+  --push \
+  --branch main
+```
+
+By default the importer seeds `DGS10`, `DGS2`, `DCOILWTICO`, `DTWEXBGS`,
+and `VIXCLS`.
+
+Add or override series with repeatable `--series` flags:
+
+```bash
+--series DGS10=US10Y,"10-Year Treasury Constant Maturity Rate",rates
+--series FEDFUNDS=FEDFUNDS,"Effective Federal Funds Rate",rates
+```
+
+The script masks API keys in `ingestion_runs.request_url` and writes only to
+the local Dolt clone unless `--commit` and `--push` are explicitly provided.
+
+## Official Scoring Status
+
+Allowed for official scoring once ingested into the public AlphaNet Dolt database.
+
+## Runtime Role
+
+The provider adapter should convert this source-specific schema into normalized
+runtime records used by the backtester.
+
+Cross-provider normalization happens in Go code, not by joining all data into
+one shared database.

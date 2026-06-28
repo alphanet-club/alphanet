@@ -1,0 +1,29 @@
+# Local data stores and downloaded provider data
+data/
+
+# Python caches and virtual environments
+__pycache__/
+*.py[cod]
+.python-version
+.venv/
+venv/
+env/
+.poetry-cache/
+.poetry-config/
+
+# Go build/test artifacts
+bin/
+dist/
+coverage.out
+*.test
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp

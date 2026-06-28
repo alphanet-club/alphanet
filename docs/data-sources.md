@@ -39,7 +39,7 @@ The schema is a seed/maintainer schema for creating the public database. Most us
 ## Provider Databases
 
 ```text
-backtester/data-providers/stooq/           -> alphanet_stooq
+backtester/data-providers/alpaca/          -> alphanet_alpaca
 backtester/data-providers/fred/            -> alphanet_fred
 backtester/data-providers/cboe/            -> alphanet_cboe
 backtester/data-providers/imf-portwatch/   -> alphanet_imf_portwatch
@@ -97,7 +97,7 @@ Recommended environment variables:
 ```text
 ALPHANET_DOLTHUB_WRITE_ENABLED=false
 ALPHANET_DOLTHUB_PUSH_ENABLED=false
-ALPHANET_DOLTHUB_ALLOWED_SOURCES=stooq,fred,cboe
+ALPHANET_DOLTHUB_ALLOWED_SOURCES=alpaca,fred,cboe
 ```
 
 Default behavior:
@@ -122,11 +122,11 @@ Recommended config shape:
 
 ```json
 {
-  "sources": {
-    "stooq": {
-      "database": "alphanet_stooq",
+    "sources": {
+    "alpaca": {
+      "database": "alphanet_alpaca",
       "use_local_clone": true,
-      "local_clone_path": "./data/dolthub/alphanet_stooq",
+      "local_clone_path": "./data/dolthub/alphanet_alpaca",
       "remote_mode": "fallback"
     },
     "fred": {
@@ -196,7 +196,7 @@ Backtest summaries should record the selected source mode.
 mkdir -p data/dolthub
 cd data/dolthub
 
-dolt clone alphanet-club/alphanet_stooq
+dolt clone alphanet-club/alphanet_alpaca
 dolt clone alphanet-club/alphanet_fred
 dolt clone alphanet-club/alphanet_cboe
 dolt clone alphanet-club/alphanet_imf_portwatch
@@ -239,8 +239,8 @@ Example:
 {
   "data_commits": [
     {
-      "source": "stooq",
-      "database": "alphanet_stooq",
+      "source": "alpaca",
+      "database": "alphanet_alpaca",
       "commit": "abc123",
       "access_mode": "local_clone"
     },

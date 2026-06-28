@@ -1,5 +1,5 @@
 -- Dolt database: alphanet_fred
--- Purpose: FRED macro, rates, commodity, gold, dollar, and fallback volatility observations.
+-- Purpose: FRED macro, rates, WTI, broad dollar, and fallback volatility observations.
 -- Normal users usually clone the public database instead of running this schema manually.
 
 CREATE TABLE IF NOT EXISTS source_metadata (

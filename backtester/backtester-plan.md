@@ -1984,7 +1984,7 @@ Do not implement one combined database for all sources.
 Provider databases:
 
 ```text
-alphanet_stooq
+alphanet_alpaca
 alphanet_fred
 alphanet_cboe
 alphanet_imf_portwatch
