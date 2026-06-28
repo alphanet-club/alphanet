@@ -1,18 +1,18 @@
--- Dolt database: alphanet_stooq
--- Purpose: Stooq market price data for ETFs, equities, indexes, and simple commodity benchmark funds.
+-- Dolt database: alphanet_alpaca
+-- Purpose: Alpaca market data for equities and ETFs.
 -- Normal users usually clone the public database instead of running this schema manually.
 
 CREATE TABLE IF NOT EXISTS source_metadata (
     source_id VARCHAR(64) PRIMARY KEY,
     provider_name VARCHAR(128) NOT NULL,
-    source_url TEXT,
+    api_docs_url TEXT,
     terms_url TEXT,
     notes TEXT
 );
 
 CREATE TABLE IF NOT EXISTS symbols (
     symbol VARCHAR(64) PRIMARY KEY,
-    stooq_symbol VARCHAR(64) NOT NULL UNIQUE,
+    alpaca_symbol VARCHAR(64) NOT NULL UNIQUE,
     name VARCHAR(255),
     instrument_type VARCHAR(64) NOT NULL,
     exchange VARCHAR(64),
@@ -30,9 +30,14 @@ CREATE TABLE IF NOT EXISTS daily_prices (
     close DECIMAL(30,10),
     adjusted_close DECIMAL(30,10),
     volume DECIMAL(30,4),
-    source_id VARCHAR(64) NOT NULL DEFAULT 'stooq',
+    trade_count BIGINT,
+    vwap DECIMAL(30,10),
+    feed VARCHAR(64) NOT NULL,
+    timeframe VARCHAR(64) NOT NULL DEFAULT '1Day',
+    adjustment VARCHAR(64) NOT NULL DEFAULT 'raw',
+    source_id VARCHAR(64) NOT NULL DEFAULT 'alpaca',
     ingestion_id VARCHAR(128),
-    PRIMARY KEY (symbol, date),
+    PRIMARY KEY (symbol, date, feed, adjustment),
     KEY idx_daily_prices_symbol_date (symbol, date)
 );
 
@@ -41,7 +46,7 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
     started_at DATETIME NOT NULL,
     finished_at DATETIME,
     status VARCHAR(64) NOT NULL,
-    request_url TEXT,
+    request_params JSON,
     rows_read INT DEFAULT 0,
     rows_written INT DEFAULT 0,
     error_message TEXT,

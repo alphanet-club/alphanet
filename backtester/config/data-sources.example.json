@@ -34,12 +34,12 @@
       }
     },
     "sources": {
-      "stooq": {
-        "database": "alphanet_stooq",
+      "alpaca": {
+        "database": "alphanet_alpaca",
         "use_local_clone": true,
-        "local_clone_path": "./data/dolthub/alphanet_stooq",
+        "local_clone_path": "./data/dolthub/alphanet_alpaca",
         "remote_mode": "fallback",
-        "connection": "root:@tcp(127.0.0.1:3306)/alphanet_stooq"
+        "connection": "root:@tcp(127.0.0.1:3306)/alphanet_alpaca"
       },
       "fred": {
         "database": "alphanet_fred",
