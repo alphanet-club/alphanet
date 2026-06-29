@@ -56,11 +56,15 @@ Yahoo Finance is optional and not required for official scoring in v1.
 The backtester should resolve data in this priority order:
 
 ```text
-1. Local CSV files
-2. Local Dolt clone for that specific source
-3. AlphaNet public DoltHub database for that specific source
-4. Public API or public downloadable source
+1. Local Dolt clone for that specific source
+2. AlphaNet public DoltHub database for that specific source
+3. Public API or public downloadable source through the provider importer
+4. Local CSV files, when explicitly configured as fixtures or overrides
 ```
+
+The backtester should query local provider Dolt clones first, detect gaps, use
+remote Dolt SQL for missing slices, and call provider importers only when data
+is still unavailable.
 
 ---
 
@@ -219,13 +223,52 @@ Users should only need these memory/performance knobs:
 {
   "data_loading": {
     "mode": "rolling_window",
-    "window_trading_days": 60,
-    "memory_limit_mb": 256
+    "window_trading_days_target": 60,
+    "max_memory_mb": 256,
+    "max_storage_mb": 2048,
+    "source_storage_policy": "weighted_by_requirement",
+    "prune_after_window": false
   }
 }
 ```
 
-The backtester handles lookback inference, chunk planning, range queries, and memory checks internally.
+`window_trading_days_target` is a target. The backtester may shrink or expand
+actual windows based on inferred lookback, memory limits, and storage limits.
+
+The backtester handles lookback inference, adaptive chunk planning, gap
+detection, range queries, storage budgeting, and memory checks internally.
+
+The default `weighted_by_requirement` storage policy uses:
+
+```text
+provider_weight = required_rows * average_row_width * reuse_factor
+provider_budget = max_storage_mb * provider_weight / sum(provider_weights)
+```
+
+Remote Dolt SQL result sets count against `max_memory_mb` while the current
+rolling window is being evaluated. That memory should be released after each
+window unless the data was imported into a local provider Dolt clone.
+
+Provider-specific local Dolt clones remain the cache. The backtester should not
+normalize all provider data into one shared cache database.
+
+When `prune_after_window` is enabled, completed window data must be removed in
+a way that actually reclaims enough disk space to keep provider clones within
+their configured storage budgets. The backtester should verify measured
+on-disk usage after pruning.
+
+---
+
+## Public Database Rebalancing
+
+AlphaNet should periodically rebalance preloaded public provider Dolt data based
+on public usage and official strategy needs.
+
+Commonly used symbols, series, date ranges, and example-strategy requirements
+should be prioritized to keep routine backtests affordable.
+
+Less common data can remain available through remote SQL or provider importer
+fallback.
 
 ---
 

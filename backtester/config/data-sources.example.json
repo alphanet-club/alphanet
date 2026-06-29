@@ -8,8 +8,11 @@
     ],
     "data_loading": {
       "mode": "rolling_window",
-      "window_trading_days": 60,
-      "memory_limit_mb": 256
+      "window_trading_days_target": 60,
+      "max_memory_mb": 256,
+      "max_storage_mb": 2048,
+      "source_storage_policy": "weighted_by_requirement",
+      "prune_after_window": false
     },
     "cloud_data_access": {
       "mode": "auto",

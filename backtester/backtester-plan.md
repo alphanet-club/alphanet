@@ -94,6 +94,10 @@ Optional flags:
 --validate-only
 --decision-trace
 --fail-on-missing-data
+--window-trading-days-target 60
+--max-memory-mb 256
+--max-storage-mb 2048
+--prune-after-window=false
 ```
 
 `--starting-cash` should be treated as an explicit runtime override.
@@ -128,6 +132,10 @@ compiled/strategy.ir.json
 - benchmark
 - transaction cost override
 - slippage override
+- window trading days target
+- max memory
+- max local storage
+- prune-after-window policy
 - debug mode
 - trace verbosity
 
@@ -155,6 +163,7 @@ Contains:
 - exposure summaries
 - basket allocation summaries
 - candidate selection summaries
+- data plan and data resolution statistics
 
 ### Equity Curve
 
@@ -251,6 +260,10 @@ backtester/
 │   │   ├── model.go
 │   │   └── validate.go
 │   ├── data/
+│   │   ├── planner.go
+│   │   ├── requirements.go
+│   │   ├── resolver.go
+│   │   ├── dolt.go
 │   │   ├── provider.go
 │   │   ├── csv.go
 │   │   ├── memory.go
@@ -312,9 +325,108 @@ type BacktestConfig struct {
     DataVersion string
     OutputPath string
     StartingCash *float64
+    WindowTradingDaysTarget int
+    MaxMemoryMB int
+    MaxStorageMB int
+    PruneAfterWindow bool
     Trace bool
 }
 ```
+
+### DataRequirementPlan
+
+The backtester should create a `DataRequirementPlan` before loading data.
+
+The plan is derived from compiled AIR plus runtime date/config options.
+
+It should include:
+
+- required provider sources
+- symbols and series
+- fields
+- transform lookbacks
+- processing windows
+- lookback-expanded data windows
+- estimated rows and storage
+- estimated memory
+- source storage budgets
+- expected access modes
+
+Example:
+
+```go
+type DataRequirementPlan struct {
+    StartDate time.Time
+    EndDate time.Time
+    WindowTradingDaysTarget int
+    Windows []DataWindow
+    Sources []SourceRequirement
+    MaxMemoryMB int
+    MaxStorageMB int
+    SourceBudgets map[string]int
+}
+```
+
+### DataWindow
+
+```go
+type DataWindow struct {
+    ProcessingStart time.Time
+    ProcessingEnd time.Time
+    RequiredStart time.Time
+    RequiredEnd time.Time
+    MaxLookbackTradingDays int
+    EstimatedRows int64
+    EstimatedMemoryMB int
+    EstimatedStorageMB int
+}
+```
+
+`ProcessingStart` and `ProcessingEnd` define the dates evaluated by the
+backtester.
+
+`RequiredStart` and `RequiredEnd` define the wider data range needed to compute
+lookback-dependent signals for that processing window.
+
+### SourceRequirement
+
+```go
+type SourceRequirement struct {
+    Source string
+    Database string
+    Dataset string
+    Symbols []string
+    Series []string
+    Fields []string
+    RequiredStart time.Time
+    RequiredEnd time.Time
+    LookbackTradingDays int
+    Transforms []string
+    EstimatedRows int64
+    EstimatedMemoryMB int
+    EstimatedStorageMB int
+}
+```
+
+Source requirements should be granular enough for the resolver to detect and
+fill gaps without fetching entire provider databases.
+
+### DataResolutionStats
+
+```go
+type DataResolutionStats struct {
+    Source string
+    Database string
+    Commit string
+    AccessModesUsed []string
+    RowsFromLocal int64
+    RowsFromRemote int64
+    RowsImported int64
+    MissingRows int64
+}
+```
+
+These stats should be included in summary output.
 
 ### PortfolioState
 
@@ -438,11 +550,16 @@ Load AIR
     ↓
 Validate AIR
     ↓
-Load market data
+Build DataRequirementPlan
     ↓
-Initialize portfolio from AIR initial_allocation
+For each rolling window:
+    Expand data requirements by signal lookback
+    Resolve provider Dolt clone gaps from local, remote SQL, or importer
+    Load normalized runtime records for the processing window
     ↓
-For each date:
+Initialize portfolio from AIR initial_allocation, on first window only
+    ↓
+For each date in processing window:
     Evaluate signals
     Evaluate regimes
     Evaluate relations
@@ -455,6 +572,7 @@ For each date:
     Update portfolio
     Record trace
     Record metrics
+    Optionally prune provider Dolt clone data no longer needed
     ↓
 Write outputs
 ```
@@ -513,18 +631,99 @@ type DataProvider interface {
 }
 ```
 
-Start with CSV/local files.
+The primary v1 data path should use provider-specific local Dolt clones as the
+cache and workspace.
 
-Future adapters can support:
+The resolver should satisfy `DataRequirementPlan` gaps using:
 
+```text
+local provider Dolt clone
+    ↓
+public remote Dolt SQL query for missing slices
+    ↓
+provider importer into local provider Dolt clone
+```
+
+CSV/local files may remain useful for unit tests, golden tests, and explicit
+user overrides, but they should not be the main cache architecture.
+
+Provider adapters should support:
+
+- Alpaca local Dolt clone
 - FRED
-- Yahoo Finance
-- FMP
-- OECD
+- Cboe
 - IMF PortWatch
-- Parquet
-- DuckDB
-- SQLite
+- Alpha Vantage
+- Yahoo Finance, optional
+- CSV/local override
+
+---
+
+## Data Planning and Resolution
+
+The planner must inspect compiled AIR before simulation starts.
+
+It should collect requirements from:
+
+- signal interests
+- executable rule conditions
+- candidate basket ranking signals
+- initial allocation symbols
+- candidate basket symbols
+- benchmark symbols
+- execution pricing assumptions
+
+For each requirement, the planner should determine provider, dataset, symbol or
+series, field, transform, frequency, and lookback.
+
+The planner should then build adaptive rolling windows:
+
+```text
+window_trading_days_target = desired processing size
+required_start = processing_start - requirement_lookback
+required_end = processing_end
+```
+
+`window_trading_days_target` is a target. The planner may shrink the actual
+window when estimated memory or storage would exceed configured limits.
+
+Remote Dolt SQL result sets count against `max_memory_mb` while the current
+rolling window is being resolved and evaluated. After the processing window is
+complete, remote result memory should be released unless those rows were
+explicitly imported or streamed into a local provider Dolt clone.
+
+Storage budgets should be allocated across provider Dolt clones with the
+default `weighted_by_requirement` formula:
+
+```text
+provider_weight = required_rows * average_row_width * reuse_factor
+provider_budget = max_storage_mb * provider_weight / sum(provider_weights)
+```
+
+A market data source with many symbols, fields, rows, or repeated reuse should
+usually receive a larger allocation than compact macro series.
+
+For each window, the resolver should:
+
+1. Query the local provider Dolt clone.
+2. Detect missing symbols, series, fields, or date ranges.
+3. Query public remote Dolt SQL for the missing slices.
+4. Run the relevant importer into the local provider Dolt clone if data remains missing.
+5. Release remote query result memory after the processing window completes.
+6. Record resolution stats and data commits.
+
+Pruning completed window data should be configurable. When enabled, pruning
+must actually reclaim enough disk space to keep provider clones within their
+storage budgets. The implementation may use row deletion, ephemeral branches,
+temporary clones, Dolt garbage collection, compaction, or clone rotation, but it
+must verify measured on-disk usage after pruning. If the budget cannot be met,
+the planner must shrink future windows, avoid more imports, or fail with a
+clear storage-budget error.
+
+AlphaNet should periodically rebalance the public provider Dolt databases based
+on public usage and official strategy needs. Commonly used data should be
+preloaded so user backtests stay affordable, while less common data can remain
+available through remote query or importer fallback.
 
 ---
 
@@ -844,14 +1043,15 @@ Build a one-day evaluator.
 Milestone 1:
 
 1. Load AIR.
-2. Initialize portfolio from `initial_allocation`.
-3. Load one day of mock data.
-4. Evaluate one or two signals.
-5. Evaluate one regime.
-6. Evaluate one rule.
-7. Emit requested actions.
-8. Pass through portfolio engine.
-9. Emit decision trace.
+2. Build a minimal `DataRequirementPlan`.
+3. Resolve one day of local test data.
+4. Initialize portfolio from `initial_allocation`.
+5. Evaluate one or two signals.
+6. Evaluate one regime.
+7. Evaluate one rule.
+8. Emit requested actions.
+9. Pass through portfolio engine.
+10. Emit decision trace.
 
 No real historical backtest yet.
 
@@ -864,12 +1064,15 @@ Build multi-day replay.
 Tasks:
 
 1. Load date range.
-2. Iterate trading days.
-3. Evaluate signals daily.
-4. Track portfolio state.
-5. Track basket exposures.
-6. Generate equity curve.
-7. Generate decision trace.
+2. Build adaptive rolling windows from `window_trading_days_target`.
+3. Expand each window by required signal lookback.
+4. Resolve local provider Dolt clone gaps.
+5. Iterate trading days.
+6. Evaluate signals daily.
+7. Track portfolio state.
+8. Track basket exposures.
+9. Generate equity curve.
+10. Generate decision trace.
 
 ---
 
@@ -981,38 +1184,46 @@ Golden tests should verify:
 
 ## Data Strategy for v0.1
 
-Start with local CSV files.
+Start with provider-specific local Dolt clones.
 
 Example:
 
 ```text
 data/
-├── prices/
-│   ├── QQQ.csv
-│   ├── NVDA.csv
-│   ├── TLT.csv
-│   └── USO.csv
-├── macro/
-│   ├── WTI.csv
-│   ├── UST10Y.csv
-│   └── DXY.csv
-└── volatility/
-    └── VIX.csv
+└── dolthub/
+    ├── alphanet_alpaca/
+    ├── alphanet_fred/
+    ├── alphanet_cboe/
+    ├── alphanet_imf_portwatch/
+    ├── alphanet_alpha_vantage/
+    └── alphanet_yahoo_finance/
 ```
 
-CSV fields:
+The backtester should use the `DataRequirementPlan` to query only the source,
+symbol, series, field, and date ranges required for the current rolling window.
+
+For local development and tests, CSV fixtures may still be used.
+
+Market price fixture fields:
 
 ```text
 date,open,high,low,close,adjusted_close,volume
 ```
 
-Macro CSV fields:
+Macro fixture fields:
 
 ```text
 date,value
 ```
 
-Candidate basket symbols should use the same price file format as tradable symbols.
+Candidate basket symbols should use the same market price schema as tradable
+symbols.
+
+For production-like runs, missing local Dolt data should be resolved through
+remote Dolt SQL first, then provider importer fallback.
+
+Imported rolling-window data should remain uncommitted by default unless local
+or public writes are explicitly enabled.
 
 ---
 
@@ -1097,7 +1308,8 @@ The backtest summary should continue to include the core performance fields:
   "sharpe": 0.61,
   "sortino": 0.84,
   "max_drawdown": -0.168,
-  "turnover": 1.94
+  "turnover": 1.94,
+  "data_plan": {}
 }
 ```
 
